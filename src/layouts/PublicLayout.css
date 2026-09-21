@@ -1,0 +1,39 @@
+.public-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--color-dark);
+}
+
+.public-brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.public-nav {
+  display: flex;
+  gap: 20px;
+}
+
+.public-nav a {
+  color: var(--color-on-dark);
+  text-decoration: none;
+  opacity: 0.75;
+}
+
+.public-nav a:hover {
+  opacity: 1;
+}
+
+.public-nav a.active {
+  color: var(--color-accent);
+  font-weight: 700;
+  opacity: 1;
+}
+
+.public-content {
+  padding: 24px;
+}

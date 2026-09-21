@@ -5,7 +5,7 @@ import './Landing.css'
 function Landing() {
   return (
     <main className="landing">
-      <p className="landing-brand">{translate('landing.brand')}</p>
+      <p className="landing-brand">{translate('common.brand')}</p>
 
       <h1 className="landing-title">{translate('landing.title')}</h1>
       <p className="landing-description">{translate('landing.description')}</p>

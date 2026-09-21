@@ -1,3 +1,15 @@
+:root {
+  --color-bg: #f6f6f6;
+  --color-surface: #ffffff;
+  --color-dark: #111111;
+  --color-dark-soft: #2f2f2f;
+  --color-accent: #ffcb74;
+  --color-on-dark: #f6f6f6;
+  --color-text: #111111;
+  --color-text-muted: #5c5c5c;
+  --color-border: #e2e2e2;
+}
+
 *,
 *::before,
 *::after {
@@ -7,6 +19,8 @@
 body {
   margin: 0;
   font-family: system-ui, 'Segoe UI', Tahoma, sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
 }
 
 #root {
