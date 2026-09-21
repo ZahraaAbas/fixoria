@@ -1,0 +1,80 @@
+.landing {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding-block: 48px;
+  padding-inline: 24px;
+  color: #fff;
+  background-image:
+    linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0) 60%),
+    url('src/assets/images/background.webp');
+  background-size: cover;
+  background-position: center;
+}
+
+.landing-brand {
+  position: absolute;
+  top: 24px;
+  inset-inline-start: 24px;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.landing-title {
+  margin: 0 0 12px;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.2;
+}
+
+.landing-description {
+  max-width: 480px;
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.landing-link {
+  padding: 12px 24px;
+  color: #fff;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  backdrop-filter: blur(6px);
+  transition: background 0.2s;
+}
+
+.landing-link:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.landing-link:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.landing-link-guest {
+  flex-basis: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  backdrop-filter: none;
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+.landing-link-guest:hover {
+  background: none;
+  opacity: 1;
+}

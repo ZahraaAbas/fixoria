@@ -1,13 +1,16 @@
-
-import './App.css'
+import { BrowserRouter, Routes, Route } from 'react-router'
+import Landing from './pages/Landing'
+import NotFound from './pages/NotFound'
 
 function App() {
-
   return (
-    <>
-     <p>هلو</p>
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
-export default App
+export default App  
