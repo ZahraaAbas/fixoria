@@ -1,0 +1,35 @@
+.artisan-register-card {
+  max-width: 460px;
+}
+
+.artisan-register-card textarea {
+  padding: 12px;
+  font: inherit;
+  font-family: inherit;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  resize: vertical;
+}
+
+.artisan-register-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.artisan-register-category {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-weight: 500;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.artisan-register-category input {
+  cursor: pointer;
+}

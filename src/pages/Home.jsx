@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
 import { translate } from '../i18n'
 import { getCategories } from '../services/categoriesService'
+import { serviceVisuals } from '../config/serviceVisuals'
+import ServiceCard from '../components/ServiceCard'
 import './Home.css'
 
 function Home() {
@@ -55,15 +56,18 @@ function Home() {
       )}
 
       {!isLoading && !error && categories.length > 0 && (
-        <ul className="category-list">
-          {categories.map((category) => (
-            <li key={category.id} className="category-card">
-              <Link to={`/requests/new/${category.id}`} className="category-card-link">
-                {category.name}
-              </Link>
-            </li>
+        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {categories.map((category, index) => (
+            <ServiceCard
+              key={category.id}
+              to={`/requests/new/${category.id}`}
+              title={category.name}
+              Icon={serviceVisuals[category.id]?.Icon}
+              gradient={serviceVisuals[category.id]?.gradient}
+              delay={index * 0.08}
+            />
           ))}
-        </ul>
+        </div>
       )}
     </section>
   )

@@ -45,3 +45,70 @@ export function getRequestsByResident(residentId) {
     }, MOCK_DELAY_MS)
   })
 }
+// مؤقتة للتجربة فقط، ستُستبدل بمنطق الحرفي الحقيقي لاحقًا
+export function markRequestCompleted(id) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const requests = readStoredRequests()
+      const index = requests.findIndex((item) => item.id === Number(id))
+      if (index === -1) {
+        reject(new Error('NOT_FOUND'))
+        return
+      }
+      const updated = { ...requests[index], status: 'completed' }
+      requests[index] = updated
+      writeStoredRequests(requests)
+      resolve(updated)
+    }, MOCK_DELAY_MS)
+  })
+}
+
+export function submitReview(id, { rating, comment }) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const requests = readStoredRequests()
+      const index = requests.findIndex((item) => item.id === Number(id))
+      if (index === -1) {
+        reject(new Error('NOT_FOUND'))
+        return
+      }
+      const updated = {
+        ...requests[index],
+        review: { rating, comment, createdAt: new Date().toISOString() },
+      }
+      requests[index] = updated
+      writeStoredRequests(requests)
+      resolve(updated)
+    }, MOCK_DELAY_MS)
+  })
+}
+
+export function getRequestById(id) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const request = readStoredRequests().find((item) => item.id === Number(id))
+      if (!request) {
+        reject(new Error('NOT_FOUND'))
+        return
+      }
+      resolve(request)
+    }, MOCK_DELAY_MS)
+  })
+}
+
+export function cancelRequest(id) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const requests = readStoredRequests()
+      const index = requests.findIndex((item) => item.id === Number(id))
+      if (index === -1) {
+        reject(new Error('NOT_FOUND'))
+        return
+      }
+      const updated = { ...requests[index], status: 'cancelled' }
+      requests[index] = updated
+      writeStoredRequests(requests)
+      resolve(updated)
+    }, MOCK_DELAY_MS)
+  })
+}

@@ -59,11 +59,14 @@ function Artisans() {
           {artisans.map((artisan) => (
                        <li key={artisan.id} className="artisan-card">
               <Link to={`/artisans/${artisan.id}`} className="artisan-card-link">
-                <p className="artisan-name">{artisan.fullName}</p>
-                <p className="artisan-category">{artisan.categoryName}</p>
-                <p className="artisan-rating">
-                  ⭐ {artisan.rating} ({artisan.reviewsCount} {translate('artisans.reviewsCount')})
-                </p>
+                               <p className="artisan-category">{artisan.categoryNames.join('، ')}</p>
+                {artisan.reviewsCount > 0 ? (
+                  <p className="artisan-rating">
+                    ⭐ {artisan.rating} ({artisan.reviewsCount} {translate('artisans.reviewsCount')})
+                  </p>
+                ) : (
+                  <p className="artisan-rating">{translate('artisans.noReviews')}</p>
+                )}
               </Link>
             </li>
           ))}

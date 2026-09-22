@@ -1,13 +1,15 @@
 :root {
-  --color-bg: #f6f6f6;
+  --color-bg: #fbf6f3;
   --color-surface: #ffffff;
-  --color-dark: #111111;
-  --color-dark-soft: #2f2f2f;
-  --color-accent: #ffcb74;
-  --color-on-dark: #f6f6f6;
-  --color-text: #111111;
-  --color-text-muted: #5c5c5c;
-  --color-border: #e2e2e2;
+  --color-dark: #263056;
+  --color-dark-soft: #3a4570;
+  --color-accent: #f19035;
+  --color-accent-soft: #fdb78e;
+  --color-on-dark: #fdf3ee;
+  --color-text: #263056;
+  --color-text-muted: #8b7b76;
+  --color-border: #ead9d1;
+  --color-error: #c62828;
 }
 
 *,
@@ -18,7 +20,7 @@
 
 body {
   margin: 0;
-  font-family: system-ui, 'Segoe UI', Tahoma, sans-serif;
+  font-family: 'Tajawal', system-ui, 'Segoe UI', Tahoma, sans-serif;
   color: var(--color-text);
   background: var(--color-bg);
 }

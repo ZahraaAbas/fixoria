@@ -1,16 +1,21 @@
 import { BrowserRouter, Routes, Route } from 'react-router'
 import AuthProvider from './context/AuthProvider'
 import PublicLayout from './layouts/PublicLayout'
+import AdminLayout from './layouts/AdminLayout'
 import RequireAuth from './routes/RequireAuth'
 import Landing from './pages/Landing'
 import Home from './pages/Home'
 import Artisans from './pages/Artisans'
 import ArtisanProfile from './pages/ArtisanProfile'
 import RequestForm from './pages/RequestForm'
+import MyRequests from './pages/MyRequests'
+import RequestDetail from './pages/RequestDetail'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ArtisanRegister from './pages/ArtisanRegister'
+import ArtisanPending from './pages/ArtisanPending'
+import AdminArtisans from './pages/AdminArtisans'
 import NotFound from './pages/NotFound'
-import MyRequests from './pages/MyRequests'
 
 function App() {
   return (
@@ -27,7 +32,11 @@ function App() {
               path="/requests/new/:categoryId"
               element={
                 <RequireAuth role="resident">
-                              <Route
+                  <RequestForm />
+                </RequireAuth>
+              }
+            />
+            <Route
               path="/my-requests"
               element={
                 <RequireAuth role="resident">
@@ -35,16 +44,39 @@ function App() {
                 </RequireAuth>
               }
             />
-                  <RequestForm />
+            <Route
+              path="/my-requests/:id"
+              element={
+                <RequireAuth role="resident">
+                  <RequestDetail />
                 </RequireAuth>
               }
             />
+            <Route
+              path="/artisan/pending"
+              element={
+                <RequireAuth role="artisan">
+                  <ArtisanPending />
+                </RequireAuth>
+              }
+            />
+          </Route>
+
+          <Route
+            element={
+              <RequireAuth role="admin">
+                <AdminLayout />
+              </RequireAuth>
+            }
+          >
+            <Route path="/admin/artisans" element={<AdminArtisans />} />
           </Route>
 
           <Route path="/login" element={<Login role="resident" />} />
           <Route path="/artisan/login" element={<Login role="artisan" />} />
           <Route path="/admin/login" element={<Login role="admin" />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/artisan/register" element={<ArtisanRegister />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

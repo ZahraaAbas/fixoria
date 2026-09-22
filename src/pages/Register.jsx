@@ -1,6 +1,9 @@
 import { useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { translate } from '../i18n'
+import { registerResident } from '../services/authService'
+import { validateRegister } from '../utils/validators'
+import { useAuth } from '../hooks/useAuth'
 import './Auth.css'
 
 const fields = [
@@ -12,26 +15,49 @@ const fields = [
   { name: 'password', type: 'password', autoComplete: 'new-password' },
 ]
 
-const initialFormData = Object.fromEntries(
-  fields.map((field) => [field.name, '']),
-)
+const initialFormData = Object.fromEntries(fields.map((field) => [field.name, '']))
 
 function Register() {
+  const navigate = useNavigate()
+  const { signIn } = useAuth()
   const [formData, setFormData] = useState(initialFormData)
+  const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   function handleChange(event) {
     const { name, value } = event.target
     setFormData((current) => ({ ...current, [name]: value }))
+    setErrors((current) => ({ ...current, [name]: undefined }))
+    setSubmitError('')
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
-    // لاحقًا: إرسال formData إلى خدمة إنشاء الحساب
+
+    const validationErrors = validateRegister(formData)
+    setErrors(validationErrors)
+    if (Object.keys(validationErrors).length > 0) return
+
+    setIsSubmitting(true)
+    setSubmitError('')
+
+    try {
+      const user = await registerResident(formData)
+      signIn(user)
+      navigate('/home', { replace: true })
+    } catch (error) {
+      setSubmitError(
+        error.message === 'EMAIL_TAKEN' ? 'register.emailTaken' : 'register.genericError',
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <main className="auth-page">
-      <form className="auth-card" onSubmit={handleSubmit}>
+      <form className="auth-card" onSubmit={handleSubmit} noValidate>
         <Link to="/" className="auth-brand">
           {translate('common.brand')}
         </Link>
@@ -47,12 +73,22 @@ function Register() {
               value={formData[field.name]}
               onChange={handleChange}
               autoComplete={field.autoComplete}
+              aria-invalid={Boolean(errors[field.name])}
             />
+            {errors[field.name] && (
+              <span className="auth-error">{translate(errors[field.name])}</span>
+            )}
           </label>
         ))}
 
-        <button type="submit" className="auth-submit">
-          {translate('register.submit')}
+        {submitError && (
+          <p className="auth-alert" role="alert">
+            {translate(submitError)}
+          </p>
+        )}
+
+        <button type="submit" className="auth-submit" disabled={isSubmitting}>
+          {translate(isSubmitting ? 'register.submitting' : 'register.submit')}
         </button>
 
         <p className="auth-switch">

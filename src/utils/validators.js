@@ -52,3 +52,13 @@ export function validateRequest(values) {
     preferredDate: requiredError(values.preferredDate),
   })
 }
+export function validateArtisanRegister(values) {
+  return withoutEmpty({
+    fullName: requiredError(values.fullName),
+    phone: phoneError(values.phone),
+    email: emailError(values.email),
+    password: newPasswordError(values.password),
+    bio: requiredError(values.bio),
+    categoryIds: values.categoryIds.length > 0 ? '' : 'validation.selectAtLeastOne',
+  })
+}

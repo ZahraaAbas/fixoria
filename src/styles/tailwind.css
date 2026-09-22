@@ -1,0 +1,10 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@theme {
+  --color-fixoria-navy: #263056;
+  --color-fixoria-orange: #f19035;
+  --color-fixoria-peach: #fdb78e;
+  --color-fixoria-rose: #aa8173;
+  --color-fixoria-beige: #dac7c0;
+}

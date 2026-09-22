@@ -3,11 +3,8 @@ import { Link } from 'react-router'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
 import { getRequestsByResident } from '../services/requestsService'
+import { statusKey } from '../utils/requestStatus'
 import './MyRequests.css'
-
-function statusKey(status) {
-  return status.toLowerCase().replace(/\s+/g, '_')
-}
 
 function MyRequests() {
   const { user } = useAuth()
@@ -67,20 +64,22 @@ function MyRequests() {
         <ul className="request-list">
           {requests.map((request) => (
             <li key={request.id} className="request-card">
-              <div className="request-card-header">
-                <p className="request-card-title">{request.title}</p>
-                <span className={`request-badge status-${statusKey(request.status)}`}>
-                  {translate(`requestStatus.${statusKey(request.status)}`)}
-                </span>
-              </div>
-              <p className="request-card-category">
-                {translate('myRequests.category')}: {request.categoryName}
-              </p>
-              {request.preferredDate && (
-                <p className="request-card-date">
-                  {translate('myRequests.preferredDate')}: {request.preferredDate}
+              <Link to={`/my-requests/${request.id}`} className="request-card-link">
+                <div className="request-card-header">
+                  <p className="request-card-title">{request.title}</p>
+                  <span className={`request-badge status-${statusKey(request.status)}`}>
+                    {translate(`requestStatus.${statusKey(request.status)}`)}
+                  </span>
+                </div>
+                <p className="request-card-category">
+                  {translate('myRequests.category')}: {request.categoryName}
                 </p>
-              )}
+                {request.preferredDate && (
+                  <p className="request-card-date">
+                    {translate('myRequests.preferredDate')}: {request.preferredDate}
+                  </p>
+                )}
+              </Link>
             </li>
           ))}
         </ul>

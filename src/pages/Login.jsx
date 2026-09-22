@@ -6,6 +6,17 @@ import { validateLogin } from '../utils/validators'
 import { useAuth } from '../hooks/useAuth'
 import './Auth.css'
 
+const REGISTER_PATH = {
+  resident: '/register',
+  artisan: '/artisan/register',
+}
+
+const DEFAULT_REDIRECT = {
+  resident: '/home',
+  artisan: '/home',
+  admin: '/admin/artisans',
+}
+
 function Login({ role }) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -42,8 +53,15 @@ function Login({ role }) {
 
       signIn(user)
 
+      if (user.role === 'artisan' && user.status !== 'approved') {
+        navigate('/artisan/pending', { replace: true })
+        return
+      }
+
       const from = location.state?.from
-      const redirectTo = from ? `${from.pathname}${from.search || ''}` : '/home'
+      const redirectTo = from
+        ? `${from.pathname}${from.search || ''}`
+        : DEFAULT_REDIRECT[role]
       navigate(redirectTo, { replace: true })
     } catch (error) {
       setSubmitError(
@@ -105,10 +123,10 @@ function Login({ role }) {
           {translate(isSubmitting ? 'login.submitting' : 'login.submit')}
         </button>
 
-        {role === 'resident' && (
+        {REGISTER_PATH[role] && (
           <p className="auth-switch">
             {translate('login.noAccount')}{' '}
-            <Link to="/register">{translate('login.createAccount')}</Link>
+            <Link to={REGISTER_PATH[role]}>{translate('login.createAccount')}</Link>
           </p>
         )}
 

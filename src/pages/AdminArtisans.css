@@ -1,0 +1,115 @@
+.admin-status {
+  margin-top: 16px;
+  color: var(--color-text-muted);
+}
+
+.admin-retry {
+  margin-top: 12px;
+  padding: 10px 20px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-dark);
+  background: var(--color-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.admin-section-title {
+  margin: 28px 0 12px;
+}
+
+.admin-artisan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 640px;
+}
+
+.admin-artisan-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.admin-artisan-card-readonly {
+  align-items: center;
+}
+
+.admin-artisan-name {
+  margin: 0;
+  font-weight: 700;
+}
+
+.admin-artisan-meta {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.admin-artisan-bio {
+  margin: 8px 0 0;
+  max-width: 380px;
+  line-height: 1.6;
+}
+
+.admin-artisan-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.admin-approve-button {
+  padding: 8px 18px;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: #1b7a3d;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.admin-reject-button {
+  padding: 8px 18px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-error);
+  background: none;
+  border: 1px solid var(--color-error);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.admin-approve-button:disabled,
+.admin-reject-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-status-badge {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.admin-status-approved {
+  color: #1b7a3d;
+  background: #e3f8ea;
+}
+
+.admin-status-rejected {
+  color: #6b6b6b;
+  background: #ececec;
+}

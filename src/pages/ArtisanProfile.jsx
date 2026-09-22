@@ -11,10 +11,16 @@ function ArtisanProfile() {
   const [error, setError] = useState(null)
   const [attempt, setAttempt] = useState(0)
 
-  useEffect(() => {
-    let isCancelled = false
+  const requestKey = `${id}-${attempt}`
+  const [loadedFor, setLoadedFor] = useState(requestKey)
+  if (loadedFor !== requestKey) {
+    setLoadedFor(requestKey)
     setIsLoading(true)
     setError(null)
+  }
+
+  useEffect(() => {
+    let isCancelled = false
 
     getArtisanById(id)
       .then((data) => {
@@ -67,10 +73,14 @@ function ArtisanProfile() {
       </Link>
 
       <h1 className="artisan-profile-name">{artisan.fullName}</h1>
-      <p className="artisan-profile-category">{artisan.categoryName}</p>
-      <p className="artisan-profile-rating">
-        ⭐ {artisan.rating} ({artisan.reviewsCount} {translate('artisans.reviewsCount')})
-      </p>
+           <p className="artisan-profile-category">{artisan.categoryNames.join('، ')}</p>
+      {artisan.reviewsCount > 0 ? (
+        <p className="artisan-profile-rating">
+          ⭐ {artisan.rating} ({artisan.reviewsCount} {translate('artisans.reviewsCount')})
+        </p>
+      ) : (
+        <p className="artisan-profile-rating">{translate('artisans.noReviews')}</p>
+      )}
       <p className="artisan-profile-bio">{artisan.bio}</p>
     </article>
   )
