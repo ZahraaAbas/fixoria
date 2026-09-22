@@ -37,3 +37,26 @@
 .public-content {
   padding: 24px;
 }
+.public-nav {
+  display: flex;
+  gap: 20px;
+}
+.public-nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.public-user {
+  color: var(--color-on-dark);
+}
+
+.public-logout {
+  padding: 6px 14px;
+  font: inherit;
+  color: var(--color-accent);
+  background: none;
+  border: 1px solid var(--color-accent);
+  border-radius: 8px;
+  cursor: pointer;
+}

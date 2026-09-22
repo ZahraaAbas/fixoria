@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import { translate } from '../i18n'
 import { getCategories } from '../services/categoriesService'
 import './Home.css'
@@ -57,7 +58,9 @@ function Home() {
         <ul className="category-list">
           {categories.map((category) => (
             <li key={category.id} className="category-card">
-              {category.name}
+              <Link to={`/requests/new/${category.id}`} className="category-card-link">
+                {category.name}
+              </Link>
             </li>
           ))}
         </ul>

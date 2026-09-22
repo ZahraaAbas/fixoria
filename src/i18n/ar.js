@@ -5,6 +5,9 @@ const ar = {
   nav: {
     home: 'الرئيسية',
     login: 'تسجيل الدخول',
+    logout: 'تسجيل الخروج',
+        artisans: 'الحرفيون',
+            myRequests: 'طلباتي',
   },
   landing: {
     title: 'صيانة موثوقة بضغطة زر',
@@ -15,35 +18,35 @@ const ar = {
     adminLogin: 'الدخول كمشرف',
     guest: 'المتابعة كزائر (للمشاهدة فقط)',
   },
-    home: {
+  home: {
     title: 'تصفح الخدمات',
     loading: 'جارٍ التحميل...',
     error: 'تعذّر تحميل الخدمات',
     retry: 'إعادة المحاولة',
     empty: 'لا توجد خدمات حاليًا',
   },
-    login: {
+  login: {
     title: {
       resident: 'تسجيل الدخول كساكن',
       artisan: 'تسجيل الدخول كحرفي',
       admin: 'تسجيل الدخول كمشرف',
-          noAccount: 'ليس لديك حساب؟',
-    createAccount: 'إنشاء حساب جديد',
-        submitting: 'جارٍ الدخول...',
-    invalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
-    wrongRole: 'هذا الحساب لا يتبع هذه البوابة، اختر نوع الدخول الصحيح',
-    genericError: 'حدث خطأ غير متوقع، حاول مرة أخرى',
     },
     email: 'البريد الإلكتروني',
     password: 'كلمة المرور',
     submit: 'تسجيل الدخول',
+    submitting: 'جارٍ الدخول...',
     backHome: 'العودة للرئيسية',
+    noAccount: 'ليس لديك حساب؟',
+    createAccount: 'إنشاء حساب جديد',
+    invalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+    wrongRole: 'هذا الحساب لا يتبع هذه البوابة، اختر نوع الدخول الصحيح',
+    genericError: 'حدث خطأ غير متوقع، حاول مرة أخرى',
   },
   notFound: {
     title: 'الصفحة غير موجودة',
     backHome: 'العودة للرئيسية',
   },
-    register: {
+  register: {
     title: 'إنشاء حساب ساكن',
     fullName: 'الاسم الكامل',
     phone: 'رقم الهاتف',
@@ -55,7 +58,45 @@ const ar = {
     haveAccount: 'لديك حساب؟',
     login: 'تسجيل الدخول',
   },
-  
+  validation: {
+    required: 'هذا الحقل مطلوب',
+    invalidEmail: 'البريد الإلكتروني غير صحيح',
+    invalidPhone: 'رقم الهاتف غير صحيح',
+    passwordTooShort: 'كلمة المرور يجب ألا تقل عن 8 أحرف',
+  },
+    artisans: {
+    title: 'الحرفيون',
+    loading: 'جارٍ التحميل...',
+    error: 'تعذّر تحميل الحرفيين',
+    retry: 'إعادة المحاولة',
+    empty: 'لا يوجد حرفيون حاليًا',
+    reviewsCount: 'تقييم',
+  },
+    artisanProfile: {
+    loading: 'جارٍ التحميل...',
+    error: 'تعذّر تحميل بيانات الحرفي',
+    retry: 'إعادة المحاولة',
+    notFound: 'الحرفي غير موجود',
+    backToList: 'العودة إلى قائمة الحرفيين',
+  },
+    requestStatus: {
+    open: 'مفتوح',
+    accepted: 'مقبول',
+    in_progress: 'قيد التنفيذ',
+    completed: 'مكتمل',
+    cancelled: 'ملغي',
+  },
+    myRequests: {
+    title: 'طلباتي',
+    loading: 'جارٍ التحميل...',
+    error: 'تعذّر تحميل طلباتك',
+    retry: 'إعادة المحاولة',
+    empty: 'لا توجد طلبات بعد',
+    browseCategories: 'تصفح الخدمات',
+    category: 'التصنيف',
+    preferredDate: 'التاريخ المفضل',
+  },
+
 }
 
 export default ar

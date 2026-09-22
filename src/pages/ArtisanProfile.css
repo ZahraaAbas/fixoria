@@ -1,0 +1,41 @@
+.artisan-profile-status {
+  margin-top: 24px;
+  color: var(--color-text-muted);
+}
+
+.artisan-profile-retry {
+  margin-top: 12px;
+  padding: 10px 20px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-dark);
+  background: var(--color-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.artisan-profile-back {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: var(--color-text-muted);
+}
+
+.artisan-profile-name {
+  margin: 0 0 4px;
+}
+
+.artisan-profile-category {
+  margin: 0 0 8px;
+  color: var(--color-text-muted);
+}
+
+.artisan-profile-rating {
+  margin: 0 0 16px;
+  font-weight: 600;
+}
+
+.artisan-profile-bio {
+  max-width: 560px;
+  line-height: 1.7;
+}

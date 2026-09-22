@@ -1,12 +1,15 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { translate } from '../i18n'
 import { login } from '../services/authService'
 import { validateLogin } from '../utils/validators'
+import { useAuth } from '../hooks/useAuth'
 import './Auth.css'
 
 function Login({ role }) {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { signIn } = useAuth()
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -37,8 +40,11 @@ function Login({ role }) {
         return
       }
 
-      // لاحقًا: حفظ المستخدم في AuthContext والتوجيه حسب دوره
-      navigate('/home')
+      signIn(user)
+
+      const from = location.state?.from
+      const redirectTo = from ? `${from.pathname}${from.search || ''}` : '/home'
+      navigate(redirectTo, { replace: true })
     } catch (error) {
       setSubmitError(
         error.message === 'INVALID_CREDENTIALS'

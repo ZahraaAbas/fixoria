@@ -42,3 +42,13 @@ export function validateRegister(values) {
     password: newPasswordError(values.password),
   })
 }
+
+export function validateRequest(values) {
+  return withoutEmpty({
+    title: requiredError(values.title),
+    description: requiredError(values.description),
+    building: requiredError(values.building),
+    apartment: requiredError(values.apartment),
+    preferredDate: requiredError(values.preferredDate),
+  })
+}
