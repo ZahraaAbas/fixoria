@@ -1,62 +1,123 @@
+.public-layout {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+}
+
 .public-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
-  background: var(--color-dark);
+  padding: 14px 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
 }
 
 .public-brand {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-accent);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #263056;
   text-decoration: none;
+  letter-spacing: -0.5px;
 }
 
-.public-nav {
+/* تنسيق شريط البحث */
+.public-search-container {
+  position: relative;
   display: flex;
-  gap: 20px;
+  align-items: center;
+  width: 280px;
 }
 
-.public-nav a {
-  color: var(--color-on-dark);
-  text-decoration: none;
-  opacity: 0.75;
+.public-search-icon {
+  position: absolute;
+  right: 12px;
+  color: #94a3b8;
 }
 
-.public-nav a:hover {
-  opacity: 1;
+.public-search-input {
+  width: 100%;
+  padding: 8px 38px 8px 14px;
+  font-size: 0.9rem;
+  background: #f1f5f9;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  outline: none;
+  transition: all 0.2s ease;
+  color: #1e293b;
 }
 
-.public-nav a.active {
-  color: var(--color-accent);
-  font-weight: 700;
-  opacity: 1;
+.public-search-input:focus {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 0 0 3px rgba(241, 144, 53, 0.1);
 }
 
-.public-content {
-  padding: 24px;
-}
-.public-nav {
-  display: flex;
-  gap: 20px;
-}
+/* تنسيق الروابط */
 .public-nav {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 18px;
+}
+
+.public-nav a {
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.public-nav a:hover {
+  color: #263056;
+}
+
+.public-nav a.active {
+  color: #f19035;
+  font-weight: 700;
+}
+
+.public-user-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .public-user {
-  color: var(--color-on-dark);
+  color: #334155;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .public-logout {
   padding: 6px 14px;
   font: inherit;
-  color: var(--color-accent);
-  background: none;
-  border: 1px solid var(--color-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
   border-radius: 8px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.public-logout:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.public-content {
+  flex: 1;
+  padding: 24px 32px;
 }

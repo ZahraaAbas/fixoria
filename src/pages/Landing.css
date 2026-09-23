@@ -1,80 +1,212 @@
-.landing {
+.landing-container {
   position: relative;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-start;
-  padding-block: 48px;
-  padding-inline: 24px;
+  justify-content: space-between;
+  padding: 28px 40px;
   color: #fff;
   background-image:
-    linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0) 60%),
-    url('src/assets/images/background.webp');
+    linear-gradient(to top, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.25) 60%),
+    url('/src/assets/images/background.webp');
   background-size: cover;
   background-position: center;
 }
 
+/* الشريط العلوي */
+.landing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.landing-brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.landing-brand-icon {
+  font-size: 1.3rem;
+  background: rgba(241, 144, 53, 0.25);
+  padding: 5px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(241, 144, 53, 0.4);
+}
+
 .landing-brand {
-  position: absolute;
-  top: 24px;
-  inset-inline-start: 24px;
-  margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #fff;
+}
+
+/* زر تبديل اللغة */
+.lang-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 5px 12px;
+  border-radius: 20px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.lang-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* القسم الرئيسي والهيرو */
+.landing-hero {
+  max-width: 850px;
+  margin: auto 0 15px 0;
+  padding-block: 5px;
+}
+
+.landing-badge {
+  display: inline-block;
+  background: rgba(241, 144, 53, 0.25);
+  color: #fdb78e;
+  border: 1px solid rgba(241, 144, 53, 0.4);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
   font-weight: 700;
+  margin-bottom: 8px;
+  backdrop-filter: blur(4px);
 }
 
 .landing-title {
-  margin: 0 0 12px;
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  margin: 0 0 6px;
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 800;
   line-height: 1.2;
+  letter-spacing: -1px;
 }
 
 .landing-description {
   max-width: 480px;
   margin: 0;
-  font-size: 1.1rem;
-  line-height: 1.7;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
 }
 
+/* شبكة الأزرار */
 .landing-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(200px, 260px));
+  gap: 10px;
+  width: 100%;
+  max-width: 540px;
+  margin: 15px 0 0 0;
+}
+
+.landing-card-action {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 28px;
-}
-
-.landing-link {
-  padding: 12px 24px;
-  color: #fff;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 30px;
+  backdrop-filter: blur(12px);
   text-decoration: none;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 8px;
-  backdrop-filter: blur(6px);
-  transition: background 0.2s;
+  color: #fff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
-.landing-link:hover {
-  background: rgba(255, 255, 255, 0.3);
+.landing-card-action::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 3px;
+  height: 100%;
+  background: #f19035;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.landing-link:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 3px;
+.landing-card-action:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(241, 144, 53, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
-.landing-link-guest {
-  flex-basis: 100%;
-  padding: 0;
-  background: none;
-  border: none;
-  backdrop-filter: none;
-  text-decoration: underline;
-  opacity: 0.85;
-}
-
-.landing-link-guest:hover {
-  background: none;
+.landing-card-action:hover::before {
   opacity: 1;
+}
+
+.card-icon-bg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(241, 144, 53, 0.2);
+  color: #fdb78e;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.card-texts {
+  flex-grow: 1;
+}
+
+.card-texts h3 {
+  margin: 0 0 1px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.card-texts span {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.65);
+  display: block;
+}
+
+.arrow-icon {
+  color: rgba(255, 255, 255, 0.4);
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.landing-card-action:hover .arrow-icon {
+  color: #f19035;
+  transform: translateX(-3px);
+}
+
+.landing-guest-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.landing-admin-card {
+  background: rgba(15, 23, 42, 0.65);
+}
+
+/* استجابة الشاشات الصغيرة */
+@media (max-width: 768px) {
+  .landing-container {
+    padding: 20px 16px;
+  }
+  .landing-actions {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+  }
 }

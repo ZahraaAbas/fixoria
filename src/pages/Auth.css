@@ -1,76 +1,230 @@
+/* تصميم صفحة المصادقة الاحترافي (Auth.css) */
 .auth-page {
-  min-height: 100svh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-}
-
-.auth-card {
-  width: 100%;
-  max-width: 400px;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 32px 24px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background-image: 
+    linear-gradient(135deg, rgba(38, 48, 86, 0.85), rgba(15, 23, 42, 0.95)),
+    url('/src/assets/images/background.webp');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+/* ========================================================== */
+/* الشريط العلوي في أقصى الشاشة (بحث يميناً وأيقونات يساراً) */
+/* ========================================================== */
+.auth-top-bar {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 20;
+}
+
+/* تصميم شريط البحث الزجاجي (في أقصى اليمين) */
+.auth-search-box {
+  width: 280px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.auth-search-box:focus-within {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
+}
+
+.auth-search-box i {
+  color: #ffffff;
+  font-size: 0.95rem;
+}
+
+.auth-search-box input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 0.9rem;
+  text-align: right;
+  font-family: inherit;
+}
+
+.auth-search-box input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* حاوية الأيقونات الزجاجية (في أقصى اليسار) */
+.auth-glass-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.auth-glass-actions button {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.auth-glass-actions button:hover {
+  background: rgba(241, 144, 53, 0.4);
+  border-color: rgba(241, 144, 53, 0.6);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 12px 40px 0 rgba(241, 144, 53, 0.3);
+}
+
+/* كارد المصادقة في المنتصف مع محاذاة كل شيء بالمنتصف (Center) */
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 36px 30px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+  transition: transform 0.3s ease;
+  text-align: center; /* جعل النصوص في منتصف الكارد */
+  direction: ltr;     /* اتجاه إنجليزي سلس */
+  margin-top: 40px; 
 }
 
 .auth-brand {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-dark);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-dark, #263056);
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* اسم المشروع في المنتصف تماماً */
+  gap: 6px;
+  letter-spacing: -0.5px;
 }
 
 .auth-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-dark, #263056);
+  letter-spacing: -0.5px;
+  text-align: center; /* عنوان الصفحة في المنتصف */
 }
 
 .auth-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-dark, #263056);
+  text-align: left; /* الحقول تبدأ من اليسار للإنجليزية */
 }
 
 .auth-field input {
-  padding: 12px;
+  padding: 14px 16px;
   font: inherit;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  font-size: 0.95rem;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  color: #1e293b;
+  text-align: left;
 }
 
 .auth-field input:focus {
-  outline: 2px solid var(--color-accent);
-  border-color: var(--color-dark);
+  outline: none;
+  border-color: #263056;
+  box-shadow: 0 0 0 4px rgba(38, 48, 86, 0.12);
+  background: #ffffff;
 }
 
 .auth-submit {
-  padding: 12px;
+  padding: 14px;
   font: inherit;
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--color-dark);
-  background: var(--color-accent);
+  color: #ffffff;
+  background: linear-gradient(135deg, #263056, #1e293b);
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(38, 48, 86, 0.25);
+  transition: all 0.3s ease;
+  margin-top: 6px;
+}
+
+.auth-submit:hover {
+  background: linear-gradient(135deg, #313e6d, #263056);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(38, 48, 86, 0.35);
+}
+
+.auth-submit:active {
+  transform: translateY(0);
 }
 
 .auth-back {
   text-align: center;
-  color: var(--color-text-muted);
+  color: var(--color-text-muted, #8b7b76);
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth-back:hover {
+  color: var(--color-dark, #263056);
+  text-decoration: underline;
 }
 
 .auth-switch {
   margin: 0;
-  text-align: center;
-  color: var(--color-text-muted);
+  text-align: center; /* النصوص السفلية في المنتصف */
+  color: var(--color-text-muted, #8b7b76);
+  font-size: 0.9rem;
 }
 
 .auth-switch a {
   font-weight: 700;
-  color: var(--color-dark);
+  color: var(--color-dark, #263056);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth-switch a:hover {
+  color: #1e293b;
+  text-decoration: underline;
 }

@@ -1,6 +1,31 @@
+/* تنسيق صفحة الخدمات والزائر */
+.home-page-wrapper {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px 6% 0 6%;
+  background: #f8fafc; /* خلفية ناعمة ونظيفة */
+}
+
+.home-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.home-content h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 24px;
+  letter-spacing: -0.5px;
+}
+
 .home-status {
   margin-top: 24px;
-  color: var(--color-text-muted);
+  color: #64748b;
+  font-size: 1rem;
 }
 
 .home-retry {
@@ -8,9 +33,21 @@
   padding: 10px 20px;
   font: inherit;
   font-weight: 700;
-  color: var(--color-dark);
-  background: var(--color-accent);
+  color: #fff;
+  background: #f19035;
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.home-retry:hover {
+  background: #e07f24;
+}
+
+/* تحسين مسافات شبكة البطاقات */
+.home-content .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
 }

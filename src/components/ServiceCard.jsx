@@ -1,41 +1,90 @@
 import { motion } from 'motion/react'
 import { Link } from 'react-router'
+import { 
+  Snowflake, 
+  Zap, 
+  Droplet, 
+  Sparkles, 
+  Paintbrush, 
+  Hammer, 
+  ArrowLeft 
+} from 'lucide-react'
 
-function ServiceCard({ to, title, Icon, gradient, delay = 0 }) {
+// تخصيص خلفيات شفافة وهادئة جداً لكل بطاقة وأيقونتها
+const serviceConfig = {
+  'تكييف وتبريد': { 
+    Icon: Snowflake, 
+    cardBg: 'bg-cyan-50/60 hover:bg-cyan-50/90 border-cyan-100/60', 
+    iconBg: 'bg-cyan-100/80', 
+    color: 'text-cyan-700' 
+  },
+  'كهرباء': { 
+    Icon: Zap, 
+    cardBg: 'bg-amber-50/60 hover:bg-amber-50/90 border-amber-100/60', 
+    iconBg: 'bg-amber-100/80', 
+    color: 'text-amber-700' 
+  },
+  'سباكة': { 
+    Icon: Droplet, 
+    cardBg: 'bg-blue-50/60 hover:bg-blue-50/90 border-blue-100/60', 
+    iconBg: 'bg-blue-100/80', 
+    color: 'text-blue-700' 
+  },
+  'تنظيف': { 
+    Icon: Sparkles, 
+    cardBg: 'bg-indigo-50/60 hover:bg-indigo-50/90 border-indigo-100/60', 
+    iconBg: 'bg-indigo-100/80', 
+    color: 'text-indigo-700' 
+  },
+  'دهان وديكور': { 
+    Icon: Paintbrush, 
+    cardBg: 'bg-rose-50/60 hover:bg-rose-50/90 border-rose-100/60', 
+    iconBg: 'bg-rose-100/80', 
+    color: 'text-rose-700' 
+  },
+  'نجارة': { 
+    Icon: Hammer, 
+    cardBg: 'bg-orange-50/60 hover:bg-orange-50/90 border-orange-100/60', 
+    iconBg: 'bg-orange-100/80', 
+    color: 'text-orange-700' 
+  },
+}
+
+function ServiceCard({ to, title, delay = 0 }) {
+  const config = serviceConfig[title] || { 
+    Icon: Snowflake, 
+    cardBg: 'bg-slate-50/60 hover:bg-slate-50/90 border-slate-100/60', 
+    iconBg: 'bg-slate-100/80', 
+    color: 'text-slate-700' 
+  }
+  const IconComponent = config.Icon
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay, ease: 'easeOut' }}
-      whileHover={{ scale: 1.03 }}
-      className="group relative"
+      transition={{ duration: 0.3, delay, ease: 'easeOut' }}
+      whileHover={{ y: -4 }}
+      className="group"
     >
-      {/* التوهّج الخلفي: تدرّج البطاقة نفسه، ضبابي وخافت */}
-      <div
-        aria-hidden="true"
-        className="absolute -inset-3 rounded-[28px] opacity-40 blur-2xl transition-opacity duration-300 group-hover:opacity-70"
-        style={{ background: gradient }}
-      />
-
-      {/* البطاقة الزجاجية + الحدّ المتدرّج */}
       <Link
         to={to}
-        className="relative flex flex-col items-center gap-3 rounded-3xl px-6 py-9 text-center no-underline backdrop-blur-md transition-shadow duration-300"
-        style={{
-          background:
-            'linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.72)) padding-box, ' +
-            gradient +
-            ' border-box',
-          border: '1px solid transparent',
-        }}
+        className={`flex flex-col items-center justify-between rounded-2xl p-5 text-center no-underline border backdrop-blur-md shadow-sm transition-all duration-300 h-[150px] ${config.cardBg}`}
       >
-        <span
-          className="flex h-14 w-14 items-center justify-center rounded-2xl text-white shadow-sm transition-transform duration-300 group-hover:-translate-y-1"
-          style={{ background: gradient }}
-        >
-          <Icon size={26} strokeWidth={2} aria-hidden="true" />
+        {/* دائرة الأيقونة بشفافية ولون ناعم */}
+        <div className={`flex h-12 w-12 items-center justify-center rounded-full ${config.iconBg} ${config.color} transition-transform duration-300 group-hover:scale-110`}>
+          <IconComponent size={22} strokeWidth={2} aria-hidden="true" />
+        </div>
+
+        {/* عنوان الخدمة */}
+        <span className="text-sm font-bold text-slate-800 tracking-tight">
+          {title}
         </span>
-        <span className="text-base font-bold text-[#263056]">{title}</span>
+
+        {/* سهم الانتقال الصغير في الأسفل */}
+        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/60 text-slate-500 transition-all duration-300 group-hover:bg-slate-900 group-hover:text-white">
+          <ArrowLeft size={13} className="rtl:rotate-180" aria-hidden="true" />
+        </div>
       </Link>
     </motion.div>
   )
