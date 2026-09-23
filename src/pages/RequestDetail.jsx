@@ -2,11 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
-import {
-  getRequestById,
-  cancelRequest,
-  markRequestCompleted,
-} from '../services/requestsService'
+import { getRequestById, cancelRequest } from '../services/requestsService'
 import { statusKey, CANCELLABLE_STATUSES } from '../utils/requestStatus'
 import ReviewForm from './ReviewForm'
 import './RequestDetail.css'
@@ -22,7 +18,7 @@ function RequestDetail() {
   const [error, setError] = useState(null)
   const [attempt, setAttempt] = useState(0)
 
-    const [isConfirmingCancel, setIsConfirmingCancel] = useState(false)
+  const [isConfirmingCancel, setIsConfirmingCancel] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
 
   const requestKey = `${id}-${attempt}`
@@ -67,11 +63,6 @@ function RequestDetail() {
     setRequest(updated)
     setIsCancelling(false)
     setIsConfirmingCancel(false)
-  }
-
-  async function handleDevMarkCompleted() {
-    const updated = await markRequestCompleted(id)
-    setRequest(updated)
   }
 
   if (isLoading) {
@@ -157,12 +148,6 @@ function RequestDetail() {
             ))}
           </ol>
         </div>
-      )}
-
-      {currentStatus !== 'completed' && currentStatus !== 'cancelled' && (
-        <button type="button" className="request-dev-button" onClick={handleDevMarkCompleted}>
-          {translate('requestDetail.devMarkCompleted')}
-        </button>
       )}
 
       {isCancellable && (

@@ -1,0 +1,92 @@
+.admin-reviews-status {
+  margin-top: 16px;
+  color: var(--color-text-muted);
+}
+
+.admin-reviews-retry {
+  margin-top: 12px;
+  padding: 10px 20px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-dark);
+  background: var(--color-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.admin-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  max-width: 560px;
+}
+
+.admin-review-card {
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.admin-review-card-hidden {
+  opacity: 0.6;
+  border-style: dashed;
+}
+
+.admin-review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-review-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.admin-review-meta {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.admin-review-comment {
+  margin: 10px 0 0;
+  line-height: 1.6;
+}
+
+.admin-review-hidden-notice {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  color: var(--color-error);
+}
+
+.admin-review-hide-button {
+  margin-top: 12px;
+  padding: 6px 16px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--color-error);
+  background: none;
+  border: 1px solid var(--color-error);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.admin-review-show-button {
+  margin-top: 12px;
+  padding: 6px 16px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-dark);
+  background: var(--color-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}

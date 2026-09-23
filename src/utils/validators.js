@@ -62,3 +62,16 @@ export function validateArtisanRegister(values) {
     categoryIds: values.categoryIds.length > 0 ? '' : 'validation.selectAtLeastOne',
   })
 }
+
+export function validateArtisanProfile(values) {
+  return withoutEmpty({
+    fullName: requiredError(values.fullName),
+    phone: phoneError(values.phone),
+    bio: requiredError(values.bio),
+    categoryIds: values.categoryIds.length > 0 ? '' : 'validation.selectAtLeastOne',
+  })
+}
+
+export function validateCategoryName(name) {
+  return requiredError(name)
+}

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router'
 import AuthProvider from './context/AuthProvider'
 import PublicLayout from './layouts/PublicLayout'
 import AdminLayout from './layouts/AdminLayout'
+import ArtisanLayout from './layouts/ArtisanLayout'
 import RequireAuth from './routes/RequireAuth'
 import Landing from './pages/Landing'
 import Home from './pages/Home'
@@ -14,8 +15,16 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import ArtisanRegister from './pages/ArtisanRegister'
 import ArtisanPending from './pages/ArtisanPending'
+import ArtisanRequests from './pages/ArtisanRequests'
+import ArtisanMyWork from './pages/ArtisanMyWork'
 import AdminArtisans from './pages/AdminArtisans'
 import NotFound from './pages/NotFound'
+import ArtisanSettings from './pages/ArtisanSettings'
+import ArtisanReviews from './pages/ArtisanReviews'
+import AdminDashboard from './pages/AdminDashboard'
+import AdminRequests from './pages/AdminRequests'
+import AdminCategories from './pages/AdminCategories'
+import AdminReviews from './pages/AdminReviews'
 
 function App() {
   return (
@@ -70,6 +79,23 @@ function App() {
             }
           >
             <Route path="/admin/artisans" element={<AdminArtisans />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                        <Route path="/admin/requests" element={<AdminRequests />} />
+          </Route>
+
+          <Route
+            element={
+              <RequireAuth role="artisan" requireApproved>
+                <ArtisanLayout />
+              </RequireAuth>
+            }
+          >
+                        <Route path="/artisan/reviews" element={<ArtisanReviews />} />
+                        <Route path="/artisan/profile" element={<ArtisanSettings />} />
+                                    <Route path="/admin/categories" element={<AdminCategories />} />
+                                                <Route path="/admin/reviews" element={<AdminReviews />} />
+            <Route path="/artisan/requests" element={<ArtisanRequests />} />
+            <Route path="/artisan/my-work" element={<ArtisanMyWork />} />
           </Route>
 
           <Route path="/login" element={<Login role="resident" />} />

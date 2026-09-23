@@ -1,0 +1,101 @@
+.my-work-status {
+  margin-top: 16px;
+  color: var(--color-text-muted);
+}
+
+.my-work-retry {
+  margin-top: 12px;
+  padding: 10px 20px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-dark);
+  background: var(--color-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.my-work-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  max-width: 560px;
+}
+
+.my-work-card {
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.my-work-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.my-work-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.my-work-meta {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.my-work-description {
+  margin: 10px 0 0;
+  line-height: 1.6;
+}
+
+.my-work-badge {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.status-accepted {
+  color: #1e5a9c;
+  background: #e3f0ff;
+}
+
+.status-in_progress {
+  color: #7a5b00;
+  background: #fff3d6;
+}
+
+.status-completed {
+  color: #1b7a3d;
+  background: #e3f8ea;
+}
+
+.status-cancelled {
+  color: #6b6b6b;
+  background: #ececec;
+}
+
+.my-work-action {
+  margin-top: 14px;
+  padding: 8px 20px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-dark);
+  background: var(--color-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.my-work-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

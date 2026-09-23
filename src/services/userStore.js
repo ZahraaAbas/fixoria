@@ -20,7 +20,10 @@ function writeRegisteredUsers(users) {
 }
 
 export function getAllUsers() {
-  return [...mockUsers, ...readRegisteredUsers()]
+  const registered = readRegisteredUsers()
+  const registeredIds = new Set(registered.map((user) => user.id))
+  const baseUsers = mockUsers.filter((user) => !registeredIds.has(user.id))
+  return [...baseUsers, ...registered]
 }
 
 export function addUser(user) {
@@ -32,13 +35,19 @@ export function updateUser(id, changes) {
   const registeredUsers = readRegisteredUsers()
   const index = registeredUsers.findIndex((user) => user.id === id)
 
-  // ملاحظة: الحسابات التجريبية الثابتة (mocks/users.js) لا يمكن تعديلها،
-  // لكنها جميعًا معتمدة مسبقًا أصلًا فلن نحتاج تعديلها عمليًا
-  if (index === -1) return null
+  if (index !== -1) {
+    const updated = { ...registeredUsers[index], ...changes }
+    registeredUsers[index] = updated
+    writeRegisteredUsers(registeredUsers)
+    return updated
+  }
 
-  const updated = { ...registeredUsers[index], ...changes }
-  registeredUsers[index] = updated
-  writeRegisteredUsers(registeredUsers)
+  // أول تعديل على حساب تجريبي ثابت: نحوّله إلى نسخة محفوظة فعليًا تحل محل الأصل
+  const baseUser = mockUsers.find((user) => user.id === id)
+  if (!baseUser) return null
+
+  const updated = { ...baseUser, ...changes }
+  writeRegisteredUsers([...registeredUsers, updated])
   return updated
 }
 

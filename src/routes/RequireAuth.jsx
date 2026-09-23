@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
 
-function RequireAuth({ role, children }) {
+function RequireAuth({ role, requireApproved = false, children }) {
   const { user, isAuthenticated } = useAuth()
   const location = useLocation()
 
@@ -11,6 +11,10 @@ function RequireAuth({ role, children }) {
 
   if (role && user.role !== role) {
     return <Navigate to="/home" replace />
+  }
+
+  if (requireApproved && user.role === 'artisan' && user.status !== 'approved') {
+    return <Navigate to="/artisan/pending" replace />
   }
 
   return children

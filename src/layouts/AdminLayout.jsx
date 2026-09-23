@@ -9,12 +9,16 @@ function AdminLayout() {
   return (
     <div className="admin-layout">
       <aside className="admin-sidebar">
-        <Link to="/home" className="admin-brand">
+        <Link to="/admin/dashboard" className="admin-brand">
           {translate('common.brand')}
         </Link>
 
         <nav className="admin-nav">
+          <NavLink to="/admin/dashboard">{translate('adminNav.dashboard')}</NavLink>
           <NavLink to="/admin/artisans">{translate('adminNav.artisans')}</NavLink>
+          <NavLink to="/admin/requests">{translate('adminNav.requests')}</NavLink>
+          <NavLink to="/admin/categories">{translate('adminNav.categories')}</NavLink>
+          <NavLink to="/admin/reviews">{translate('adminNav.reviews')}</NavLink>
         </nav>
 
         <div className="admin-sidebar-footer">

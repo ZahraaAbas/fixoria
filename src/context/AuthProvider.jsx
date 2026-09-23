@@ -15,13 +15,17 @@ function readStoredUser() {
 function AuthProvider({ children }) {
   const [user, setUser] = useState(readStoredUser)
 
-  function signIn(nextUser) {
-    setUser(nextUser)
+  function persist(nextUser) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser))
     } catch {
       // التخزين غير متاح: يبقى المستخدم مسجّلًا حتى إغلاق الصفحة فقط
     }
+  }
+
+  function signIn(nextUser) {
+    setUser(nextUser)
+    persist(nextUser)
   }
 
   function signOut() {
@@ -33,7 +37,15 @@ function AuthProvider({ children }) {
     }
   }
 
-  const value = { user, isAuthenticated: Boolean(user), signIn, signOut }
+  function updateUser(changes) {
+    setUser((current) => {
+      const updated = { ...current, ...changes }
+      persist(updated)
+      return updated
+    })
+  }
+
+  const value = { user, isAuthenticated: Boolean(user), signIn, signOut, updateUser }
 
   return <AuthContext value={value}>{children}</AuthContext>
 }

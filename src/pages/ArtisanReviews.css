@@ -1,0 +1,79 @@
+.artisan-reviews-status {
+  margin-top: 16px;
+  color: var(--color-text-muted);
+}
+
+.artisan-reviews-retry {
+  margin-top: 12px;
+  padding: 10px 20px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-dark);
+  background: var(--color-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.artisan-reviews-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0;
+  padding: 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  max-width: 400px;
+}
+
+.artisan-reviews-average {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-dark);
+}
+
+.artisan-reviews-count {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+}
+
+.artisan-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 560px;
+}
+
+.artisan-review-card {
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.artisan-review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.artisan-review-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.artisan-review-category {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.artisan-review-comment {
+  margin: 10px 0 0;
+  line-height: 1.6;
+}
