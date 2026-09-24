@@ -1,0 +1,33 @@
+.not-found {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 24px;
+  background: var(--color-bg, #f6f6f6);
+  color: var(--color-text, #263056);
+}
+
+.not-found-code {
+  margin: 0;
+  font-size: 4rem;
+  font-weight: 800;
+  color: var(--color-accent, #f19035);
+}
+
+.not-found h1 {
+  margin: 0 0 12px;
+  font-size: 1.4rem;
+}
+
+.not-found-link {
+  padding: 10px 24px;
+  font-weight: 700;
+  color: var(--color-dark, #263056);
+  background: var(--color-accent, #f19035);
+  border-radius: 8px;
+  text-decoration: none;
+}

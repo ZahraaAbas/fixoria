@@ -4,7 +4,6 @@ import { translate } from '../i18n'
 import { login } from '../services/authService'
 import { validateLogin } from '../utils/validators'
 import { useAuth } from '../hooks/useAuth'
-import { Globe, Info, Headphones, Settings, Search } from 'lucide-react'
 import './Auth.css'
 
 const REGISTER_PATH = {
@@ -26,27 +25,6 @@ function Login({ role }) {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
-
-  // دوال تفعيل الأيقونات
-  const handleToggleLanguage = () => {
-    const currentLang = localStorage.getItem('fixoria_lang') || 'ar'
-    const newLang = currentLang === 'ar' ? 'en' : 'ar'
-    localStorage.setItem('fixoria_lang', newLang)
-    window.location.reload()
-  }
-
-  const handleInfo = () => {
-    alert('منصة فكسوريا - مجمع البدور السكني لإدارة خدمات الصيانة والحرفيين')
-  }
-
-  const handleSupport = () => {
-    alert('الدعم الفني: يمكنك التواصل معنا عبر البريد أو الهاتف المخصص للمجمع')
-  }
-
-  const handleSettings = () => {
-    alert('إعدادات المنصة العامة')
-  }
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -98,35 +76,6 @@ function Login({ role }) {
 
   return (
     <main className="auth-page">
-      {/* الشريط العلوي المرتب باستخدام أيقونات Lucide المضمونة */}
-      <header className="auth-top-bar">
-        <div className="auth-search-box">
-          <Search size={18} color="#ffffff" />
-          <input
-            type="text"
-            placeholder="بحث في الموقع..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
-        <div className="auth-glass-actions">
-          <button type="button" title="Language / اللغة" onClick={handleToggleLanguage}>
-            <Globe size={18} />
-          </button>
-          <button type="button" title="About Us / من نحن" onClick={handleInfo}>
-            <Info size={18} />
-          </button>
-          <button type="button" title="Contact Us / اتصل بنا" onClick={handleSupport}>
-            <Headphones size={18} />
-          </button>
-          <button type="button" title="Settings / الإعدادات" onClick={handleSettings}>
-            <Settings size={18} />
-          </button>
-        </div>
-      </header>
-
-      {/* كارد تسجيل الدخول في المنتصف */}
       <form className="auth-card" onSubmit={handleSubmit} noValidate>
         <Link to="/" className="auth-brand">
           {translate('common.brand')}

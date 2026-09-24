@@ -1,0 +1,35 @@
+.static-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8px 0 40px;
+}
+
+.static-page h1 {
+  margin-bottom: 8px;
+}
+
+.static-page-lead {
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  margin: 0 0 32px;
+}
+
+.static-page-block {
+  margin-bottom: 28px;
+}
+
+.static-page-block h2 {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+}
+
+.static-page-block p {
+  line-height: 1.8;
+  color: var(--color-text);
+}
+
+.static-page-steps {
+  padding-inline-start: 20px;
+  line-height: 2;
+}

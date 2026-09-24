@@ -1,61 +1,55 @@
+import { Outlet, Link, NavLink } from 'react-router'
+import { Home, Wrench, FileText } from 'lucide-react'
+import { translate } from '../i18n'
+import { useAuth } from '../hooks/useAuth'
+import Footer from '../Footer'
+import './PublicLayout.css'
 
-import { Outlet, Link, NavLink } from 'react-router';
-import { Search, Settings, Info, PhoneCall, Home, Wrench, FileText } from 'lucide-react';
-import './PublicLayout.css';
+function PublicLayout() {
+  const { user, isAuthenticated, signOut } = useAuth()
 
-export default function PublicLayout() {
   return (
     <div className="public-layout">
-      {/* شريط التنقل العلوي الاحترافي */}
       <header className="public-header">
-        {/* الشعار أو اسم المشروع */}
-        <Link to="/" className="public-brand">
-          Fixoria
+        <Link to="/home" className="public-brand">
+          {translate('common.brand')}
         </Link>
 
-        {/* شريط البحث (Search Bar) */}
-        <div className="public-search-container">
-          <Search size={18} className="public-search-icon" />
-          <input 
-            type="text" 
-            placeholder="ابحث عن خدمة، حرفي..." 
-            className="public-search-input"
-          />
-        </div>
-
-        {/* روابط التنقل الرئيسية */}
         <nav className="public-nav">
-          <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>
-            <Home size={16} className="inline-block ml-1" /> الرئيسية
+          <NavLink to="/home">
+            <Home size={16} /> {translate('nav.home')}
           </NavLink>
-          <NavLink to="/artisans" className={({ isActive }) => isActive ? 'active' : ''}>
-            <Wrench size={16} className="inline-block ml-1" /> الحرفيون
+          <NavLink to="/artisans">
+            <Wrench size={16} /> {translate('nav.artisans')}
           </NavLink>
-          <NavLink to="/requests" className={({ isActive }) => isActive ? 'active' : ''}>
-            <FileText size={16} className="inline-block ml-1" /> طلباتي
-          </NavLink>
-          <NavLink to="/about" className={({ isActive }) => isActive ? 'active' : ''}>
-            <Info size={16} className="inline-block ml-1" /> من نحن
-          </NavLink>
-          <NavLink to="/contact" className={({ isActive }) => isActive ? 'active' : ''}>
-            <PhoneCall size={16} className="inline-block ml-1" /> اتصل بنا
-          </NavLink>
-          <NavLink to="/settings" className={({ isActive }) => isActive ? 'active' : ''}>
-            <Settings size={16} className="inline-block ml-1" /> الإعدادات
-          </NavLink>
+          {isAuthenticated && user.role === 'resident' && (
+            <NavLink to="/my-requests">
+              <FileText size={16} /> {translate('nav.myRequests')}
+            </NavLink>
+          )}
         </nav>
 
-        {/* أزرار الحساب وتسجيل الخروج */}
         <div className="public-user-section">
-          <span className="public-user">مرحباً بك</span>
-          <button className="public-logout">تسجيل الخروج</button>
+          {isAuthenticated ? (
+            <>
+              <span className="public-user">{user.fullName}</span>
+              <button type="button" className="public-logout" onClick={signOut}>
+                {translate('nav.logout')}
+              </button>
+            </>
+          ) : (
+            <NavLink to="/login">{translate('nav.login')}</NavLink>
+          )}
         </div>
       </header>
 
-      {/* محتوى الصفحات */}
       <main className="public-content">
         <Outlet />
       </main>
+
+      <Footer />
     </div>
-  );
+  )
 }
+
+export default PublicLayout

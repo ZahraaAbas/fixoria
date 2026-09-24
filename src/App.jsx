@@ -25,6 +25,8 @@ import AdminDashboard from './pages/AdminDashboard'
 import AdminRequests from './pages/AdminRequests'
 import AdminCategories from './pages/AdminCategories'
 import AdminReviews from './pages/AdminReviews'
+import About from './pages/About'
+import Contact from './pages/Contact'
 
 function App() {
   return (
@@ -37,6 +39,8 @@ function App() {
             <Route path="/home" element={<Home />} />
             <Route path="/artisans" element={<Artisans />} />
             <Route path="/artisans/:id" element={<ArtisanProfile />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
             <Route
               path="/requests/new/:categoryId"
               element={
@@ -80,7 +84,9 @@ function App() {
           >
             <Route path="/admin/artisans" element={<AdminArtisans />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                        <Route path="/admin/requests" element={<AdminRequests />} />
+            <Route path="/admin/requests" element={<AdminRequests />} />
+            <Route path="/admin/categories" element={<AdminCategories />} />
+            <Route path="/admin/reviews" element={<AdminReviews />} />
           </Route>
 
           <Route
@@ -90,10 +96,8 @@ function App() {
               </RequireAuth>
             }
           >
-                        <Route path="/artisan/reviews" element={<ArtisanReviews />} />
-                        <Route path="/artisan/profile" element={<ArtisanSettings />} />
-                                    <Route path="/admin/categories" element={<AdminCategories />} />
-                                                <Route path="/admin/reviews" element={<AdminReviews />} />
+            <Route path="/artisan/reviews" element={<ArtisanReviews />} />
+            <Route path="/artisan/profile" element={<ArtisanSettings />} />
             <Route path="/artisan/requests" element={<ArtisanRequests />} />
             <Route path="/artisan/my-work" element={<ArtisanMyWork />} />
           </Route>

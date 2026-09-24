@@ -304,6 +304,36 @@ const en = {
     show: 'Show',
     hiddenNotice: 'This review is currently hidden from everyone',
   },
+    footer: {
+    description:
+      'Fixoria connects Al-Budoor residents with trusted local artisans and service providers, quickly and reliably.',
+    linksTitle: 'Quick Links',
+    home: 'Home',
+    artisans: 'Browse Artisans',
+    accountTitle: 'Your Account',
+    residentLogin: 'Resident Login',
+    residentRegister: 'Create Resident Account',
+    artisanLogin: 'Artisan Login',
+    artisanRegister: 'Join as an Artisan',
+    compound: 'Al-Budoor Residential Compound',
+    rights: 'All rights reserved',
+  },
+    about: {
+    title: 'About Us',
+    lead: 'Fixoria connects Al-Budoor residents with verified local artisans and maintenance providers, in just a few taps.',
+    missionTitle: 'Our Mission',
+    missionText:
+      'We make everyday life easier by connecting residents with trusted local artisans, and providing a smooth, safe way to request and track maintenance services.',
+    howTitle: 'How Fixoria Works',
+    step1: 'Browse categories and pick the service you need.',
+    step2: 'Send a simple request, and the nearest available artisan accepts it.',
+    step3: 'Track your request status, and rate the service once completed.',
+  },
+  contact: {
+    title: 'Contact Us',
+    lead: 'Have a question or feedback? We would love to hear from you.',
+    location: 'Al-Budoor Residential Compound',
+  },
 }
 
 export default en

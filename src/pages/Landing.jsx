@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { translate } from '../i18n'
 import { Globe, ArrowRight, Shield, Wrench, UserCheck, Eye } from 'lucide-react'
 import './Landing.css'
