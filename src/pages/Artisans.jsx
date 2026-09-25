@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Star } from 'lucide-react'
 import { translate } from '../i18n'
 import { getArtisans } from '../services/artisansService'
 import './Artisans.css'
@@ -57,15 +58,29 @@ function Artisans() {
       {!isLoading && !error && artisans.length > 0 && (
         <ul className="artisan-list">
           {artisans.map((artisan) => (
-                       <li key={artisan.id} className="artisan-card">
+            <li key={artisan.id} className="artisan-card">
               <Link to={`/artisans/${artisan.id}`} className="artisan-card-link">
-                               <p className="artisan-category">{artisan.categoryNames.join('، ')}</p>
+                <div className="artisan-card-header">
+                  <span className="artisan-avatar" aria-hidden="true">
+                    {artisan.fullName?.charAt(0)}
+                  </span>
+                  <div>
+                    <p className="artisan-name">{artisan.fullName}</p>
+                    <p className="artisan-category">{artisan.categoryNames.join('، ')}</p>
+                  </div>
+                </div>
+
+                {artisan.bio && <p className="artisan-bio">{artisan.bio}</p>}
+
                 {artisan.reviewsCount > 0 ? (
                   <p className="artisan-rating">
-                    ⭐ {artisan.rating} ({artisan.reviewsCount} {translate('artisans.reviewsCount')})
+                    <Star size={14} className="artisan-rating-star" />
+                    {artisan.rating} ({artisan.reviewsCount} {translate('artisans.reviewsCount')})
                   </p>
                 ) : (
-                  <p className="artisan-rating">{translate('artisans.noReviews')}</p>
+                  <p className="artisan-rating artisan-rating-empty">
+                    {translate('artisans.noReviews')}
+                  </p>
                 )}
               </Link>
             </li>

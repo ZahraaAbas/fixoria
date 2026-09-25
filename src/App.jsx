@@ -4,6 +4,7 @@ import PublicLayout from './layouts/PublicLayout'
 import AdminLayout from './layouts/AdminLayout'
 import ArtisanLayout from './layouts/ArtisanLayout'
 import RequireAuth from './routes/RequireAuth'
+import GuestOrResidentOnly from './routes/GuestOrResidentOnly'
 import Landing from './pages/Landing'
 import Home from './pages/Home'
 import Artisans from './pages/Artisans'
@@ -27,6 +28,7 @@ import AdminCategories from './pages/AdminCategories'
 import AdminReviews from './pages/AdminReviews'
 import About from './pages/About'
 import Contact from './pages/Contact'
+import ArtisanDashboard from './pages/ArtisanDashboard'
 
 function App() {
   return (
@@ -36,9 +38,30 @@ function App() {
           <Route path="/" element={<Landing />} />
 
           <Route element={<PublicLayout />}>
-            <Route path="/home" element={<Home />} />
-            <Route path="/artisans" element={<Artisans />} />
-            <Route path="/artisans/:id" element={<ArtisanProfile />} />
+            <Route
+              path="/home"
+              element={
+                <GuestOrResidentOnly>
+                  <Home />
+                </GuestOrResidentOnly>
+              }
+            />
+            <Route
+              path="/artisans"
+              element={
+                <GuestOrResidentOnly>
+                  <Artisans />
+                </GuestOrResidentOnly>
+              }
+            />
+            <Route
+              path="/artisans/:id"
+              element={
+                <GuestOrResidentOnly>
+                  <ArtisanProfile />
+                </GuestOrResidentOnly>
+              }
+            />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route
@@ -65,15 +88,16 @@ function App() {
                 </RequireAuth>
               }
             />
-            <Route
-              path="/artisan/pending"
-              element={
-                <RequireAuth role="artisan">
-                  <ArtisanPending />
-                </RequireAuth>
-              }
-            />
           </Route>
+
+          <Route
+            path="/artisan/pending"
+            element={
+              <RequireAuth role="artisan">
+                <ArtisanPending />
+              </RequireAuth>
+            }
+          />
 
           <Route
             element={
@@ -96,6 +120,7 @@ function App() {
               </RequireAuth>
             }
           >
+            <Route path="/artisan/dashboard" element={<ArtisanDashboard />} />
             <Route path="/artisan/reviews" element={<ArtisanReviews />} />
             <Route path="/artisan/profile" element={<ArtisanSettings />} />
             <Route path="/artisan/requests" element={<ArtisanRequests />} />

@@ -1,42 +1,30 @@
-import { getAllUsers, withoutPassword } from './userStore'
-import { categories } from '../mocks/categories'
+import { apiGet } from './apiClient'
 
-const MOCK_DELAY_MS = 600
-
-function categoryNamesFor(categoryIds = []) {
-  return categories
-    .filter((category) => categoryIds.includes(category.id))
-    .map((category) => category.name)
-}
-
-function toPublicArtisan(user) {
-  const publicUser = withoutPassword(user)
-  const copy = { ...publicUser, categoryNames: categoryNamesFor(publicUser.categoryIds) }
-  delete copy.categoryIds
-  return copy
-}
-
-function approvedArtisans() {
-  return getAllUsers().filter(
-    (user) => user.role === 'artisan' && user.status === 'approved',
-  )
+function mapArtisan(artisan) {
+  return {
+    id: artisan.id,
+    fullName: artisan.name,
+    bio: artisan.description,
+    rating: artisan.average_rating,
+    reviewsCount: artisan.reviews_count,
+    categoryNames: artisan.service_names,
+  }
 }
 
 export function getArtisans() {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(approvedArtisans().map(toPublicArtisan)), MOCK_DELAY_MS)
-  })
+  return apiGet('/artisans?verified_only=true', { auth: false }).then((data) =>
+    data.map(mapArtisan),
+  )
 }
 
-export function getArtisanById(id) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const artisan = approvedArtisans().find((user) => user.id === Number(id))
-      if (!artisan) {
-        reject(new Error('NOT_FOUND'))
-        return
-      }
-      resolve(toPublicArtisan(artisan))
-    }, MOCK_DELAY_MS)
-  })
+export async function getArtisanById(id) {
+  try {
+    const artisan = await apiGet(`/artisans/${id}`, { auth: false })
+    return mapArtisan(artisan)
+  } catch (error) {
+    if (error.status === 404) {
+      throw new Error('NOT_FOUND', { cause: error })
+    }
+    throw error
+  }
 }

@@ -11,6 +11,7 @@ const en = {
   },
   adminNav: {
     dashboard: 'Dashboard',
+    management: 'Management',
     artisans: 'Artisans',
     requests: 'Requests',
     categories: 'Categories',
@@ -333,6 +334,20 @@ const en = {
     title: 'Contact Us',
     lead: 'Have a question or feedback? We would love to hear from you.',
     location: 'Al-Budoor Residential Compound',
+  },
+    artisanDashboard: {
+    title: 'My Dashboard',
+    loading: 'Loading...',
+    error: 'Could not load data',
+    retry: 'Retry',
+    total: 'Total Requests',
+    active: 'Active Requests',
+    completed: 'Completed Requests',
+    rating: 'Average Rating',
+    currentTitle: 'Current Service',
+    noCurrent: 'No active request right now',
+    viewInMyWork: 'View in My Work ←',
+    activityTitle: 'Activity — Last 6 Months',
   },
 }
 

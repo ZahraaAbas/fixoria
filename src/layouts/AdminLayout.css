@@ -21,31 +21,8 @@
   margin-bottom: 32px;
 }
 
-.admin-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.admin-menu-wrapper {
   flex: 1;
-}
-
-.admin-nav a {
-  padding: 10px 12px;
-  color: var(--color-on-dark);
-  text-decoration: none;
-  border-radius: 8px;
-  opacity: 0.8;
-}
-
-.admin-nav a:hover {
-  opacity: 1;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.admin-nav a.active {
-  opacity: 1;
-  font-weight: 700;
-  color: var(--color-accent);
-  background: rgba(255, 255, 255, 0.08);
 }
 
 .admin-sidebar-footer {
@@ -91,8 +68,8 @@
     gap: 12px;
   }
 
-  .admin-nav {
-    flex-direction: row;
+  .admin-menu-wrapper {
+    flex: none;
   }
 
   .admin-sidebar-footer {

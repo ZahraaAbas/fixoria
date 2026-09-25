@@ -1,59 +1,16 @@
-.artisan-header {
+.nav-segment-wrapper {
+  flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 24px;
-  background: var(--color-dark);
+  justify-content: center;
+  padding-inline: 24px;
 }
 
-.artisan-brand {
-  font-size: 1.25rem;
+.nav-segment-wrapper .rubber-segment {
+  --rs-font: 15px !important;
+  --rs-pad: 20px !important;
+  min-width: 480px;
+}
+
+.nav-segment-wrapper .rubber-segment__item {
   font-weight: 700;
-  color: var(--color-accent);
-  text-decoration: none;
-}
-
-.artisan-nav {
-  display: flex;
-  gap: 20px;
-}
-
-.artisan-nav a {
-  color: var(--color-on-dark);
-  text-decoration: none;
-  opacity: 0.75;
-}
-
-.artisan-nav a:hover {
-  opacity: 1;
-}
-
-.artisan-nav a.active {
-  color: var(--color-accent);
-  font-weight: 700;
-  opacity: 1;
-}
-
-.artisan-header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.artisan-user {
-  color: var(--color-on-dark);
-}
-
-.artisan-logout {
-  padding: 6px 14px;
-  font: inherit;
-  color: var(--color-accent);
-  background: none;
-  border: 1px solid var(--color-accent);
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.artisan-content {
-  padding: 24px;
 }

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { translate } from '../i18n'
 import { getCategories } from '../services/categoriesService'
-import { serviceVisuals } from '../config/serviceVisuals'
-import ServiceCard from '../components/ServiceCard'
+import { serviceImages, defaultServiceImage } from '../config/serviceImages'
+import { serviceVisuals, defaultServiceVisual } from '../config/serviceVisuals'
+import AccordionGallery from '../components/AccordionGallery'
 import './Home.css'
 
 function Home() {
@@ -36,6 +37,16 @@ function Home() {
     setAttempt((count) => count + 1)
   }
 
+  const galleryItems = categories.map((category) => {
+    const Icon = (serviceVisuals[category.icon] || defaultServiceVisual).Icon
+    return {
+      image: serviceImages[category.icon] || defaultServiceImage,
+      label: category.name,
+      link: `/requests/new/${category.id}`,
+      icon: <Icon size={20} />,
+    }
+  })
+
   return (
     <section>
       <h1>{translate('home.title')}</h1>
@@ -56,17 +67,19 @@ function Home() {
       )}
 
       {!isLoading && !error && categories.length > 0 && (
-        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((category, index) => (
-            <ServiceCard
-              key={category.id}
-              to={`/requests/new/${category.id}`}
-              title={category.name}
-              Icon={serviceVisuals[category.id]?.Icon}
-              gradient={serviceVisuals[category.id]?.gradient}
-              delay={index * 0.08}
-            />
-          ))}
+        <div className="home-gallery-wrapper">
+          <AccordionGallery
+            items={galleryItems}
+            defaultIndex={0}
+            accentColor="#f19035"
+            overlayColor="#263056"
+            textColor="#ffffff"
+            height={420}
+            gap={10}
+            radius={20}
+            expandRatio={0.42}
+            trigger="hover"
+          />
         </div>
       )}
     </section>

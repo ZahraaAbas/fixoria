@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
 import { getReviewsForArtisan } from '../services/requestsService'
-import StarRating from '../components/StarRating'
+import PeekRating from '../components/PeekRating'
 import './ArtisanReviews.css'
 
 function average(numbers) {
@@ -69,7 +69,7 @@ function ArtisanReviews() {
           <div className="artisan-reviews-summary">
             <span className="artisan-reviews-average">{averageRating}</span>
             <div>
-              <StarRating value={Math.round(averageRating)} onChange={() => {}} />
+              <PeekRating value={Math.round(averageRating)} readOnly size={22} activeColor="#f19035" idleColor="#dac7c0" />
               <p className="artisan-reviews-count">
                 {reviews.length} {translate('artisanReviews.count')}
               </p>
@@ -81,7 +81,7 @@ function ArtisanReviews() {
               <li key={review.requestId} className="artisan-review-card">
                 <div className="artisan-review-header">
                   <p className="artisan-review-title">{review.title}</p>
-                  <StarRating value={review.rating} onChange={() => {}} />
+                  <PeekRating value={review.rating} readOnly size={18} activeColor="#f19035" idleColor="#dac7c0" />
                 </div>
                 <p className="artisan-review-category">{review.categoryName}</p>
                 {review.comment && <p className="artisan-review-comment">{review.comment}</p>}

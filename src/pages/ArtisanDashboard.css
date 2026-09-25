@@ -1,0 +1,110 @@
+.artisan-dashboard-status {
+  margin-top: 16px;
+  color: var(--color-text-muted);
+}
+
+.artisan-dashboard-retry {
+  margin-top: 12px;
+  padding: 10px 20px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-dark);
+  background: var(--color-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.artisan-dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+  max-width: 720px;
+}
+
+.artisan-stat-card {
+  padding: 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.artisan-stat-value {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--color-dark);
+}
+
+.artisan-stat-label {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.artisan-dashboard-section {
+  margin-top: 32px;
+  max-width: 720px;
+}
+
+.artisan-dashboard-section h2 {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+}
+
+.artisan-current-card {
+  padding: 18px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.artisan-current-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.artisan-current-meta {
+  margin: 4px 0 14px;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.artisan-current-timeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline-step {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+.timeline-step.active {
+  color: var(--color-dark);
+  font-weight: 700;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.artisan-current-link {
+  color: var(--color-dark);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.artisan-chart-wrapper {
+  padding: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}

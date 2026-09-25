@@ -13,7 +13,7 @@ const REGISTER_PATH = {
 
 const DEFAULT_REDIRECT = {
   resident: '/home',
-  artisan: '/artisan/requests',
+  artisan: '/artisan/dashboard',
   admin: '/admin/dashboard',
 }
 

@@ -85,7 +85,6 @@
 }
 
 .public-content {
-  flex: 1;
   padding: 24px 32px;
 }
 
@@ -103,4 +102,20 @@
   .public-content {
     padding: 20px 16px;
   }
+}
+.nav-segment-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding-inline: 24px;
+}
+
+.nav-segment-wrapper .rubber-segment {
+  --rs-font: 15px !important;
+  --rs-pad: 24px !important;
+  min-width: 440px;
+}
+
+.nav-segment-wrapper .rubber-segment__item {
+  font-weight: 700;
 }

@@ -1,93 +1,99 @@
-import { users as mockUsers } from '../mocks/users'
+import { apiGet, apiPost, setToken } from './apiClient'
 
-const STORAGE_KEY = 'fixoria_registered_users'
-const MOCK_DELAY_MS = 600
+const ROLE_TO_API = { resident: 'customer', artisan: 'artisan', admin: 'admin' }
+const ROLE_FROM_API = { customer: 'resident', artisan: 'artisan', admin: 'admin' }
 
-function readRegisteredUsers() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
-  } catch {
-    return []
+function mapUserFromApi(apiUser) {
+  return {
+    id: apiUser.id,
+    fullName: apiUser.name,
+    email: apiUser.email,
+    role: ROLE_FROM_API[apiUser.role] || apiUser.role,
   }
 }
 
-function writeRegisteredUsers(users) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(users))
-  } catch {
-    // التخزين غير متاح: لن يُحفظ الحساب بعد إغلاق الصفحة
+async function withProfile(user) {
+  if (user.role === 'artisan') {
+    const profile = await apiGet('/artisans/me')
+    return {
+      ...user,
+      phone: profile.phone,
+      bio: profile.description,
+      categoryIds: profile.service_ids,
+      status: profile.status,
+      rating: profile.average_rating,
+      reviewsCount: profile.reviews_count,
+    }
   }
+
+  if (user.role === 'resident') {
+    const profile = await apiGet('/resident/me')
+    return {
+      ...user,
+      phone: profile.phone,
+      building: profile.building,
+      apartment: profile.apartment_number,
+    }
+  }
+
+  return user
 }
 
-function getAllUsers() {
-  return [...mockUsers, ...readRegisteredUsers()]
-}
-function withoutPassword(user) {
-  const copy = { ...user }
-  delete copy.password
-  return copy
-}
+export async function login({ email, password }) {
+  try {
+    const token = await apiPost('/auth/login', { email, password }, { auth: false })
+    setToken(token.access_token)
+  } catch (error) {
+    if (error.status === 401) {
+      throw new Error('INVALID_CREDENTIALS', { cause: error })
+    }
+    throw error
+  }
 
-export function login({ email, password }) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const account = getAllUsers().find(
-        (user) =>
-          user.email === email.trim().toLowerCase() &&
-          user.password === password,
-      )
-
-      if (!account) {
-        reject(new Error('INVALID_CREDENTIALS'))
-        return
-      }
-
-      resolve(withoutPassword(account))
-    }, MOCK_DELAY_MS)
-  })
+  const me = await apiGet('/auth/me')
+  const user = mapUserFromApi(me)
+  return withProfile(user)
 }
 
-function createAccount(payload) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const email = payload.email.trim().toLowerCase()
-      const emailTaken = getAllUsers().some((user) => user.email === email)
+async function registerUser(payload) {
+  try {
+    await apiPost('/auth/register', payload, { auth: false })
+  } catch (error) {
+    if (error.status === 400) {
+      throw new Error('EMAIL_TAKEN', { cause: error })
+    }
+    throw error
+  }
 
-      if (emailTaken) {
-        reject(new Error('EMAIL_TAKEN'))
-        return
-      }
-
-      const registeredUsers = readRegisteredUsers()
-      const newUser = { id: Date.now(), ...payload, email }
-      writeRegisteredUsers([...registeredUsers, newUser])
-      resolve(withoutPassword(newUser))
-    }, MOCK_DELAY_MS)
-  })
+  return login({ email: payload.email, password: payload.password })
 }
 
 export function registerResident(data) {
-  return createAccount({
-    fullName: data.fullName,
-    phone: data.phone,
-    building: data.building,
-    apartment: data.apartment,
+  return registerUser({
+    name: data.fullName,
     email: data.email,
     password: data.password,
-    role: 'resident',
+    role: ROLE_TO_API.resident,
+    phone: data.phone,
+    building: data.building,
+    apartment_number: data.apartment,
   })
 }
 
-export function registerArtisan(data) {
-  return createAccount({
-    fullName: data.fullName,
-    phone: data.phone,
+export async function registerArtisan(data) {
+  const user = await registerUser({
+    name: data.fullName,
     email: data.email,
     password: data.password,
-    role: 'artisan',
-    categoryIds: data.categoryIds,
-    bio: data.bio,
-    status: 'pending',
+    role: ROLE_TO_API.artisan,
+    phone: data.phone,
   })
+
+  await apiPost('/artisans', {
+    phone: data.phone,
+    service_ids: data.categoryIds,
+    description: data.bio,
+  })
+
+  return withProfile(user)
 }

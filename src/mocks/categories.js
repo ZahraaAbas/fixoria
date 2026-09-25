@@ -5,4 +5,5 @@ export const categories = [
   { id: 4, name: 'نجارة' },
   { id: 5, name: 'دهان وديكور' },
   { id: 6, name: 'تنظيف' },
+  { id: 7, name: 'نقل الأثاث' },
 ]

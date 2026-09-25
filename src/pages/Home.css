@@ -51,3 +51,13 @@
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 24px;
 }
+
+.home-gallery-wrapper {
+  margin-top: 24px;
+}
+
+@media (max-width: 640px) {
+  .home-gallery-wrapper .accordion-gallery {
+    height: auto !important;
+  }
+}

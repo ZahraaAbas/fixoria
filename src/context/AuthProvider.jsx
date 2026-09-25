@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AuthContext } from './authContext'
+import { setToken } from '../services/apiClient'
 
 const STORAGE_KEY = 'fixoria_user'
 
@@ -30,6 +31,7 @@ function AuthProvider({ children }) {
 
   function signOut() {
     setUser(null)
+    setToken(null)
     try {
       localStorage.removeItem(STORAGE_KEY)
     } catch {

@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { translate } from '../i18n'
 import { submitReview } from '../services/requestsService'
-import StarRating from '../components/StarRating'
+import PeekRating from '../components/PeekRating'
 import './ReviewForm.css'
+
+const RATING_LABELS = ['سيء', 'مقبول', 'جيد', 'ممتاز', 'رائع']
 
 function ReviewForm({ requestId, onSubmitted }) {
   const [rating, setRating] = useState(0)
@@ -31,7 +33,17 @@ function ReviewForm({ requestId, onSubmitted }) {
 
       <div className="review-field">
         <span>{translate('review.ratingLabel')}</span>
-        <StarRating value={rating} onChange={setRating} />
+        <PeekRating
+          value={rating}
+          onChange={setRating}
+          labels={RATING_LABELS}
+          activeColor="#f19035"
+          idleColor="#dac7c0"
+          tipColor="#263056"
+          tipTextColor="#ffffff"
+          size={32}
+          ariaLabel={translate('review.ratingLabel')}
+        />
       </div>
 
       {error && (

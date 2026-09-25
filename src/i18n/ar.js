@@ -11,10 +11,11 @@ const ar = {
   },
   adminNav: {
     dashboard: 'لوحة التحكم',
+    management: 'الإدارة',
     artisans: 'الحرفيون',
     requests: 'الطلبات',
-        categories: 'التصنيفات',
-            reviews: 'التقييمات',
+    categories: 'التصنيفات',
+    reviews: 'التقييمات',
   },
   artisanNav: {
     requests: 'الطلبات المتاحة',
@@ -333,6 +334,20 @@ const ar = {
     title: 'اتصل بنا',
     lead: 'لديك سؤال أو ملاحظة؟ يسعدنا تواصلك معنا.',
     location: 'مجمع البدور السكني',
+  },
+    artisanDashboard: {
+    title: 'لوحتي',
+    loading: 'جارٍ التحميل...',
+    error: 'تعذّر تحميل البيانات',
+    retry: 'إعادة المحاولة',
+    total: 'إجمالي الطلبات',
+    active: 'طلبات نشطة',
+    completed: 'طلبات مكتملة',
+    rating: 'متوسط التقييم',
+    currentTitle: 'الخدمة الحالية',
+    noCurrent: 'لا يوجد طلب نشط حاليًا',
+    viewInMyWork: 'عرض في أعمالي ←',
+    activityTitle: 'نشاطي خلال آخر 6 أشهر',
   },
 }
 

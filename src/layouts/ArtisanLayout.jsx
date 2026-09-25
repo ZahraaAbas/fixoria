@@ -1,10 +1,24 @@
-import { Link, NavLink, Outlet } from 'react-router'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
+import RubberSegment from '../components/RubberSegment'
 import './ArtisanLayout.css'
 
 function ArtisanLayout() {
   const { user, signOut } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const navItems = [
+     { value: '/artisan/dashboard', label: translate('artisanDashboard.title') },
+    { value: '/artisan/requests', label: translate('artisanNav.requests') },
+    { value: '/artisan/my-work', label: translate('artisanNav.myWork') },
+    { value: '/artisan/reviews', label: translate('artisanNav.reviews') },
+    { value: '/artisan/profile', label: translate('artisanNav.settings') },
+  ]
+
+  const activeValue =
+    navItems.find((item) => location.pathname.startsWith(item.value))?.value ?? navItems[0].value
 
   return (
     <div className="artisan-layout">
@@ -13,12 +27,19 @@ function ArtisanLayout() {
           {translate('common.brand')}
         </Link>
 
-        <nav className="artisan-nav">
-          <NavLink to="/artisan/requests">{translate('artisanNav.requests')}</NavLink>
-          <NavLink to="/artisan/my-work">{translate('artisanNav.myWork')}</NavLink>
-          <NavLink to="/artisan/reviews">{translate('artisanNav.reviews')}</NavLink>
-          <NavLink to="/artisan/profile">{translate('artisanNav.settings')}</NavLink>
-        </nav>
+        <div className="nav-segment-wrapper">
+          <RubberSegment
+            items={navItems}
+            value={activeValue}
+            onChange={(path) => navigate(path)}
+            trackColor="rgba(255,255,255,0.08)"
+            thumbColor="#f19035"
+            textColor="rgba(253,243,238,0.8)"
+            activeTextColor="#263056"
+            size="lg"
+            aria-label={translate('artisanNav.requests')}
+          />
+        </div>
 
         <div className="artisan-header-right">
           <span className="artisan-user">{user.fullName}</span>

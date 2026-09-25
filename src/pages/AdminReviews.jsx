@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { translate } from '../i18n'
 import { getReviewsOverview } from '../services/adminService'
 import { toggleReviewVisibility } from '../services/requestsService'
-import StarRating from '../components/StarRating'
+import PeekRating from '../components/PeekRating'
 import './AdminReviews.css'
 
 function AdminReviews() {
@@ -82,7 +82,7 @@ function AdminReviews() {
             >
               <div className="admin-review-header">
                 <p className="admin-review-title">{review.title}</p>
-                <StarRating value={review.rating} onChange={() => {}} />
+                <PeekRating value={review.rating} readOnly size={18} activeColor="#f19035" idleColor="#dac7c0" />
               </div>
               <p className="admin-review-meta">
                 {translate('adminReviews.resident')}: {review.residentName} ·{' '}
