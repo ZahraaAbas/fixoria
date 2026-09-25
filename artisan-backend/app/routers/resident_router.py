@@ -18,8 +18,10 @@ GET  /resident/services/{service_id}/artisans -> "عرض المزيد": كل ح�
 POST /resident/requests                       -> نوع الخدمة، صور الضرر، اسمك، رقم الوحدة، الوقت المناسب،
                                                  الحرفي المفضل (للمشتركين فقط)
 POST /resident/requests/{id}/images           -> إضافة صور لطلب موجود
+POST /resident/requests/{id}/cancel           -> إلغاء طلب (بانتظار القبول أو مقبول فقط)
 
 طلباتي:
+GET  /resident/requests                       -> كل طلباتي (صفحة "طلباتي")
 GET  /resident/requests/current               -> طلباتي الحالية (بانتظار القبول / مقبول / قيد التنفيذ)
 GET  /resident/requests/history               -> سجل الطلبات (مكتمل، مع التقييم والسعر)
 GET  /resident/requests/{id}                  -> تفاصيل الطلب (زر "عرض") + الصور + شريط التقدم
@@ -63,6 +65,7 @@ from app.models import (
 )
 from app.notifications import notify
 from app.progress import build_progress, status_label
+from app.helpers import all_artisan_ratings, artisan_service_ids, artisans_for_service
 from app.schemas import (
     ArtisanCard,
     ComplaintCreate,
@@ -123,14 +126,8 @@ def _profile_read(user: User, profile: ResidentProfile) -> ResidentProfileRead:
 
 
 def _artisan_ratings(session: Session) -> Dict[int, Tuple[Optional[float], int]]:
-    """artisan_id -> (متوسط التقييم, عدد التقييمات)"""
-    totals: Dict[int, List[int]] = {}
-    for rv in session.exec(select(Review)).all():
-        totals.setdefault(rv.artisan_id, []).append(rv.rating)
-    return {
-        aid: (round(sum(r) / len(r), 1), len(r))
-        for aid, r in totals.items()
-    }
+    """artisan_id -> (متوسط التقييم, عدد التقييمات) — التقييمات الظاهرة فقط"""
+    return all_artisan_ratings(session)
 
 
 def _artisan_card(a: Artisan, session: Session, ratings) -> ArtisanCard:
@@ -146,9 +143,7 @@ def _artisan_card(a: Artisan, session: Session, ratings) -> ArtisanCard:
 
 
 def _sorted_service_artisans(service_id: int, session: Session, ratings) -> List[Artisan]:
-    artisans = session.exec(
-        select(Artisan).where(Artisan.service_id == service_id, Artisan.verified == True)  # noqa: E712
-    ).all()
+    artisans = artisans_for_service(session, service_id, verified_only=True)
     # الأعلى تقييماً أول؛ اللي ما عنده تقييم ينزل آخر القائمة
     return sorted(
         artisans,
@@ -194,6 +189,10 @@ def _request_row(req: ServiceRequest, session: Session, my_reviews: Dict[int, Re
         artisan_id=req.artisan_id,
         artisan_name=artisan_user.name if artisan_user else None,
         artisan_image=artisan.image if artisan else None,
+        customer_id=req.customer_id,
+        title=req.title,
+        building=req.building,
+        unit_number=req.unit_number,
         scheduled_at=req.scheduled_at,
         date=req.completed_at or req.scheduled_at or req.created_at,
         status=req.status,
@@ -221,7 +220,9 @@ def _current_requests(session: Session, user: User, limit: Optional[int]) -> Lis
 
 
 def _history(session: Session, user: User, limit: Optional[int], include_rejected: bool = False):
-    statuses = [RequestStatus.completed] + ([RequestStatus.rejected] if include_rejected else [])
+    statuses = [RequestStatus.completed] + (
+        [RequestStatus.rejected, RequestStatus.cancelled] if include_rejected else []
+    )
     reqs = session.exec(
         select(ServiceRequest).where(
             ServiceRequest.customer_id == user.id, ServiceRequest.status.in_(statuses)
@@ -279,28 +280,6 @@ def _get_my_request(request_id: int, session: Session, user: User) -> ServiceReq
     return req
 
 
-def _auto_assign_artisan(service_id: int, session: Session) -> Optional[Artisan]:
-    """
-    لغير المشتركين (أو إذا المشترك ما اختار): نختار حرفي معتمد بنفس الخدمة —
-    الأقل انشغالاً بطلبات مفتوحة، وعند التساوي الأعلى تقييماً.
-    """
-    ratings = _artisan_ratings(session)
-    artisans = session.exec(
-        select(Artisan).where(Artisan.service_id == service_id, Artisan.verified == True)  # noqa: E712
-    ).all()
-    if not artisans:
-        return None
-
-    def workload(a: Artisan) -> int:
-        return len(session.exec(
-            select(ServiceRequest).where(
-                ServiceRequest.artisan_id == a.id,
-                ServiceRequest.status.in_([RequestStatus.pending, RequestStatus.accepted,
-                                           RequestStatus.in_progress]),
-            )
-        ).all())
-
-    return min(artisans, key=lambda a: (workload(a), -(ratings.get(a.id, (0, 0))[0] or 0)))
 
 
 def _complaint_read(c: Complaint, session: Session) -> ComplaintRead:
@@ -440,6 +419,7 @@ def get_service_artisans(
 @router.post("/requests", response_model=ResidentRequestDetail, status_code=status.HTTP_201_CREATED)
 async def create_resident_request(
     service_id: int = Form(...),
+    title: Optional[str] = Form(None),
     contact_name: Optional[str] = Form(None),
     unit_number: Optional[str] = Form(None),
     scheduled_at: Optional[datetime] = Form(None),
@@ -474,17 +454,19 @@ async def create_resident_request(
         artisan = session.get(Artisan, preferred_artisan_id)
         if not artisan or not artisan.verified:
             raise HTTPException(status_code=404, detail="الحرفي غير موجود أو غير معتمد")
-        if artisan.service_id != service_id:
+        if service_id not in artisan_service_ids(session, artisan):
             raise HTTPException(status_code=400, detail="هذا الحرفي ما يقدم نوع الخدمة المختار")
-    else:
-        artisan = _auto_assign_artisan(service_id, session)
+    # بدون اختيار: الطلب ينفتح لكل حرفيي الخدمة وأول واحد يقبله ياخذه
 
     unit = unit_number or profile.apartment_number
-    location_parts = [building or profile.building, unit]
+    building_value = building or profile.building
+    location_parts = [building_value, unit]
     req = ServiceRequest(
         customer_id=user.id,
         artisan_id=artisan.id if artisan else None,
         service_id=service_id,
+        title=(title or "").strip() or service.name,
+        building=building_value,
         description=description,
         contact_name=contact_name or user.name,
         unit_number=unit,
@@ -510,8 +492,32 @@ async def create_resident_request(
     else:
         notify(session, user.id, NotificationType.request_received,
                f"تم استلام طلبك رقم #{req.id}", "جاري البحث عن حرفي مناسب", req.id)
+        for a in artisans_for_service(session, service_id, verified_only=True):
+            notify(session, a.user_id, NotificationType.new_request,
+                   f"طلب جديد متاح #{req.id}", f"{service.name} — {req.location or ''}", req.id)
     session.commit()
 
+    return get_request_detail(req.id, session, user)
+
+
+@router.post("/requests/{request_id}/cancel", response_model=ResidentRequestDetail)
+def cancel_request(
+    request_id: int,
+    session: Session = Depends(get_session),
+    user: User = Depends(resident_only),
+):
+    req = _get_my_request(request_id, session, user)
+    if req.status not in (RequestStatus.pending, RequestStatus.accepted):
+        raise HTTPException(status_code=400, detail="ما يمكن إلغاء الطلب بعد بدء التنفيذ")
+
+    req.status = RequestStatus.cancelled
+    session.add(req)
+    if req.artisan_id:
+        artisan = session.get(Artisan, req.artisan_id)
+        if artisan:
+            notify(session, artisan.user_id, NotificationType.request_cancelled,
+                   f"الساكن ألغى الطلب رقم #{req.id}", req.title, req.id)
+    session.commit()
     return get_request_detail(req.id, session, user)
 
 
@@ -523,7 +529,7 @@ async def add_request_images(
     user: User = Depends(resident_only),
 ):
     req = _get_my_request(request_id, session, user)
-    if req.status in (RequestStatus.completed, RequestStatus.rejected):
+    if req.status in (RequestStatus.completed, RequestStatus.rejected, RequestStatus.cancelled):
         raise HTTPException(status_code=400, detail="ما تكدر تضيف صور لطلب منتهي")
 
     existing = len(session.exec(select(RequestImage).where(RequestImage.request_id == req.id)).all())
@@ -540,6 +546,17 @@ async def add_request_images(
 # طلباتي الحالية + سجل الطلبات
 # (current/history لازم قبل /{request_id} بالترتيب)
 # =====================================================================
+
+@router.get("/requests", response_model=List[ResidentRequestRow])
+def get_all_my_requests(session: Session = Depends(get_session), user: User = Depends(resident_only)):
+    reqs = session.exec(
+        select(ServiceRequest)
+        .where(ServiceRequest.customer_id == user.id)
+        .order_by(ServiceRequest.created_at.desc())
+    ).all()
+    my_reviews = _my_reviews_by_request(session, user)
+    return [_request_row(r, session, my_reviews) for r in reqs]
+
 
 @router.get("/requests/current", response_model=List[ResidentRequestRow])
 def get_current_requests(
@@ -575,7 +592,6 @@ def get_request_detail(
         description=req.description,
         location=req.location,
         contact_name=req.contact_name,
-        unit_number=req.unit_number,
         images=[i.url for i in images],
         my_review_comment=review.comment if review else None,
     )

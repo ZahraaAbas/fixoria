@@ -34,7 +34,7 @@ class ProgressStep(BaseModel):
 
 
 def build_progress(status: RequestStatus) -> List[ProgressStep]:
-    if status == RequestStatus.rejected:
+    if status in (RequestStatus.rejected, RequestStatus.cancelled):
         return []
 
     current = _STATUS_INDEX.get(status, -1)
@@ -58,6 +58,7 @@ STATUS_LABELS_AR = {
     RequestStatus.in_progress: "قيد التنفيذ",
     RequestStatus.completed: "مكتمل",
     RequestStatus.rejected: "مرفوض",
+    RequestStatus.cancelled: "ملغي",
 }
 
 

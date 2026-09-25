@@ -10,7 +10,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from app.database import get_session
-from app.models import Review, ServiceRequest, RequestStatus, User, UserRole
+from app.models import Artisan, NotificationType, Review, ServiceRequest, RequestStatus, User, UserRole
+from app.notifications import notify
 from app.schemas import ReviewCreate, ReviewRead
 from app.auth import get_current_user
 
@@ -51,6 +52,10 @@ def create_review(
         comment=payload.comment,
     )
     session.add(review)
+    artisan = session.get(Artisan, req.artisan_id)
+    if artisan:
+        notify(session, artisan.user_id, NotificationType.general,
+               f"تقييم جديد {payload.rating}/5 على الطلب #{req.id}", payload.comment, req.id)
     session.commit()
     session.refresh(review)
     return review
@@ -58,4 +63,7 @@ def create_review(
 
 @router.get("/artisans/{artisan_id}/reviews", response_model=List[ReviewRead])
 def get_artisan_reviews(artisan_id: int, session: Session = Depends(get_session)):
-    return session.exec(select(Review).where(Review.artisan_id == artisan_id)).all()
+    # التقييمات المخفية من الإدارة ما تظهر للعامة
+    return session.exec(
+        select(Review).where(Review.artisan_id == artisan_id, Review.is_hidden == False)  # noqa: E712
+    ).all()

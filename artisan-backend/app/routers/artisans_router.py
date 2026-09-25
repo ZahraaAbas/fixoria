@@ -1,9 +1,10 @@
 """
 Artisans endpoints:
-GET  /artisans          -> List/search (?specialty=, ?location=)
+GET  /artisans          -> List/search (?specialty=, ?location=, ?service_id=, ?verified_only=)
 GET  /artisans/{id}     -> Details
-POST /artisans          -> Create profile (artisan role only, one profile per user)
-PUT  /artisans/{id}     -> Update profile (owner only)
+POST /artisans          -> Create profile (artisan role only, one profile per user) — يقبل service_ids
+PUT  /artisans/me       -> الحرفي يعدل ملفه (الاسم، الهاتف، النبذة، الخدمات)
+PUT  /artisans/{id}     -> Update profile (owner or admin)
 """
 
 from typing import List, Optional
@@ -17,21 +18,15 @@ from app.models import Artisan, Review, Service, ServiceRequest, User, UserRole
 from app.schemas import ArtisanCreate, ArtisanUpdate, ArtisanRead, ReviewDetailed
 from app.auth import get_current_user, require_role
 from app.analytics import extract_building, last_n_months, month_label
+from app.helpers import (
+    artisan_to_read, artisans_for_service, set_artisan_services, visible_reviews_query,
+)
 
 router = APIRouter(prefix="/artisans", tags=["Artisans"])
 
 
 def _to_read(artisan: Artisan, session: Session) -> ArtisanRead:
-    user = session.get(User, artisan.user_id)
-    data = ArtisanRead.model_validate(artisan)
-    data.name = user.name if user else None
-    data.email = user.email if user else None
-    service = session.get(Service, artisan.service_id) if artisan.service_id else None
-    data.service_name = service.name if service else None
-    ratings = [r.rating for r in session.exec(select(Review).where(Review.artisan_id == artisan.id)).all()]
-    data.average_rating = round(sum(ratings) / len(ratings), 1) if ratings else None
-    data.reviews_count = len(ratings)
-    return data
+    return artisan_to_read(artisan, session)
 
 
 @router.get("", response_model=List[ArtisanRead])
@@ -48,7 +43,8 @@ def list_artisans(
     """
     query = select(Artisan)
     if service_id is not None:
-        query = query.where(Artisan.service_id == service_id)
+        ids = [a.id for a in artisans_for_service(session, service_id, verified_only=False)]
+        query = query.where(Artisan.id.in_(ids))
     if specialty:
         query = query.where(Artisan.specialty.contains(specialty))
     if location:
@@ -84,8 +80,9 @@ def get_my_reviews(
     if not artisan:
         raise HTTPException(status_code=404, detail="ماكو ملف حرفي إلك بعد — سوي وحد أول")
 
+    # التقييمات اللي أخفتها الإدارة ما تظهر للحرفي
     reviews = session.exec(
-        select(Review).where(Review.artisan_id == artisan.id).order_by(Review.created_at.desc())
+        visible_reviews_query().where(Review.artisan_id == artisan.id).order_by(Review.created_at.desc())
     ).all()
     results = []
     for rv in reviews:
@@ -97,6 +94,8 @@ def get_my_reviews(
             customer_name=customer.name if customer else None,
             artisan_name=user.name,
             service_name=service.name if service else None,
+            request_id=rv.request_id,
+            request_title=(req.title or (service.name if service else None)) if req else None,
         ))
     return results
 
@@ -160,11 +159,62 @@ def create_artisan_profile(
     if existing:
         raise HTTPException(status_code=400, detail="عندك ملف حرفي مسجل مسبقاً")
 
-    artisan = Artisan(user_id=user.id, **payload.model_dump())
+    data = payload.model_dump()
+    service_ids = data.pop("service_ids") or ([data["service_id"]] if data.get("service_id") else [])
+    if not service_ids:
+        raise HTTPException(status_code=400, detail="اختر خدمة وحدة على الأقل")
+    data["specialty"] = data.get("specialty") or ""
+
+    artisan = Artisan(user_id=user.id, **data)
     session.add(artisan)
     session.commit()
     session.refresh(artisan)
+
+    if not set_artisan_services(session, artisan, service_ids):
+        raise HTTPException(status_code=400, detail="الخدمات المختارة غير موجودة")
+    session.commit()
+    session.refresh(artisan)
     return _to_read(artisan, session)
+
+
+def _apply_update(artisan: Artisan, user: User, payload: ArtisanUpdate, session: Session) -> Artisan:
+    data = payload.model_dump(exclude_unset=True)
+    name = data.pop("name", None)
+    service_ids = data.pop("service_ids", None)
+
+    if name is not None:
+        if not name.strip():
+            raise HTTPException(status_code=400, detail="الاسم ما يكون فارغ")
+        owner = session.get(User, artisan.user_id)
+        owner.name = name.strip()
+        session.add(owner)
+
+    if service_ids is not None:
+        if not service_ids:
+            raise HTTPException(status_code=400, detail="اختر خدمة وحدة على الأقل")
+        set_artisan_services(session, artisan, service_ids)
+        data.pop("service_id", None)
+        data.pop("specialty", None)
+
+    for field, value in data.items():
+        setattr(artisan, field, value)
+
+    session.add(artisan)
+    session.commit()
+    session.refresh(artisan)
+    return artisan
+
+
+@router.put("/me", response_model=ArtisanRead)
+def update_my_profile(
+    payload: ArtisanUpdate,
+    session: Session = Depends(get_session),
+    user: User = Depends(require_role(UserRole.artisan)),
+):
+    artisan = session.exec(select(Artisan).where(Artisan.user_id == user.id)).first()
+    if not artisan:
+        raise HTTPException(status_code=404, detail="ماكو ملف حرفي إلك بعد — سوي وحد أول")
+    return _to_read(_apply_update(artisan, user, payload, session), session)
 
 
 @router.put("/{artisan_id}", response_model=ArtisanRead)
@@ -181,10 +231,4 @@ def update_artisan_profile(
     if artisan.user_id != user.id and user.role != UserRole.admin:
         raise HTTPException(status_code=403, detail="ما تكدرين تعدلين ملف حرفي ثاني")
 
-    for field, value in payload.model_dump(exclude_unset=True).items():
-        setattr(artisan, field, value)
-
-    session.add(artisan)
-    session.commit()
-    session.refresh(artisan)
-    return _to_read(artisan, session)
+    return _to_read(_apply_update(artisan, user, payload, session), session)

@@ -5,6 +5,9 @@ User, Artisan, Service, ServiceRequest, Review
 إضافات لوحة الساكن:
 ResidentProfile (بيانات الشقة والتواصل), RequestImage (صور الضرر),
 Notification (الإشعارات), Complaint (الشكاوى للإدارة)
+
+إضافات ربط الفرونت الجديد:
+ArtisanServiceLink (الحرفي يقدّم أكثر من خدمة), RequestDismissal (حرفي تجاهل طلب مفتوح)
 """
 
 from datetime import datetime
@@ -28,6 +31,7 @@ class RequestStatus(str, Enum):
     rejected = "rejected"
     in_progress = "in_progress"
     completed = "completed"
+    cancelled = "cancelled"   # الساكن ألغى الطلب
 
 
 class NotificationType(str, Enum):
@@ -37,6 +41,7 @@ class NotificationType(str, Enum):
     request_rejected = "request_rejected"
     request_in_progress = "request_in_progress"
     request_completed = "request_completed"
+    request_cancelled = "request_cancelled"
     new_request = "new_request"              # للحرفي: وصلك طلب جديد
     complaint_update = "complaint_update"    # رد الإدارة على شكوى
     general = "general"
@@ -83,17 +88,26 @@ class ResidentProfile(SQLModel, table=True):
 class Artisan(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id", unique=True)
-    service_id: Optional[int] = Field(default=None, foreign_key="service.id")  # نوع الخدمة اللي يقدمها
+    # الخدمة الأساسية (أول خدمة) — القائمة الكاملة بجدول ArtisanServiceLink
+    service_id: Optional[int] = Field(default=None, foreign_key="service.id")
     phone: str
     specialty: str
     description: Optional[str] = None
     location: Optional[str] = None
     verified: bool = Field(default=False)
+    rejected: bool = Field(default=False)  # الإدارة رفضت الحساب (status = rejected)
     image: Optional[str] = None
 
     user: Optional[User] = Relationship(back_populates="artisan_profile")
     requests: List["ServiceRequest"] = Relationship(back_populates="artisan")
     reviews: List["Review"] = Relationship(back_populates="artisan")
+
+
+# ---------- ArtisanServiceLink (حرفي ↔ خدمات) ----------
+
+class ArtisanServiceLink(SQLModel, table=True):
+    artisan_id: int = Field(foreign_key="artisan.id", primary_key=True)
+    service_id: int = Field(foreign_key="service.id", primary_key=True)
 
 
 # ---------- Service ----------
@@ -113,8 +127,10 @@ class ServiceRequest(SQLModel, table=True):
     # صار اختياري: الطلب ممكن ينفتح قبل ما يتعين حرفي ("جاري البحث عن حرفي مناسب")
     artisan_id: Optional[int] = Field(default=None, foreign_key="artisan.id")
     service_id: int = Field(foreign_key="service.id")
+    title: Optional[str] = None             # عنوان المشكلة
     description: Optional[str] = None
-    location: Optional[str] = None
+    location: Optional[str] = None          # "البناية - الوحدة" (تعتمد عليه إحصائيات البنايات)
+    building: Optional[str] = None
     contact_name: Optional[str] = None      # "اسمك" بفورم الطلب
     unit_number: Optional[str] = None       # "رقم الوحدة" بفورم الطلب
     scheduled_at: Optional[datetime] = None  # "الوقت المناسب" = الموعد
@@ -148,10 +164,18 @@ class Review(SQLModel, table=True):
     request_id: int = Field(foreign_key="servicerequest.id", unique=True)
     rating: int  # 1-5
     comment: Optional[str] = None
+    is_hidden: bool = Field(default=False)  # الإدارة أخفت التقييم (ما يدخل بالمعدلات ولا يظهر للعامة)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     artisan: Optional[Artisan] = Relationship(back_populates="reviews")
     request: Optional[ServiceRequest] = Relationship(back_populates="review")
+
+
+# ---------- RequestDismissal (تجاهل طلب مفتوح) ----------
+
+class RequestDismissal(SQLModel, table=True):
+    artisan_id: int = Field(foreign_key="artisan.id", primary_key=True)
+    request_id: int = Field(foreign_key="servicerequest.id", primary_key=True)
 
 
 # ---------- Notification ----------

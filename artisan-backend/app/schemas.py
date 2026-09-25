@@ -49,15 +49,18 @@ class Token(BaseModel):
 class ArtisanCreate(BaseModel):
     phone: str
     service_id: Optional[int] = None
-    specialty: str
+    service_ids: List[int] = []  # الحرفي يكدر يختار أكثر من خدمة
+    specialty: Optional[str] = None  # إذا فارغ ينبني من أسماء الخدمات
     description: Optional[str] = None
     location: Optional[str] = None
     image: Optional[str] = None
 
 
 class ArtisanUpdate(BaseModel):
+    name: Optional[str] = None  # يحدّث User.name (بس بـ PUT /artisans/me)
     phone: Optional[str] = None
     service_id: Optional[int] = None
+    service_ids: Optional[List[int]] = None
     specialty: Optional[str] = None
     description: Optional[str] = None
     location: Optional[str] = None
@@ -73,10 +76,14 @@ class ArtisanRead(BaseModel):
     description: Optional[str] = None
     location: Optional[str] = None
     verified: bool
+    rejected: bool = False
+    status: str = "pending"  # approved / pending / rejected
     image: Optional[str] = None
     name: Optional[str] = None  # نعبيها يدوياً من User.name بالـ endpoint
     email: Optional[str] = None  # نعبيها يدوياً من User.email بالـ endpoint
     service_name: Optional[str] = None
+    service_ids: List[int] = []
+    service_names: List[str] = []
     average_rating: Optional[float] = None
     reviews_count: int = 0
 
@@ -118,13 +125,23 @@ class RequestStatusUpdate(BaseModel):
     scheduled_at: Optional[datetime] = None  # يكدر الحرفي يثبت/يعدل الموعد عند القبول
 
 
+class RequestReviewInfo(BaseModel):
+    id: int
+    rating: int
+    comment: Optional[str] = None
+    is_hidden: bool = False
+    created_at: datetime
+
+
 class RequestRead(BaseModel):
     id: int
     customer_id: int
     artisan_id: Optional[int] = None
     service_id: int
+    title: Optional[str] = None
     description: Optional[str] = None
     location: Optional[str] = None
+    building: Optional[str] = None
     contact_name: Optional[str] = None
     unit_number: Optional[str] = None
     scheduled_at: Optional[datetime] = None
@@ -135,6 +152,9 @@ class RequestRead(BaseModel):
     progress: list = []  # ProgressStep list — نعبيها بالـ endpoint (تفادياً لدورة استيراد)
     service_name: Optional[str] = None
     customer_name: Optional[str] = None
+    artisan_name: Optional[str] = None
+    completed_at: Optional[datetime] = None
+    review: Optional[RequestReviewInfo] = None
 
     class Config:
         from_attributes = True
@@ -183,6 +203,9 @@ class ReviewDetailed(BaseModel):
     customer_name: Optional[str] = None
     artisan_name: Optional[str] = None
     service_name: Optional[str] = None
+    request_id: Optional[int] = None
+    request_title: Optional[str] = None
+    is_hidden: bool = False
 
 
 # ---------- Admin Dashboard ----------
@@ -198,6 +221,7 @@ class RequestCountStats(BaseModel):
     accepted: int
     rejected: int
     in_progress: int
+    cancelled: int = 0
     completed: int
     total: int
 
@@ -294,6 +318,10 @@ class ResidentRequestRow(BaseModel):
     artisan_id: Optional[int] = None
     artisan_name: Optional[str] = None
     artisan_image: Optional[str] = None
+    customer_id: Optional[int] = None
+    title: Optional[str] = None
+    building: Optional[str] = None
+    unit_number: Optional[str] = None
     scheduled_at: Optional[datetime] = None
     date: Optional[datetime] = None  # للسجل: تاريخ الإكمال (أو الموعد/الإنشاء)
     status: str

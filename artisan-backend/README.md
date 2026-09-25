@@ -154,3 +154,25 @@ scripts/
 ## ملاحظة أمان
 
 `.env` غير مرفوع (لازم تضيفينه لـ `.gitignore`) — لا ترفعين SECRET_KEY الحقيقي على GitHub.
+
+
+## ربط الفرونت الجديد (fixoria-main) — تغييرات
+
+> ⚠️ احذف `artisan.db` وأعد `python -m scripts.seed` — انضافت جداول وأعمدة.
+
+- **طلبات مفتوحة:** الطلب بدون حرفي مختار ينفتح لكل حرفيي الخدمة، وأول واحد يقبله ياخذه.
+  - `GET /requests/available` — طلبات الحرفي المتاحة (المفتوحة بخدماته + الموجّهة إله).
+  - `PUT /requests/{id}/status` بـ `accepted` على طلب مفتوح = ياخذه؛ إذا أحد سبقه → `409`.
+  - `POST /requests/{id}/dismiss` — تجاهل (وإذا كان موجّه إله يرجع مفتوح للباقين).
+- **الحرفي بأكثر من خدمة:** جدول `ArtisanServiceLink`؛ `service_ids` بإنشاء وتعديل الملف، و
+  `ArtisanRead` صار بيه `service_ids`, `service_names`, `status` (approved/pending/rejected).
+- `PUT /artisans/me` — الحرفي يعدّل اسمه وهاتفه ونبذته وخدماته.
+- **الرفض:** `PUT /admin/artisans/{id}/verify?approve=false` يعلّم الحساب `rejected`.
+- **إلغاء:** حالة `cancelled` + `POST /resident/requests/{id}/cancel` (قبل بدء التنفيذ).
+- `GET /resident/requests` — كل طلبات الساكن.
+- الطلب صار بيه `title` و `building`.
+- **إخفاء التقييمات:** `Review.is_hidden` + `PUT /admin/requests/{id}/review/visibility`؛
+  المخفية ما تدخل بأي معدّل ولا تظهر للعامة أو للحرفي.
+- **التصنيفات:** `PUT /services/{id}` و `DELETE /services/{id}` (الحذف ممنوع إذا عليها طلبات).
+- `/admin/requests` صار يرجّع الطلب بكامل تفاصيله (الساكن، الحرفي، البناية، التقييم).
+- الـ seed: الخدمات الستة بأسماء الفرونت، طلبات مفتوحة، طلب ملغي، وحرفي بانتظار التوثيق.

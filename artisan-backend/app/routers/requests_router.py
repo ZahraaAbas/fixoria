@@ -2,8 +2,11 @@
 Requests endpoints:
 POST /requests                 -> Create service request (customer)
 GET  /requests                 -> Requests by role (customer sees own, artisan sees assigned, admin sees all)
+GET  /requests/available       -> (حرفي) الطلبات المفتوحة بخدماته + المرسلة إله وبانتظار قبوله
 GET  /requests/{id}            -> Request details
 PUT  /requests/{id}/status     -> Accept/Reject/In Progress/Completed (artisan or admin)
+                                  قبول طلب مفتوح (بدون حرفي) = الحرفي ياخذه؛ إذا أحد سبقه -> 409
+POST /requests/{id}/dismiss    -> (حرفي) تجاهل طلب — يختفي من قائمته؛ وإذا كان مرسل إله يرجع مفتوح للباقين
 
 كل استجابة تتضمن حقل progress -> شريط تقدّم بـ 4 مراحل (تم الحجز / في الطريق اليك /
 يتم تنفيذ العملية / تم تنفيذ العملية) عشان الزبون والأدمن يتابعون العملية بدقة.
@@ -16,7 +19,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from app.database import get_session
-from app.models import Artisan, Service, ServiceRequest, RequestStatus, User, UserRole, NotificationType
+from app.models import (
+    Artisan, RequestDismissal, ServiceRequest, RequestStatus, User, UserRole, NotificationType,
+)
+from app.helpers import artisan_service_ids, request_to_read
 from app.schemas import RequestCreate, RequestRead, RequestStatusUpdate
 from app.auth import get_current_user
 from app.progress import build_progress
@@ -31,17 +37,19 @@ ALLOWED_TRANSITIONS = {
     RequestStatus.in_progress: {RequestStatus.completed},
     RequestStatus.rejected: set(),
     RequestStatus.completed: set(),
+    RequestStatus.cancelled: set(),
 }
 
 
 def _to_read(req: ServiceRequest, session: Session) -> RequestRead:
-    data = RequestRead.model_validate(req, from_attributes=True)
-    data.progress = [s.model_dump() for s in build_progress(req.status)]
-    service = session.get(Service, req.service_id)
-    customer = session.get(User, req.customer_id)
-    data.service_name = service.name if service else None
-    data.customer_name = customer.name if customer else None
-    return data
+    return request_to_read(req, session)
+
+
+def _my_artisan(session: Session, user: User) -> Artisan:
+    artisan = session.exec(select(Artisan).where(Artisan.user_id == user.id)).first()
+    if not artisan:
+        raise HTTPException(status_code=404, detail="ماكو ملف حرفي إلك بعد")
+    return artisan
 
 
 @router.post("", response_model=RequestRead, status_code=status.HTTP_201_CREATED)
@@ -95,6 +103,71 @@ def list_requests(
     return [_to_read(r, session) for r in reqs]
 
 
+@router.get("/available", response_model=List[RequestRead])
+def list_available_requests(
+    session: Session = Depends(get_session),
+    user: User = Depends(get_current_user),
+):
+    """
+    طلبات الحرفي الجديدة:
+    - طلبات مفتوحة (بدون حرفي) بأي خدمة من خدماته
+    - طلبات الساكن اختاره بيها بالاسم (مشترك) وبعدها بانتظار قبوله
+    ناقص اللي تجاهلها.
+    """
+    if user.role != UserRole.artisan:
+        raise HTTPException(status_code=403, detail="هذي الصفحة للحرفيين بس")
+    artisan = _my_artisan(session, user)
+    if not artisan.verified:
+        return []
+
+    my_services = set(artisan_service_ids(session, artisan))
+    dismissed = {
+        d.request_id
+        for d in session.exec(
+            select(RequestDismissal).where(RequestDismissal.artisan_id == artisan.id)
+        ).all()
+    }
+    pending = session.exec(
+        select(ServiceRequest)
+        .where(ServiceRequest.status == RequestStatus.pending)
+        .order_by(ServiceRequest.created_at.desc())
+    ).all()
+
+    results = [
+        r for r in pending
+        if r.id not in dismissed
+        and (r.artisan_id == artisan.id or (r.artisan_id is None and r.service_id in my_services))
+    ]
+    return [_to_read(r, session) for r in results]
+
+
+@router.post("/{request_id}/dismiss", status_code=status.HTTP_204_NO_CONTENT)
+def dismiss_request(
+    request_id: int,
+    session: Session = Depends(get_session),
+    user: User = Depends(get_current_user),
+):
+    if user.role != UserRole.artisan:
+        raise HTTPException(status_code=403, detail="بس الحرفي يكدر يتجاهل طلب")
+    artisan = _my_artisan(session, user)
+    req = session.get(ServiceRequest, request_id)
+    if not req:
+        raise HTTPException(status_code=404, detail="الطلب غير موجود")
+
+    if not session.get(RequestDismissal, (artisan.id, req.id)):
+        session.add(RequestDismissal(artisan_id=artisan.id, request_id=req.id))
+
+    # طلب كان مرسل لهذا الحرفي بالاسم -> يرجع مفتوح لباقي حرفيي الخدمة
+    if req.artisan_id == artisan.id and req.status == RequestStatus.pending:
+        req.artisan_id = None
+        session.add(req)
+        notify(session, req.customer_id, NotificationType.request_received,
+               f"طلبك رقم #{req.id} رجع مفتوح",
+               "الحرفي اللي اخترته غير متاح — جاري البحث عن حرفي مناسب", req.id)
+    session.commit()
+    return None
+
+
 @router.get("/{request_id}", response_model=RequestRead)
 def get_request(
     request_id: int,
@@ -123,18 +196,33 @@ def update_status(
     if user.role == UserRole.customer:
         raise HTTPException(status_code=403, detail="الزبون ما يكدر يغير حالة الطلب")
 
-    if user.role == UserRole.artisan:
-        artisan = session.exec(select(Artisan).where(Artisan.user_id == user.id)).first()
-        if not artisan or req.artisan_id is None or artisan.id != req.artisan_id:
-            raise HTTPException(status_code=403, detail="هذا الطلب مو إلك")
-
-    if req.artisan_id is None and payload.status != RequestStatus.rejected.value:
-        raise HTTPException(status_code=400, detail="الطلب ما انربط بحرفي بعد")
-
     try:
         new_status = RequestStatus(payload.status)
     except ValueError:
         raise HTTPException(status_code=400, detail="حالة غير معروفة")
+    if new_status == RequestStatus.cancelled:
+        raise HTTPException(status_code=400, detail="الإلغاء من الساكن بس")
+
+    if user.role == UserRole.artisan:
+        artisan = _my_artisan(session, user)
+        if not artisan.verified:
+            raise HTTPException(status_code=403, detail="حسابك بانتظار توثيق الإدارة")
+
+        if req.artisan_id is None:
+            # طلب مفتوح: القبول = الحرفي ياخذ الطلب
+            if req.status != RequestStatus.pending:
+                raise HTTPException(status_code=409, detail="هذا الطلب ما عاد متاح")
+            if req.service_id not in artisan_service_ids(session, artisan):
+                raise HTTPException(status_code=403, detail="هذا الطلب مو ضمن خدماتك")
+            if new_status != RequestStatus.accepted:
+                raise HTTPException(status_code=400, detail="الطلب المفتوح يا تقبله يا تتجاهله")
+            req.artisan_id = artisan.id
+        elif req.artisan_id != artisan.id:
+            # حرفي ثاني سبقه
+            raise HTTPException(status_code=409, detail="حرفي آخر قبل هذا الطلب")
+
+    elif req.artisan_id is None and new_status != RequestStatus.rejected:
+        raise HTTPException(status_code=400, detail="الطلب ما انربط بحرفي بعد")
 
     if new_status not in ALLOWED_TRANSITIONS.get(req.status, set()):
         raise HTTPException(
@@ -193,5 +281,9 @@ def _check_can_view(req: ServiceRequest, user: User, session: Session) -> None:
     if user.role == UserRole.artisan:
         artisan = session.exec(select(Artisan).where(Artisan.user_id == user.id)).first()
         if artisan and artisan.id == req.artisan_id:
+            return
+        # طلب مفتوح ضمن خدماته (يشوف تفاصيله قبل ما يقبله)
+        if (artisan and req.artisan_id is None and req.status == RequestStatus.pending
+                and req.service_id in artisan_service_ids(session, artisan)):
             return
     raise HTTPException(status_code=403, detail="ما تكدرين تشوفين هذا الطلب")

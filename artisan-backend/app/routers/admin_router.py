@@ -7,6 +7,8 @@ Dashboard:
 GET /admin/stats                     -> نظرة عامة (حرفيين/طلبات/زباين/تقييمات)
 GET /admin/services/stats            -> تراكنك لكل خدمة صيانة + سبب لو الأداء تحت المتوسط
 GET /admin/reviews                   -> كل تقييمات السكان (خانة الـ Reviews بالداشبورد)
+PUT /admin/requests/{id}/review/visibility -> إخفاء/إظهار تقييم الطلب
+GET /admin/requests                  -> كل الطلبات بكامل تفاصيلها (?status_filter=)
 PUT /admin/requests/{id}/assign      -> ربط طلب بدون حرفي بحرفي معتمد
 GET /admin/complaints                -> شكاوى السكان (?status_filter=)
 PUT /admin/complaints/{id}           -> تغيير حالة الشكوى + رد (يوصل إشعار للساكن)
@@ -38,6 +40,8 @@ from app.schemas import (
 )
 from app.auth import require_role
 from app.progress import build_progress
+from app.helpers import artisan_to_read, request_to_read, visible_reviews_query
+from app.schemas import RequestRead
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -55,14 +59,8 @@ def list_all_artisans(
     if verified is not None:
         query = query.where(Artisan.verified == verified)
 
-    artisans = session.exec(query).all()
-    results = []
-    for a in artisans:
-        user = session.get(User, a.user_id)
-        data = ArtisanRead.model_validate(a)
-        data.name = user.name if user else None
-        results.append(data)
-    return results
+    artisans = session.exec(query.order_by(Artisan.id.desc())).all()
+    return [artisan_to_read(a, session) for a in artisans]
 
 
 @router.put("/artisans/{artisan_id}/verify", response_model=ArtisanRead)
@@ -77,14 +75,16 @@ def verify_artisan(
         raise HTTPException(status_code=404, detail="ما اكو حرفي بهذا المعرّف")
 
     artisan.verified = approve
+    artisan.rejected = not approve
     session.add(artisan)
+    notify(
+        session, artisan.user_id, NotificationType.general,
+        "تم توثيق حسابك كحرفي" if approve else "تم رفض طلب توثيق حسابك",
+        "صار بإمكانك استقبال الطلبات" if approve else "تواصل مع إدارة المجمع للتفاصيل",
+    )
     session.commit()
     session.refresh(artisan)
-
-    user = session.get(User, artisan.user_id)
-    data = ArtisanRead.model_validate(artisan)
-    data.name = user.name if user else None
-    return data
+    return artisan_to_read(artisan, session)
 
 
 # ---------- Dashboard: نظرة عامة ----------
@@ -96,6 +96,7 @@ def get_overview_stats(
 ):
     all_artisans = session.exec(select(Artisan)).all()
     verified_count = sum(1 for a in all_artisans if a.verified)
+    rejected_count = sum(1 for a in all_artisans if not a.verified and a.rejected)
 
     all_requests = session.exec(select(ServiceRequest)).all()
     by_status = {s: 0 for s in RequestStatus}
@@ -106,7 +107,7 @@ def get_overview_stats(
         session.exec(select(User).where(User.role == UserRole.customer)).all()
     )
 
-    all_reviews = session.exec(select(Review)).all()
+    all_reviews = session.exec(visible_reviews_query()).all()
     overall_avg = (
         round(sum(r.rating for r in all_reviews) / len(all_reviews), 2)
         if all_reviews
@@ -117,7 +118,7 @@ def get_overview_stats(
         artisans=ArtisanCountStats(
             total=len(all_artisans),
             verified=verified_count,
-            pending=len(all_artisans) - verified_count,
+            pending=len(all_artisans) - verified_count - rejected_count,
         ),
         requests=RequestCountStats(
             pending=by_status[RequestStatus.pending],
@@ -125,6 +126,7 @@ def get_overview_stats(
             rejected=by_status[RequestStatus.rejected],
             in_progress=by_status[RequestStatus.in_progress],
             completed=by_status[RequestStatus.completed],
+            cancelled=by_status[RequestStatus.cancelled],
             total=len(all_requests),
         ),
         customers_count=customers_count,
@@ -141,7 +143,7 @@ def get_service_stats(
     _: User = Depends(require_role(UserRole.admin)),
 ):
     services = session.exec(select(Service)).all()
-    all_reviews = session.exec(select(Review)).all()
+    all_reviews = session.exec(visible_reviews_query()).all()
     overall_avg = (
         round(sum(r.rating for r in all_reviews) / len(all_reviews), 2)
         if all_reviews
@@ -212,50 +214,61 @@ def get_all_reviews(
                 customer_name=customer.name if customer else None,
                 artisan_name=artisan_user.name if artisan_user else None,
                 service_name=service.name if service else None,
+                request_id=rv.request_id,
+                request_title=(req.title or (service.name if service else None)) if req else None,
+                is_hidden=rv.is_hidden,
             )
         )
 
     return results
+
+
+@router.put("/requests/{request_id}/review/visibility", response_model=ReviewDetailed)
+def toggle_review_visibility(
+    request_id: int,
+    hidden: Optional[bool] = None,
+    session: Session = Depends(get_session),
+    _: User = Depends(require_role(UserRole.admin)),
+):
+    """بدون ?hidden= يقلب الحالة؛ ?hidden=true/false يثبتها."""
+    rv = session.exec(select(Review).where(Review.request_id == request_id)).first()
+    if not rv:
+        raise HTTPException(status_code=404, detail="ماكو تقييم لهذا الطلب")
+    rv.is_hidden = (not rv.is_hidden) if hidden is None else hidden
+    session.add(rv)
+    session.commit()
+    session.refresh(rv)
+
+    customer = session.get(User, rv.customer_id)
+    artisan = session.get(Artisan, rv.artisan_id)
+    artisan_user = session.get(User, artisan.user_id) if artisan else None
+    req = session.get(ServiceRequest, rv.request_id)
+    service = session.get(Service, req.service_id) if req else None
+    return ReviewDetailed(
+        id=rv.id, rating=rv.rating, comment=rv.comment, created_at=rv.created_at,
+        customer_name=customer.name if customer else None,
+        artisan_name=artisan_user.name if artisan_user else None,
+        service_name=service.name if service else None,
+        request_id=rv.request_id,
+        request_title=(req.title or (service.name if service else None)) if req else None,
+        is_hidden=rv.is_hidden,
+    )
 
 
 # ---------- Dashboard: مراقبة كل عملية بشريط تقدّم دقيق ----------
 
-@router.get("/requests", response_model=List[RequestWithProgress])
-def get_all_requests_with_progress(
+@router.get("/requests", response_model=List[RequestRead])
+def get_all_requests(
     status_filter: Optional[RequestStatus] = None,
     session: Session = Depends(get_session),
     _: User = Depends(require_role(UserRole.admin)),
 ):
+    """كل الطلبات بكامل التفاصيل (الساكن، الحرفي، الخدمة، البناية، التقييم، شريط التقدم)."""
     query = select(ServiceRequest)
     if status_filter is not None:
         query = query.where(ServiceRequest.status == status_filter)
-
     requests = session.exec(query.order_by(ServiceRequest.created_at.desc())).all()
-
-    results: List[RequestWithProgress] = []
-    for req in requests:
-        customer = session.get(User, req.customer_id)
-        artisan = session.get(Artisan, req.artisan_id) if req.artisan_id else None
-        artisan_user = session.get(User, artisan.user_id) if artisan else None
-        service = session.get(Service, req.service_id)
-
-        results.append(
-            RequestWithProgress(
-                id=req.id,
-                customer_name=customer.name if customer else None,
-                artisan_name=artisan_user.name if artisan_user else None,
-                service_name=service.name if service else None,
-                location=req.location,
-                status=req.status,
-                created_at=req.created_at,
-                progress=[s.model_dump() for s in build_progress(req.status)],
-            )
-        )
-
-    return results
-
-
-# ---------- Dashboard: نشاط كل حرفي (Bar Chart: يوم / شهر / سنة) ----------
+    return [request_to_read(req, session) for req in requests]
 
 @router.get("/artisans/activity", response_model=List[ArtisanActivityStat])
 def get_artisans_activity(

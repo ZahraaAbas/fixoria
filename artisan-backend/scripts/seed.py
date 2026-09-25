@@ -14,7 +14,17 @@
 - 4 أنواع خدمات (كهرباء / سباكة / تكييف وتبريد / نجارة عامة) و3 حرفيين لكل نوع مع تقييمات
 - طلبات حالية بمواعيد، سجل مكتمل بأسعار وتقييمات، طلب مرفوض بسبب، طلب ينتظر تقييم
 - إشعارات (3 غير مقروءة) + شكوى نموذجية
+
+إضافات ربط الفرونت الجديد (finalize_for_frontend):
+- أسماء الخدمات مطابقة لتصنيفات الفرونت الستة: كهرباء، سباكة، تكييف وتبريد، نجارة، دهان وديكور، تنظيف
+- ربط كل حرفي بخدماته (ArtisanServiceLink) + عنوان وبناية لكل طلب
+- طلبات مفتوحة (بدون حرفي) تظهر للحرفيين بصفحة "الطلبات المتاحة"
+- حرفي بانتظار التوثيق (pending@demo.com) لتجربة صفحة موافقة الإدارة
+- طلب ملغي من الساكن
 """
+import sys
+if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 from datetime import datetime, timedelta
 
@@ -23,7 +33,7 @@ from sqlmodel import Session, select
 from app.database import engine, create_db_and_tables
 from app.models import (
     User, Artisan, Service, ServiceRequest, Review, RequestStatus, UserRole,
-    ResidentProfile, Notification, NotificationType, Complaint,
+    ResidentProfile, Notification, NotificationType, Complaint, ArtisanServiceLink,
 )
 from app.auth import hash_password
 
@@ -223,6 +233,8 @@ def seed() -> None:
             req3, historical_reqs,
         )
 
+        finalize_for_frontend(session)
+
         print("تم إنشاء بيانات تجريبية:")
         print(f"  Admin:    admin@demo.com / {DEMO_PASSWORD}")
         print(f"  Customer: customer@demo.com / {DEMO_PASSWORD}")
@@ -232,6 +244,7 @@ def seed() -> None:
         print("  خدمة السباكة معلّمة below_average مع السبب.")
         print(f"  Resident 2 (جار): neighbor@demo.com / {DEMO_PASSWORD}")
         print("  لوحة الساكن: سجلي دخول بـ customer@demo.com وجربي GET /resident/dashboard")
+        print(f"  Artisan بانتظار التوثيق: pending@demo.com / {DEMO_PASSWORD}")
 
 
 # ---------------------------------------------------------------------
@@ -410,6 +423,103 @@ def seed_resident_dashboard(
         message="الحرفي وصل بعد الموعد بساعتين بدون ما يبلغني.",
         created_at=now - timedelta(days=4),
     ))
+    session.commit()
+
+
+# ---------------------------------------------------------------------
+# مطابقة البيانات مع الفرونت (fixoria)
+# ---------------------------------------------------------------------
+
+SERVICE_RENAMES = {"صيانة كهربائية": "كهرباء", "نجارة عامة": "نجارة"}
+EXTRA_SERVICES = [
+    ("دهان وديكور", "دهان جدران وديكورات داخلية", "paintbrush"),
+    ("تنظيف", "تنظيف شقق وخزانات وسجاد", "sparkles"),
+]
+
+
+def finalize_for_frontend(session):
+    now = datetime.utcnow()
+
+    # 1) أسماء الخدمات = تصنيفات الفرونت
+    services = {s.name: s for s in session.exec(select(Service)).all()}
+    for old, new in SERVICE_RENAMES.items():
+        if old in services:
+            services[old].name = new
+            session.add(services[old])
+    for name, desc, icon in EXTRA_SERVICES:
+        session.add(Service(name=name, description=desc, icon=icon))
+    session.commit()
+    services = {s.name: s for s in session.exec(select(Service)).all()}
+
+    # 2) روابط حرفي ↔ خدمة + التخصص بنفس اسم الخدمة
+    for artisan in session.exec(select(Artisan)).all():
+        if artisan.service_id:
+            session.add(ArtisanServiceLink(artisan_id=artisan.id, service_id=artisan.service_id))
+            artisan.specialty = session.get(Service, artisan.service_id).name
+            session.add(artisan)
+    # كريم (كهرباء) يشتغل تكييف هم — مثال على حرفي بأكثر من خدمة
+    karim = session.exec(select(User).where(User.email == "artisan@demo.com")).first()
+    karim_artisan = session.exec(select(Artisan).where(Artisan.user_id == karim.id)).first()
+    session.add(ArtisanServiceLink(artisan_id=karim_artisan.id, service_id=services["تكييف وتبريد"].id))
+    karim_artisan.specialty = "كهرباء، تكييف وتبريد"
+    session.add(karim_artisan)
+
+    # 3) عنوان وبناية لكل طلب
+    for req in session.exec(select(ServiceRequest)).all():
+        service = session.get(Service, req.service_id)
+        if not req.title:
+            req.title = req.description if req.description and len(req.description) <= 40 else service.name
+        if not req.building and req.location:
+            req.building = req.location.split(" - ")[0].strip()
+        if not req.unit_number and req.location and " - " in req.location:
+            req.unit_number = req.location.split(" - ", 1)[1].strip()
+        session.add(req)
+    session.commit()
+
+    customer = session.exec(select(User).where(User.email == "customer@demo.com")).first()
+    neighbor = session.exec(select(User).where(User.email == "neighbor@demo.com")).first()
+
+    # 4) طلبات مفتوحة (بدون حرفي) — تظهر لكل حرفيي الخدمة بـ "الطلبات المتاحة"
+    open_requests = [
+        (neighbor, "كهرباء", "انقطاع كهرباء بغرفة النوم", "القاطع يطفي كل ما نشغل المكيف", "البناية A", "A-101", 1),
+        (customer, "تكييف وتبريد", "صيانة دورية للمكيف", "تنظيف فلاتر وفحص الغاز قبل الصيف", "البناية B", "B-204", 3),
+        (neighbor, "دهان وديكور", "دهان غرفة الأطفال", "غرفة 4×4 لون فاتح", "البناية A", "A-101", 5),
+    ]
+    for owner, service_name, title, desc, building, unit, days in open_requests:
+        req = ServiceRequest(
+            customer_id=owner.id, service_id=services[service_name].id, artisan_id=None,
+            title=title, description=desc, building=building, unit_number=unit,
+            location=f"{building} - {unit}", contact_name=owner.name,
+            status=RequestStatus.pending, created_at=now - timedelta(hours=2 * days),
+            scheduled_at=now + timedelta(days=days, hours=3),
+        )
+        session.add(req)
+
+    # 5) طلب ملغي
+    session.add(ServiceRequest(
+        customer_id=customer.id, service_id=services["تنظيف"].id,
+        title="تنظيف الخزان", description="تنظيف خزان المي على السطح",
+        building="البناية B", unit_number="B-204", location="البناية B - B-204",
+        contact_name=customer.name, status=RequestStatus.cancelled,
+        created_at=now - timedelta(days=6),
+    ))
+
+    # 6) حرفي بانتظار التوثيق
+    pending_user = User(name="ياسر عادل", email="pending@demo.com",
+                        password_hash=hash_password(DEMO_PASSWORD), role=UserRole.artisan)
+    session.add(pending_user)
+    session.commit()
+    session.refresh(pending_user)
+    pending_artisan = Artisan(
+        user_id=pending_user.id, phone="07712223344", specialty="دهان وديكور، تنظيف",
+        description="دهانات حديثة وديكورات جبس بخبرة 8 سنوات",
+        service_id=services["دهان وديكور"].id, verified=False,
+    )
+    session.add(pending_artisan)
+    session.commit()
+    session.refresh(pending_artisan)
+    for name in ("دهان وديكور", "تنظيف"):
+        session.add(ArtisanServiceLink(artisan_id=pending_artisan.id, service_id=services[name].id))
     session.commit()
 
 
