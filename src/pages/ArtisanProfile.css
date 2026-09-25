@@ -1,3 +1,8 @@
+.artisan-profile {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
 .artisan-profile-status {
   margin-top: 24px;
   color: var(--color-text-muted);
@@ -21,21 +26,60 @@
   color: var(--color-text-muted);
 }
 
+.artisan-profile-card {
+  padding: 28px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+.artisan-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.artisan-profile-avatar {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(137deg, #263056 0%, #f19035 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.6rem;
+}
+
 .artisan-profile-name {
   margin: 0 0 4px;
 }
 
 .artisan-profile-category {
-  margin: 0 0 8px;
+  margin: 0;
   color: var(--color-text-muted);
 }
 
 .artisan-profile-rating {
-  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 20px;
   font-weight: 600;
+  color: #263056;
+}
+
+.artisan-profile-rating-empty {
+  color: var(--color-text-muted);
+  font-weight: 500;
 }
 
 .artisan-profile-bio {
   max-width: 560px;
   line-height: 1.7;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
 }

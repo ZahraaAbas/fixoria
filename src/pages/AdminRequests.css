@@ -1,0 +1,132 @@
+.admin-requests-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.admin-requests-search {
+  flex: 1;
+  min-width: 220px;
+  padding: 10px 14px;
+  font: inherit;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.admin-requests-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-filter-button {
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.admin-filter-button-active {
+  color: var(--color-dark);
+  font-weight: 700;
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}
+
+.admin-requests-status {
+  margin-top: 20px;
+  color: var(--color-text-muted);
+}
+
+.admin-requests-retry {
+  margin-top: 12px;
+  padding: 10px 20px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-dark);
+  background: var(--color-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.admin-requests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  max-width: 640px;
+}
+
+.admin-request-card {
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.admin-request-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -12px rgba(38, 48, 86, 0.25);
+}
+
+.admin-request-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-request-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.admin-request-meta {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.admin-request-description {
+  margin: 10px 0 0;
+  line-height: 1.6;
+}
+
+.admin-request-badge {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.status-open {
+  color: #1e5a9c;
+  background: #e3f0ff;
+}
+
+.status-accepted,
+.status-in_progress {
+  color: #7a5b00;
+  background: #fff3d6;
+}
+
+.status-completed {
+  color: #1b7a3d;
+  background: #e3f8ea;
+}
+
+.status-cancelled {
+  color: #6b6b6b;
+  background: #ececec;
+}

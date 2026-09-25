@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { ClipboardList, Loader2, CheckCircle2, Star } from 'lucide-react'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
 import { getRequestsForArtisan, getReviewsForArtisan } from '../services/requestsService'
@@ -100,45 +101,66 @@ function ArtisanDashboard() {
   const chartData = getMonthlyActivity(requests)
 
   return (
-    <section>
-      <h1>{translate('artisanDashboard.title')}</h1>
+    <section className="artisan-dashboard">
+      <div className="ad-hero">
+        <p className="ad-hero-greeting">
+          {translate('artisanDashboard.greeting')}، {user.fullName}
+        </p>
+        <h1>{translate('artisanDashboard.title')}</h1>
+        <p className="ad-hero-subtitle">{translate('artisanDashboard.heroSubtitle')}</p>
+      </div>
 
-      <div className="artisan-dashboard-stats">
-        <div className="artisan-stat-card">
-          <p className="artisan-stat-value">{requests.length}</p>
-          <p className="artisan-stat-label">{translate('artisanDashboard.total')}</p>
+      <div className="ad-stats">
+        <div className="ad-card">
+          <span className="ad-card-icon">
+            <ClipboardList size={18} />
+          </span>
+          <p className="ad-card-value">{requests.length}</p>
+          <p className="ad-card-label">{translate('artisanDashboard.total')}</p>
         </div>
-        <div className="artisan-stat-card">
-          <p className="artisan-stat-value">{activeCount}</p>
-          <p className="artisan-stat-label">{translate('artisanDashboard.active')}</p>
+        <div className="ad-card">
+          <span className="ad-card-icon">
+            <Loader2 size={18} />
+          </span>
+          <p className="ad-card-value">{activeCount}</p>
+          <p className="ad-card-label">{translate('artisanDashboard.active')}</p>
         </div>
-        <div className="artisan-stat-card">
-          <p className="artisan-stat-value">{completedCount}</p>
-          <p className="artisan-stat-label">{translate('artisanDashboard.completed')}</p>
+        <div className="ad-card">
+          <span className="ad-card-icon">
+            <CheckCircle2 size={18} />
+          </span>
+          <p className="ad-card-value">{completedCount}</p>
+          <p className="ad-card-label">{translate('artisanDashboard.completed')}</p>
         </div>
-        <div className="artisan-stat-card">
-          <p className="artisan-stat-value">{averageRating || '—'}</p>
-          <p className="artisan-stat-label">{translate('artisanDashboard.rating')}</p>
+        <div className="ad-card">
+          <span className="ad-card-icon">
+            <Star size={18} />
+          </span>
+          <p className="ad-card-value">{averageRating || '—'}</p>
+          <p className="ad-card-label">{translate('artisanDashboard.rating')}</p>
         </div>
       </div>
 
-      <div className="artisan-dashboard-section">
+      <div className="ad-section">
         <h2>{translate('artisanDashboard.currentTitle')}</h2>
         {current ? (
-          <div className="artisan-current-card">
-            <p className="artisan-current-title">{current.title}</p>
-            <p className="artisan-current-meta">{current.categoryName}</p>
-            <ol className="artisan-current-timeline">
+          <div className="ad-current-card">
+            <p className="ad-current-title">{current.title}</p>
+            <p className="ad-current-meta">{current.categoryName}</p>
+
+            <ol className="ad-timeline">
               {TIMELINE_STEPS.map((step, index) => (
                 <li
                   key={step}
-                  className={index <= currentStepIndex ? 'timeline-step active' : 'timeline-step'}
+                  className={index <= currentStepIndex ? 'ad-timeline-step is-active' : 'ad-timeline-step'}
                 >
-                  {translate(`requestStatus.${step}`)}
+                  <span className="ad-timeline-dot" />
+                  <span className="ad-timeline-label">{translate(`requestStatus.${step}`)}</span>
                 </li>
               ))}
             </ol>
-            <Link to="/artisan/my-work" className="artisan-current-link">
+
+            <Link to="/artisan/my-work" className="ad-current-link">
               {translate('artisanDashboard.viewInMyWork')}
             </Link>
           </div>
@@ -147,15 +169,15 @@ function ArtisanDashboard() {
         )}
       </div>
 
-      <div className="artisan-dashboard-section">
+      <div className="ad-section">
         <h2>{translate('artisanDashboard.activityTitle')}</h2>
-        <div className="artisan-chart-wrapper">
+        <div className="ad-chart-card">
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ead9d1" />
-              <XAxis dataKey="month" stroke="#8b7b76" fontSize={12} />
-              <YAxis allowDecimals={false} stroke="#8b7b76" fontSize={12} />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <XAxis dataKey="month" stroke="rgba(255,255,255,0.55)" fontSize={12} />
+              <YAxis allowDecimals={false} stroke="rgba(255,255,255,0.55)" fontSize={12} />
+              <Tooltip contentStyle={{ background: '#263056', border: 'none', borderRadius: 8, color: '#fff' }} />
               <Bar dataKey="count" fill="#f19035" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

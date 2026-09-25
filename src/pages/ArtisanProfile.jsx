@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { translate } from '../i18n'
 import { getArtisanById } from '../services/artisansService'
+import PeekRating from '../components/PeekRating'
 import './ArtisanProfile.css'
 
 function ArtisanProfile() {
@@ -72,16 +73,32 @@ function ArtisanProfile() {
         {translate('artisanProfile.backToList')}
       </Link>
 
-      <h1 className="artisan-profile-name">{artisan.fullName}</h1>
-           <p className="artisan-profile-category">{artisan.categoryNames.join('، ')}</p>
-      {artisan.reviewsCount > 0 ? (
-        <p className="artisan-profile-rating">
-          ⭐ {artisan.rating} ({artisan.reviewsCount} {translate('artisans.reviewsCount')})
-        </p>
-      ) : (
-        <p className="artisan-profile-rating">{translate('artisans.noReviews')}</p>
-      )}
-      <p className="artisan-profile-bio">{artisan.bio}</p>
+      <div className="artisan-profile-card">
+        <div className="artisan-profile-header">
+          <span className="artisan-profile-avatar" aria-hidden="true">
+            {artisan.fullName?.charAt(0)}
+          </span>
+          <div>
+            <h1 className="artisan-profile-name">{artisan.fullName}</h1>
+            <p className="artisan-profile-category">{artisan.categoryNames.join('، ')}</p>
+          </div>
+        </div>
+
+        {artisan.reviewsCount > 0 ? (
+          <div className="artisan-profile-rating">
+            <PeekRating value={Math.round(artisan.rating)} readOnly size={20} activeColor="#f19035" idleColor="#dac7c0" />
+            <span>
+              {artisan.rating} ({artisan.reviewsCount} {translate('artisans.reviewsCount')})
+            </span>
+          </div>
+        ) : (
+          <p className="artisan-profile-rating artisan-profile-rating-empty">
+            {translate('artisans.noReviews')}
+          </p>
+        )}
+
+        {artisan.bio && <p className="artisan-profile-bio">{artisan.bio}</p>}
+      </div>
     </article>
   )
 }
