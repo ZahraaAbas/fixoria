@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { translate } from '../i18n'
-import { useAuth } from '../hooks/useAuth'
-import { getRequestById, cancelRequest } from '../services/requestsService'
+import { getResidentRequestById, cancelResidentRequest } from '../services/requestsService'
 import { statusKey, CANCELLABLE_STATUSES } from '../utils/requestStatus'
+import { formatDate } from '../utils/formatDate'
+import PeekRating from '../components/PeekRating'
 import ReviewForm from './ReviewForm'
 import './RequestDetail.css'
 
-const TIMELINE_STEPS = ['open', 'accepted', 'in_progress', 'completed']
-
 function RequestDetail() {
   const { id } = useParams()
-  const { user } = useAuth()
 
   const [request, setRequest] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -32,14 +30,9 @@ function RequestDetail() {
   useEffect(() => {
     let isCancelled = false
 
-    getRequestById(id)
+    getResidentRequestById(id)
       .then((data) => {
-        if (isCancelled) return
-        if (data.residentId !== user.id) {
-          setError(new Error('NOT_FOUND'))
-          return
-        }
-        setRequest(data)
+        if (!isCancelled) setRequest(data)
       })
       .catch((err) => {
         if (!isCancelled) setError(err)
@@ -51,7 +44,7 @@ function RequestDetail() {
     return () => {
       isCancelled = true
     }
-  }, [id, user.id, attempt])
+  }, [id, attempt])
 
   function handleRetry() {
     setAttempt((count) => count + 1)
@@ -59,7 +52,7 @@ function RequestDetail() {
 
   async function handleCancel() {
     setIsCancelling(true)
-    const updated = await cancelRequest(id)
+    const updated = await cancelResidentRequest(id)
     setRequest(updated)
     setIsCancelling(false)
     setIsConfirmingCancel(false)
@@ -91,7 +84,6 @@ function RequestDetail() {
 
   const currentStatus = statusKey(request.status)
   const isCancellable = CANCELLABLE_STATUSES.includes(currentStatus)
-  const currentStepIndex = TIMELINE_STEPS.indexOf(currentStatus)
 
   return (
     <article className="request-detail">
@@ -100,7 +92,7 @@ function RequestDetail() {
       </Link>
 
       <div className="request-detail-header">
-        <h1>{request.title}</h1>
+        <h1>{request.title || request.categoryName}</h1>
         <span className={`request-badge status-${currentStatus}`}>
           {translate(`requestStatus.${currentStatus}`)}
         </span>
@@ -122,7 +114,7 @@ function RequestDetail() {
         {request.preferredDate && (
           <div>
             <dt>{translate('requestDetail.preferredDate')}</dt>
-            <dd>{request.preferredDate}</dd>
+            <dd>{formatDate(request.preferredDate)}</dd>
           </div>
         )}
       </dl>
@@ -130,20 +122,26 @@ function RequestDetail() {
       <p className="request-detail-description-label">{translate('requestDetail.description')}</p>
       <p className="request-detail-description">{request.description}</p>
 
-      {currentStatus === 'cancelled' ? (
+      {currentStatus === 'cancelled' && (
         <p className="request-detail-cancelled-notice">
           {translate('requestDetail.cancelledNotice')}
         </p>
-      ) : (
+      )}
+
+      {currentStatus === 'rejected' && (
+        <p className="request-detail-cancelled-notice">
+          {translate('requestDetail.rejectedNotice')}
+          {request.rejectionReason && ` — ${translate('requestDetail.rejectionReason')}: ${request.rejectionReason}`}
+        </p>
+      )}
+
+      {currentStatus !== 'cancelled' && currentStatus !== 'rejected' && request.progress?.length > 0 && (
         <div className="request-timeline">
           <p className="request-timeline-label">{translate('requestDetail.timeline')}</p>
           <ol>
-            {TIMELINE_STEPS.map((step, index) => (
-              <li
-                key={step}
-                className={index <= currentStepIndex ? 'timeline-step active' : 'timeline-step'}
-              >
-                {translate(`requestStatus.${step}`)}
+            {request.progress.map((step) => (
+              <li key={step.key} className={step.done || step.active ? 'timeline-step active' : 'timeline-step'}>
+                {step.label}
               </li>
             ))}
           </ol>
@@ -184,12 +182,25 @@ function RequestDetail() {
         </div>
       )}
 
-      {currentStatus === 'completed' && !request.review && (
-        <ReviewForm requestId={request.id} onSubmitted={setRequest} />
+      {currentStatus === 'completed' && request.myRating != null && (
+        <div className="request-detail-reviewed">
+          <p>{translate('requestDetail.myRating')}</p>
+          <PeekRating value={request.myRating} readOnly size={20} activeColor="#f19035" idleColor="#dac7c0" />
+          {request.myReviewComment && <p>{request.myReviewComment}</p>}
+        </div>
       )}
 
-      {currentStatus === 'completed' && request.review && (
-        <p className="request-detail-reviewed">{translate('review.thanks')}</p>
+      {currentStatus === 'completed' && request.myRating == null && request.canReview && (
+        <ReviewForm
+          requestId={request.id}
+          onSubmitted={(review) =>
+            setRequest((current) => ({
+              ...current,
+              myRating: review.rating,
+              myReviewComment: review.comment,
+            }))
+          }
+        />
       )}
     </article>
   )

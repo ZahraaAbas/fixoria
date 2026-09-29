@@ -4,7 +4,7 @@ import { getRequestsOverview } from '../services/adminService'
 import { statusKey } from '../utils/requestStatus'
 import './AdminRequests.css'
 
-const STATUS_FILTERS = ['all', 'open', 'accepted', 'in_progress', 'completed', 'cancelled']
+const STATUS_FILTERS = ['all', 'pending', 'accepted', 'rejected', 'in_progress', 'completed', 'cancelled']
 
 function AdminRequests() {
   const [requests, setRequests] = useState([])
@@ -47,9 +47,9 @@ function AdminRequests() {
     if (!term) return true
 
     return (
-      request.title.toLowerCase().includes(term) ||
-      request.categoryName.toLowerCase().includes(term) ||
-      request.residentName.toLowerCase().includes(term) ||
+      (request.title || '').toLowerCase().includes(term) ||
+      (request.categoryName || '').toLowerCase().includes(term) ||
+      (request.residentName || '').toLowerCase().includes(term) ||
       (request.artisanName || '').toLowerCase().includes(term)
     )
   })
@@ -107,7 +107,7 @@ function AdminRequests() {
             return (
               <li key={request.id} className="admin-request-card">
                 <div className="admin-request-header">
-                  <p className="admin-request-title">{request.title}</p>
+                  <p className="admin-request-title">{request.title || request.categoryName}</p>
                   <span className={`admin-request-badge status-${status}`}>
                     {translate(`requestStatus.${status}`)}
                   </span>

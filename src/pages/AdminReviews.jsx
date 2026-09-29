@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { translate } from '../i18n'
-import { getReviewsOverview } from '../services/adminService'
-import { toggleReviewVisibility } from '../services/requestsService'
+import { getReviewsOverview, setReviewVisibility } from '../services/adminService'
 import PeekRating from '../components/PeekRating'
 import './AdminReviews.css'
 
@@ -37,15 +36,11 @@ function AdminReviews() {
     setAttempt((count) => count + 1)
   }
 
-  async function handleToggle(requestId) {
+  async function handleToggle(requestId, currentlyHidden) {
     setActioningId(requestId)
-    const updated = await toggleReviewVisibility(requestId)
+    const updated = await setReviewVisibility(requestId, !currentlyHidden)
     setReviews((current) =>
-      current.map((review) =>
-        review.requestId === requestId
-          ? { ...review, isHidden: updated.review.isHidden }
-          : review,
-      ),
+      current.map((review) => (review.requestId === requestId ? updated : review)),
     )
     setActioningId(null)
   }
@@ -81,7 +76,7 @@ function AdminReviews() {
               }
             >
               <div className="admin-review-header">
-                <p className="admin-review-title">{review.title}</p>
+                <p className="admin-review-title">{review.title || review.categoryName}</p>
                 <PeekRating value={review.rating} readOnly size={18} activeColor="#f19035" idleColor="#dac7c0" />
               </div>
               <p className="admin-review-meta">
@@ -102,7 +97,7 @@ function AdminReviews() {
                 className={
                   review.isHidden ? 'admin-review-show-button' : 'admin-review-hide-button'
                 }
-                onClick={() => handleToggle(review.requestId)}
+                onClick={() => handleToggle(review.requestId, review.isHidden)}
                 disabled={actioningId === review.requestId}
               >
                 {translate(review.isHidden ? 'adminReviews.show' : 'adminReviews.hide')}

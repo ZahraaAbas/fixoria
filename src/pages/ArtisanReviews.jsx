@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { translate } from '../i18n'
-import { useAuth } from '../hooks/useAuth'
 import { getReviewsForArtisan } from '../services/requestsService'
 import PeekRating from '../components/PeekRating'
 import './ArtisanReviews.css'
@@ -12,7 +11,6 @@ function average(numbers) {
 }
 
 function ArtisanReviews() {
-  const { user } = useAuth()
   const [reviews, setReviews] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -21,7 +19,7 @@ function ArtisanReviews() {
   useEffect(() => {
     let isCancelled = false
 
-    getReviewsForArtisan(user.id)
+    getReviewsForArtisan()
       .then((data) => {
         if (!isCancelled) setReviews(data)
       })
@@ -35,7 +33,7 @@ function ArtisanReviews() {
     return () => {
       isCancelled = true
     }
-  }, [user.id, attempt])
+  }, [attempt])
 
   function handleRetry() {
     setIsLoading(true)
@@ -80,7 +78,7 @@ function ArtisanReviews() {
             {reviews.map((review) => (
               <li key={review.requestId} className="artisan-review-card">
                 <div className="artisan-review-header">
-                  <p className="artisan-review-title">{review.title}</p>
+                  <p className="artisan-review-title">{review.title || review.categoryName}</p>
                   <PeekRating value={review.rating} readOnly size={18} activeColor="#f19035" idleColor="#dac7c0" />
                 </div>
                 <p className="artisan-review-category">{review.categoryName}</p>

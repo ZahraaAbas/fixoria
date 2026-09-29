@@ -1,5 +1,111 @@
+import { apiGet, apiPost, apiPut } from './apiClient'
+
 const STORAGE_KEY = 'fixoria_requests'
 const MOCK_DELAY_MS = 600
+
+// تقديم طلب حقيقي عبر الباكند (POST /resident/requests). باقي هذا الملف لسا وهمي (Mock) لحين ننقله بخطوات لاحقة.
+export function createResidentRequest({
+  categoryId,
+  title,
+  description,
+  building,
+  apartment,
+  preferredDate,
+  contactName,
+}) {
+  const form = new FormData()
+  form.append('service_id', categoryId)
+  if (title) form.append('title', title)
+  if (description) form.append('description', description)
+  if (building) form.append('building', building)
+  if (apartment) form.append('unit_number', apartment)
+  if (contactName) form.append('contact_name', contactName)
+  if (preferredDate) form.append('scheduled_at', new Date(preferredDate).toISOString())
+
+  return apiPost('/resident/requests', form)
+}
+
+function mapResidentRequest(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    categoryName: row.service_name,
+    status: row.status,
+    building: row.building,
+    apartment: row.unit_number,
+    preferredDate: row.scheduled_at,
+    description: row.description,
+    progress: row.progress,
+    rejectionReason: row.rejection_reason,
+    canReview: row.can_review,
+    myRating: row.my_rating,
+    myReviewComment: row.my_review_comment,
+  }
+}
+
+// قائمة طلبات الساكن الحقيقية (GET /resident/requests)
+export async function getMyResidentRequests() {
+  const rows = await apiGet('/resident/requests')
+  return rows.map(mapResidentRequest)
+}
+
+// تفاصيل طلب واحد حقيقي (GET /resident/requests/:id)
+export async function getResidentRequestById(id) {
+  try {
+    const detail = await apiGet(`/resident/requests/${id}`)
+    return mapResidentRequest(detail)
+  } catch (error) {
+    if (error.status === 404) {
+      throw new Error('NOT_FOUND', { cause: error })
+    }
+    throw error
+  }
+}
+
+// إلغاء طلب حقيقي (POST /resident/requests/:id/cancel)
+export async function cancelResidentRequest(id) {
+  const detail = await apiPost(`/resident/requests/${id}/cancel`)
+  return mapResidentRequest(detail)
+}
+
+// إرسال تقييم حقيقي (POST /reviews)
+export function submitResidentReview({ requestId, rating, comment }) {
+  return apiPost('/reviews', { request_id: Number(requestId), rating, comment })
+}
+
+export function mapReviewDetailed(row) {
+  return {
+    requestId: row.request_id,
+    title: row.request_title,
+    categoryName: row.service_name,
+    rating: row.rating,
+    comment: row.comment,
+    residentName: row.customer_name,
+    artisanName: row.artisan_name,
+    isHidden: row.is_hidden,
+  }
+}
+
+function mapArtisanRequest(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    categoryName: row.service_name,
+    status: row.status,
+    building: row.building,
+    apartment: row.unit_number,
+    preferredDate: row.scheduled_at,
+    description: row.description,
+    progress: row.progress,
+    customerName: row.customer_name,
+    createdAt: row.created_at,
+  }
+}
+
+async function updateArtisanRequestStatus(id, status) {
+  const detail = await apiPut(`/requests/${id}/status`, { status })
+  return mapArtisanRequest(detail)
+}
 
 function readStoredRequests() {
   try {
@@ -99,110 +205,40 @@ export function submitReview(id, { rating, comment }) {
   })
 }
 
-export function getAvailableRequestsForArtisan(artisan) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const dismissed = readDismissedIds(artisan.id)
-      const requests = readStoredRequests().filter(
-        (request) =>
-          request.status === 'Open' &&
-          artisan.categoryIds?.includes(request.categoryId) &&
-          !dismissed.includes(request.id),
-      )
-      resolve(requests)
-    }, MOCK_DELAY_MS)
-  })
+// الطلبات المتاحة لتصنيفات هذا الحرفي (GET /requests/available)
+export async function getAvailableRequestsForArtisan() {
+  const rows = await apiGet('/requests/available')
+  return rows.map(mapArtisanRequest)
 }
 
-export function acceptRequest(id, artisan) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const requests = readStoredRequests()
-      const index = requests.findIndex((item) => item.id === Number(id))
-
-      if (index === -1 || requests[index].status !== 'Open') {
-        reject(new Error('ALREADY_TAKEN'))
-        return
-      }
-
-      const updated = {
-        ...requests[index],
-        status: 'accepted',
-        artisanId: artisan.id,
-        artisanName: artisan.fullName,
-      }
-      requests[index] = updated
-      writeStoredRequests(requests)
-      resolve(updated)
-    }, MOCK_DELAY_MS)
-  })
+// قبول طلب (PUT /requests/:id/status) — الباكند يعيّن هذا الحرفي تلقائيًا
+export function acceptRequest(id) {
+  return updateArtisanRequestStatus(id, 'accepted')
 }
 
-export function dismissRequestForArtisan(requestId, artisanId) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const dismissed = readDismissedIds(artisanId)
-      writeDismissedIds(artisanId, [...dismissed, Number(requestId)])
-      resolve()
-    }, MOCK_DELAY_MS)
-  })
+// تجاهل طلب (POST /requests/:id/dismiss)
+export function dismissRequestForArtisan(requestId) {
+  return apiPost(`/requests/${requestId}/dismiss`)
 }
 
-function dismissedStorageKey(artisanId) {
-  return `fixoria_dismissed_${artisanId}`
-}
-
-function readDismissedIds(artisanId) {
-  try {
-    const stored = localStorage.getItem(dismissedStorageKey(artisanId))
-    return stored ? JSON.parse(stored) : []
-  } catch {
-    return []
-  }
-}
-
-function writeDismissedIds(artisanId, ids) {
-  try {
-    localStorage.setItem(dismissedStorageKey(artisanId), JSON.stringify(ids))
-  } catch {
-    // التخزين غير متاح: لن يبقى التجاهل محفوظًا بعد إغلاق الصفحة
-  }
-}
-
-export function getRequestsForArtisan(artisanId) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const requests = readStoredRequests().filter(
-        (request) => request.artisanId === artisanId,
-      )
-      resolve(requests)
-    }, MOCK_DELAY_MS)
-  })
+// طلبات هذا الحرفي (المقبولة/الجارية/المكتملة) — GET /requests
+export async function getRequestsForArtisan() {
+  const rows = await apiGet('/requests')
+  return rows.map(mapArtisanRequest)
 }
 
 export function startRequest(id) {
-  return updateRequestStatus(id, 'in_progress')
+  return updateArtisanRequestStatus(id, 'in_progress')
 }
 
 export function completeRequest(id) {
-  return updateRequestStatus(id, 'completed')
-}export function getReviewsForArtisan(artisanId) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const reviews = readStoredRequests()
-        .filter(
-          (request) =>
-            request.artisanId === artisanId && request.review && !request.review.isHidden,
-        )
-        .map((request) => ({
-          requestId: request.id,
-          title: request.title,
-          categoryName: request.categoryName,
-          ...request.review,
-        }))
-      resolve(reviews)
-    }, MOCK_DELAY_MS)
-  })
+  return updateArtisanRequestStatus(id, 'completed')
+}
+
+// تقييمات هذا الحرفي (GET /artisans/me/reviews)
+export async function getReviewsForArtisan() {
+  const rows = await apiGet('/artisans/me/reviews')
+  return rows.map(mapReviewDetailed).filter((review) => !review.isHidden)
 }
 
 export function getAllRequests() {

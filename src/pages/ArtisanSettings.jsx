@@ -19,6 +19,7 @@ function ArtisanSettings() {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [savedMessage, setSavedMessage] = useState('')
+  const [saveError, setSaveError] = useState(false)
 
   useEffect(() => {
     let isCancelled = false
@@ -56,10 +57,17 @@ function ArtisanSettings() {
     if (Object.keys(validationErrors).length > 0) return
 
     setIsSubmitting(true)
-    const updated = await updateArtisanProfile(user.id, values)
-    updateUser(updated)
-    setIsSubmitting(false)
-    setSavedMessage('artisanSettings.saved')
+    setSaveError(false)
+
+    try {
+      const updated = await updateArtisanProfile(values)
+      updateUser(updated)
+      setSavedMessage('artisanSettings.saved')
+    } catch {
+      setSaveError(true)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -126,6 +134,12 @@ function ArtisanSettings() {
           <p className="artisan-settings-saved" role="status">
             {translate(savedMessage)}
           </p>
+        )}
+
+        {saveError && (
+          <span className="artisan-settings-error" role="alert">
+            {translate('artisanSettings.saveError')}
+          </span>
         )}
 
         <button type="submit" className="artisan-settings-submit" disabled={isSubmitting}>

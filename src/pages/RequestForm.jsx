@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
 import { getCategoryById } from '../services/categoriesService'
-import { createRequest } from '../services/requestsService'
+import { createResidentRequest } from '../services/requestsService'
 import { validateRequest } from '../utils/validators'
 import './RequestForm.css'
 
@@ -25,6 +25,7 @@ function RequestForm() {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState(false)
 
   useEffect(() => {
     let isCancelled = false
@@ -59,16 +60,20 @@ function RequestForm() {
     if (Object.keys(validationErrors).length > 0) return
 
     setIsSubmitting(true)
+    setSubmitError(false)
 
-    await createRequest({
-      residentId: user.id,
-      categoryId: category.id,
-      categoryName: category.name,
-      ...formData,
-    })
-
-    setIsSubmitting(false)
-    setIsSuccess(true)
+    try {
+      await createResidentRequest({
+        categoryId: category.id,
+        contactName: user.fullName,
+        ...formData,
+      })
+      setIsSuccess(true)
+    } catch {
+      setSubmitError(true)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (isLoadingCategory) {
@@ -169,6 +174,8 @@ function RequestForm() {
           <span className="request-error">{translate(errors.preferredDate)}</span>
         )}
       </label>
+
+      {submitError && <span className="request-error">{translate('request.submitError')}</span>}
 
       <button type="submit" className="request-submit" disabled={isSubmitting}>
         {translate(isSubmitting ? 'request.submitting' : 'request.submit')}

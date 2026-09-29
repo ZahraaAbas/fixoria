@@ -44,7 +44,8 @@
   white-space: nowrap;
 }
 
-.status-open {
+.status-open,
+.status-pending {
   color: #1e5a9c;
   background: #e3f0ff;
 }
@@ -63,6 +64,11 @@
 .status-cancelled {
   color: #6b6b6b;
   background: #ececec;
+}
+
+.status-rejected {
+  color: #a13333;
+  background: #fdeaea;
 }
 
 .request-detail-info {

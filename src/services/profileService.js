@@ -1,16 +1,24 @@
-import { updateUser, withoutPassword } from './userStore'
+import { apiPut } from './apiClient'
 
-const MOCK_DELAY_MS = 600
+function mapArtisanProfile(row) {
+  return {
+    fullName: row.name,
+    phone: row.phone,
+    bio: row.description,
+    categoryIds: row.service_ids,
+    status: row.status,
+    rating: row.average_rating,
+    reviewsCount: row.reviews_count,
+  }
+}
 
-export function updateArtisanProfile(id, changes) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const updated = updateUser(id, changes)
-      if (!updated) {
-        reject(new Error('NOT_FOUND'))
-        return
-      }
-      resolve(withoutPassword(updated))
-    }, MOCK_DELAY_MS)
+// تحديث ملف الحرفي الحقيقي (PUT /artisans/me)
+export async function updateArtisanProfile({ fullName, phone, bio, categoryIds }) {
+  const row = await apiPut('/artisans/me', {
+    name: fullName,
+    phone,
+    description: bio,
+    service_ids: categoryIds,
   })
+  return mapArtisanProfile(row)
 }

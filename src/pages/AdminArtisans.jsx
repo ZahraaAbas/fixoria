@@ -1,15 +1,7 @@
 import { useEffect, useState } from 'react'
 import { translate } from '../i18n'
 import { getArtisanAccounts, approveArtisan, rejectArtisan } from '../services/adminService'
-import { categories } from '../mocks/categories'
 import './AdminArtisans.css'
-
-function categoryNamesFor(categoryIds = []) {
-  return categories
-    .filter((category) => categoryIds.includes(category.id))
-    .map((category) => category.name)
-    .join('، ')
-}
 
 function AdminArtisans() {
   const [accounts, setAccounts] = useState([])
@@ -92,7 +84,7 @@ function AdminArtisans() {
                     <p className="admin-artisan-meta">
                       {account.email} · {account.phone}
                     </p>
-                    <p className="admin-artisan-meta">{categoryNamesFor(account.categoryIds)}</p>
+                    <p className="admin-artisan-meta">{account.categoryNames?.join('، ')}</p>
                     <p className="admin-artisan-bio">{account.bio}</p>
                   </div>
                   <div className="admin-artisan-actions">

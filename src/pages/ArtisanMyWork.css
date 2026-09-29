@@ -83,6 +83,11 @@
   background: #ececec;
 }
 
+.status-rejected {
+  color: #a13333;
+  background: #fdeaea;
+}
+
 .my-work-action {
   margin-top: 14px;
   padding: 8px 20px;

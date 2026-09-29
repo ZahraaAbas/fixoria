@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { translate } from '../i18n'
-import { submitReview } from '../services/requestsService'
+import { submitResidentReview } from '../services/requestsService'
 import PeekRating from '../components/PeekRating'
 import './ReviewForm.css'
 
@@ -22,9 +22,15 @@ function ReviewForm({ requestId, onSubmitted }) {
 
     setError('')
     setIsSubmitting(true)
-    const updated = await submitReview(requestId, { rating, comment })
-    setIsSubmitting(false)
-    onSubmitted(updated)
+
+    try {
+      const review = await submitResidentReview({ requestId, rating, comment })
+      onSubmitted(review)
+    } catch {
+      setError('review.submitError')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

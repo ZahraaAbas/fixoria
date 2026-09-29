@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react'
 import { translate } from '../i18n'
-import { useAuth } from '../hooks/useAuth'
 import { getRequestsForArtisan, startRequest, completeRequest } from '../services/requestsService'
 import { statusKey } from '../utils/requestStatus'
 import './ArtisanMyWork.css'
 
-const STATUS_ORDER = { accepted: 0, in_progress: 1, completed: 2, cancelled: 3 }
+const STATUS_ORDER = { accepted: 0, in_progress: 1, completed: 2, cancelled: 3, rejected: 4 }
 
 function ArtisanMyWork() {
-  const { user } = useAuth()
   const [requests, setRequests] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -18,7 +16,7 @@ function ArtisanMyWork() {
   useEffect(() => {
     let isCancelled = false
 
-    getRequestsForArtisan(user.id)
+    getRequestsForArtisan()
       .then((data) => {
         if (!isCancelled) setRequests(data)
       })
@@ -32,7 +30,7 @@ function ArtisanMyWork() {
     return () => {
       isCancelled = true
     }
-  }, [user.id, attempt])
+  }, [attempt])
 
   function handleRetry() {
     setIsLoading(true)
@@ -84,7 +82,7 @@ function ArtisanMyWork() {
             return (
               <li key={request.id} className="my-work-card">
                 <div className="my-work-header">
-                  <p className="my-work-title">{request.title}</p>
+                  <p className="my-work-title">{request.title || request.categoryName}</p>
                   <span className={`my-work-badge status-${status}`}>
                     {translate(`requestStatus.${status}`)}
                   </span>

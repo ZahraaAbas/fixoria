@@ -110,12 +110,15 @@ const ar = {
     preferredDate: 'التاريخ المفضل',
     submit: 'إرسال الطلب',
     submitting: 'جارٍ الإرسال...',
+    submitError: 'تعذّر إرسال الطلب، حاولي مرة أخرى',
     success: 'تم إرسال طلبك بنجاح، سيتواصل معك أقرب حرفي متاح.',
     backHome: 'العودة إلى الرئيسية',
   },
   requestStatus: {
     open: 'مفتوح',
+    pending: 'قيد الانتظار',
     accepted: 'مقبول',
+    rejected: 'مرفوض',
     in_progress: 'قيد التنفيذ',
     completed: 'مكتمل',
     cancelled: 'ملغي',
@@ -148,6 +151,9 @@ const ar = {
     confirmYes: 'نعم، ألغِ الطلب',
     confirmNo: 'تراجع',
     cancelledNotice: 'تم إلغاء هذا الطلب.',
+    rejectedNotice: 'تم رفض هذا الطلب.',
+    rejectionReason: 'السبب',
+    myRating: 'تقييمك',
   },
   review: {
     title: 'قيّم الخدمة',
@@ -157,6 +163,7 @@ const ar = {
     submitting: 'جارٍ الإرسال...',
     thanks: 'شكرًا لتقييمك!',
     required: 'اختر تقييمًا قبل الإرسال',
+    submitError: 'تعذّر إرسال التقييم، حاولي مرة أخرى',
   },
   artisanRegister: {
     title: 'تسجيل حرفي جديد',
@@ -224,6 +231,7 @@ const ar = {
     save: 'حفظ التغييرات',
     saving: 'جارٍ الحفظ...',
     saved: 'تم حفظ التغييرات بنجاح',
+    saveError: 'تعذّر حفظ التغييرات، حاولي مرة أخرى',
   },
   adminArtisans: {
     title: 'إدارة الحرفيين',
@@ -289,7 +297,9 @@ const ar = {
     filters: {
       all: 'الكل',
       open: 'مفتوح',
+      pending: 'قيد الانتظار',
       accepted: 'مقبول',
+      rejected: 'مرفوض',
       in_progress: 'قيد التنفيذ',
       completed: 'مكتمل',
       cancelled: 'ملغي',

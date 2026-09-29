@@ -8,8 +8,6 @@ import { getRequestsForArtisan, getReviewsForArtisan } from '../services/request
 import { statusKey } from '../utils/requestStatus'
 import './ArtisanDashboard.css'
 
-const TIMELINE_STEPS = ['open', 'accepted', 'in_progress', 'completed']
-
 function average(numbers) {
   if (numbers.length === 0) return 0
   const sum = numbers.reduce((total, value) => total + value, 0)
@@ -47,7 +45,7 @@ function ArtisanDashboard() {
   useEffect(() => {
     let isCancelled = false
 
-    Promise.all([getRequestsForArtisan(user.id), getReviewsForArtisan(user.id)])
+    Promise.all([getRequestsForArtisan(), getReviewsForArtisan(user.id)])
       .then(([requestsData, reviewsData]) => {
         if (!isCancelled) {
           setRequests(requestsData)
@@ -96,7 +94,6 @@ function ArtisanDashboard() {
   const current =
     requests.find((r) => statusKey(r.status) === 'in_progress') ??
     requests.find((r) => statusKey(r.status) === 'accepted')
-  const currentStepIndex = current ? TIMELINE_STEPS.indexOf(statusKey(current.status)) : -1
 
   const chartData = getMonthlyActivity(requests)
 
@@ -145,17 +142,17 @@ function ArtisanDashboard() {
         <h2>{translate('artisanDashboard.currentTitle')}</h2>
         {current ? (
           <div className="ad-current-card">
-            <p className="ad-current-title">{current.title}</p>
+            <p className="ad-current-title">{current.title || current.categoryName}</p>
             <p className="ad-current-meta">{current.categoryName}</p>
 
             <ol className="ad-timeline">
-              {TIMELINE_STEPS.map((step, index) => (
+              {current.progress?.map((step) => (
                 <li
-                  key={step}
-                  className={index <= currentStepIndex ? 'ad-timeline-step is-active' : 'ad-timeline-step'}
+                  key={step.key}
+                  className={step.done || step.active ? 'ad-timeline-step is-active' : 'ad-timeline-step'}
                 >
                   <span className="ad-timeline-dot" />
-                  <span className="ad-timeline-label">{translate(`requestStatus.${step}`)}</span>
+                  <span className="ad-timeline-label">{step.label}</span>
                 </li>
               ))}
             </ol>

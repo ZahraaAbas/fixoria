@@ -22,7 +22,8 @@ export function setToken(token) {
 }
 
 async function request(path, { method = 'GET', body, auth = true } = {}) {
-  const headers = { 'Content-Type': 'application/json' }
+  const isFormData = body instanceof FormData
+  const headers = isFormData ? {} : { 'Content-Type': 'application/json' }
   if (auth) {
     const token = getToken()
     if (token) headers.Authorization = `Bearer ${token}`
@@ -31,7 +32,7 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: isFormData ? body : body ? JSON.stringify(body) : undefined,
   })
 
   if (!response.ok) {

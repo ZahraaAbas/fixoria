@@ -1,107 +1,79 @@
-import { getAllUsers, updateUser, withoutPassword } from './userStore'
-import { getAllRequests } from './requestsService'
-import { statusKey } from '../utils/requestStatus'
+import { mapReviewDetailed } from './requestsService'
+import { apiGet, apiPut } from './apiClient'
 
-const MOCK_DELAY_MS = 600
-const ACTIVE_STATUSES = ['open', 'accepted', 'in_progress']
-
-export function getArtisanAccounts() {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const artisans = getAllUsers()
-        .filter((user) => user.role === 'artisan')
-        .map(withoutPassword)
-      resolve(artisans)
-    }, MOCK_DELAY_MS)
-  })
+function mapAdminArtisan(row) {
+  return {
+    id: row.id,
+    fullName: row.name,
+    email: row.email,
+    phone: row.phone,
+    bio: row.description,
+    categoryNames: row.service_names,
+    status: row.status,
+  }
 }
 
-export function approveArtisan(id) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const updated = updateUser(id, { status: 'approved' })
-      if (!updated) {
-        reject(new Error('NOT_FOUND'))
-        return
-      }
-      resolve(withoutPassword(updated))
-    }, MOCK_DELAY_MS)
-  })
+// حسابات الحرفيين الحقيقية (GET /admin/artisans)
+export async function getArtisanAccounts() {
+  const rows = await apiGet('/admin/artisans')
+  return rows.map(mapAdminArtisan)
 }
 
-export function rejectArtisan(id) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const updated = updateUser(id, { status: 'rejected' })
-      if (!updated) {
-        reject(new Error('NOT_FOUND'))
-        return
-      }
-      resolve(withoutPassword(updated))
-    }, MOCK_DELAY_MS)
-  })
+// اعتماد/رفض حرفي حقيقي (PUT /admin/artisans/:id/verify)
+export async function approveArtisan(id) {
+  const row = await apiPut(`/admin/artisans/${id}/verify?approve=true`)
+  return mapAdminArtisan(row)
 }
 
-export function getDashboardStats() {
-  return getAllRequests().then((requests) => {
-    const users = getAllUsers()
-    const residents = users.filter((user) => user.role === 'resident')
-    const artisans = users.filter((user) => user.role === 'artisan')
-    const approvedArtisans = artisans.filter((user) => user.status === 'approved')
-    const pendingArtisans = artisans.filter((user) => user.status === 'pending')
-
-    const activeRequests = requests.filter((request) =>
-      ACTIVE_STATUSES.includes(statusKey(request.status)),
-    )
-    const completedRequests = requests.filter(
-      (request) => statusKey(request.status) === 'completed',
-    )
-       const reviews = requests.filter((request) => request.review && !request.review.isHidden)
-    const averageRating = reviews.length
-      ? Math.round(
-          (reviews.reduce((total, item) => total + item.review.rating, 0) / reviews.length) * 10,
-        ) / 10
-      : 0
-
-    return {
-      residentsCount: residents.length,
-      artisansCount: artisans.length,
-      approvedArtisansCount: approvedArtisans.length,
-      pendingArtisansCount: pendingArtisans.length,
-      totalRequestsCount: requests.length,
-      activeRequestsCount: activeRequests.length,
-      completedRequestsCount: completedRequests.length,
-      reviewsCount: reviews.length,
-      averageRating,
-    }
-  })
+export async function rejectArtisan(id) {
+  const row = await apiPut(`/admin/artisans/${id}/verify?approve=false`)
+  return mapAdminArtisan(row)
 }
 
-export function getRequestsOverview() {
-  return getAllRequests().then((requests) => {
-    const users = getAllUsers()
-    return requests.map((request) => {
-      const resident = users.find((user) => user.id === request.residentId)
-      return { ...request, residentName: resident ? resident.fullName : '—' }
-    })
-  })
+// إحصائيات لوحة التحكم الحقيقية (GET /admin/stats)
+export async function getDashboardStats() {
+  const row = await apiGet('/admin/stats')
+  return {
+    residentsCount: row.customers_count,
+    artisansCount: row.artisans.total,
+    approvedArtisansCount: row.artisans.verified,
+    pendingArtisansCount: row.artisans.pending,
+    totalRequestsCount: row.requests.total,
+    activeRequestsCount: row.requests.accepted + row.requests.in_progress,
+    completedRequestsCount: row.requests.completed,
+    reviewsCount: row.total_reviews,
+    averageRating: row.overall_average_rating || 0,
+  }
 }
 
-export function getReviewsOverview() {
-  return getAllRequests().then((requests) => {
-    const users = getAllUsers()
-    return requests
-      .filter((request) => request.review)
-      .map((request) => {
-        const resident = users.find((user) => user.id === request.residentId)
-        return {
-          requestId: request.id,
-          title: request.title,
-          categoryName: request.categoryName,
-          artisanName: request.artisanName,
-          residentName: resident ? resident.fullName : '—',
-          ...request.review,
-        }
-      })
-  })
+function mapAdminRequest(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    categoryName: row.service_name,
+    residentName: row.customer_name,
+    artisanName: row.artisan_name,
+    building: row.building,
+    apartment: row.unit_number,
+    description: row.description,
+    status: row.status,
+  }
+}
+
+// كل الطلبات الحقيقية (GET /admin/requests)
+export async function getRequestsOverview() {
+  const rows = await apiGet('/admin/requests')
+  return rows.map(mapAdminRequest)
+}
+
+// كل التقييمات الحقيقية (GET /admin/reviews)
+export async function getReviewsOverview() {
+  const rows = await apiGet('/admin/reviews')
+  return rows.map(mapReviewDetailed)
+}
+
+// إخفاء/إظهار تقييم حقيقي (PUT /admin/requests/:id/review/visibility)
+export async function setReviewVisibility(requestId, hidden) {
+  const row = await apiPut(`/admin/requests/${requestId}/review/visibility?hidden=${hidden}`)
+  return mapReviewDetailed(row)
 }

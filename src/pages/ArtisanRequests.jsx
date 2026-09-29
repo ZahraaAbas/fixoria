@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react'
 import { translate } from '../i18n'
-import { useAuth } from '../hooks/useAuth'
 import {
   getAvailableRequestsForArtisan,
   acceptRequest,
   dismissRequestForArtisan,
 } from '../services/requestsService'
+import { formatDate } from '../utils/formatDate'
 import './ArtisanRequests.css'
 
 function ArtisanRequests() {
-  const { user } = useAuth()
   const [requests, setRequests] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -20,7 +19,7 @@ function ArtisanRequests() {
   useEffect(() => {
     let isCancelled = false
 
-    getAvailableRequestsForArtisan(user)
+    getAvailableRequestsForArtisan()
       .then((data) => {
         if (!isCancelled) setRequests(data)
       })
@@ -34,7 +33,7 @@ function ArtisanRequests() {
     return () => {
       isCancelled = true
     }
-  }, [user, attempt])
+  }, [attempt])
 
   function handleRetry() {
     setIsLoading(true)
@@ -47,7 +46,7 @@ function ArtisanRequests() {
     setActionError('')
 
     try {
-      await acceptRequest(requestId, user)
+      await acceptRequest(requestId)
       setRequests((current) => current.filter((request) => request.id !== requestId))
     } catch {
       setActionError('artisanRequests.alreadyTaken')
@@ -59,7 +58,7 @@ function ArtisanRequests() {
 
   async function handleDismiss(requestId) {
     setActioningId(requestId)
-    await dismissRequestForArtisan(requestId, user.id)
+    await dismissRequestForArtisan(requestId)
     setRequests((current) => current.filter((request) => request.id !== requestId))
     setActioningId(null)
   }
@@ -93,7 +92,7 @@ function ArtisanRequests() {
         <ul className="artisan-requests-list">
           {requests.map((request) => (
             <li key={request.id} className="artisan-request-card">
-              <p className="artisan-request-title">{request.title}</p>
+              <p className="artisan-request-title">{request.title || request.categoryName}</p>
               <p className="artisan-request-meta">{request.categoryName}</p>
               <p className="artisan-request-meta">
                 {translate('artisanRequests.building')}: {request.building} ·{' '}
@@ -101,7 +100,7 @@ function ArtisanRequests() {
               </p>
               {request.preferredDate && (
                 <p className="artisan-request-meta">
-                  {translate('artisanRequests.preferredDate')}: {request.preferredDate}
+                  {translate('artisanRequests.preferredDate')}: {formatDate(request.preferredDate)}
                 </p>
               )}
               <p className="artisan-request-description">{request.description}</p>

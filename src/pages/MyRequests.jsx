@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { translate } from '../i18n'
-import { useAuth } from '../hooks/useAuth'
-import { getRequestsByResident } from '../services/requestsService'
+import { getMyResidentRequests } from '../services/requestsService'
 import { statusKey } from '../utils/requestStatus'
+import { formatDate } from '../utils/formatDate'
 import './MyRequests.css'
 
 function MyRequests() {
-  const { user } = useAuth()
   const [requests, setRequests] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -16,7 +15,7 @@ function MyRequests() {
   useEffect(() => {
     let isCancelled = false
 
-    getRequestsByResident(user.id)
+    getMyResidentRequests()
       .then((data) => {
         if (!isCancelled) setRequests(data)
       })
@@ -30,7 +29,7 @@ function MyRequests() {
     return () => {
       isCancelled = true
     }
-  }, [user.id, attempt])
+  }, [attempt])
 
   function handleRetry() {
     setIsLoading(true)
@@ -66,7 +65,7 @@ function MyRequests() {
             <li key={request.id} className="request-card">
               <Link to={`/my-requests/${request.id}`} className="request-card-link">
                 <div className="request-card-header">
-                  <p className="request-card-title">{request.title}</p>
+                  <p className="request-card-title">{request.title || request.categoryName}</p>
                   <span className={`request-badge status-${statusKey(request.status)}`}>
                     {translate(`requestStatus.${statusKey(request.status)}`)}
                   </span>
@@ -76,7 +75,7 @@ function MyRequests() {
                 </p>
                 {request.preferredDate && (
                   <p className="request-card-date">
-                    {translate('myRequests.preferredDate')}: {request.preferredDate}
+                    {translate('myRequests.preferredDate')}: {formatDate(request.preferredDate)}
                   </p>
                 )}
               </Link>

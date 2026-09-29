@@ -110,12 +110,15 @@ const en = {
     preferredDate: 'Preferred Date',
     submit: 'Submit Request',
     submitting: 'Submitting...',
+    submitError: 'Could not submit the request, please try again',
     success: 'Your request has been sent successfully, the nearest available artisan will contact you.',
     backHome: 'Back to Home',
   },
   requestStatus: {
     open: 'Open',
+    pending: 'Pending',
     accepted: 'Accepted',
+    rejected: 'Rejected',
     in_progress: 'In Progress',
     completed: 'Completed',
     cancelled: 'Cancelled',
@@ -148,6 +151,9 @@ const en = {
     confirmYes: 'Yes, cancel request',
     confirmNo: 'Go back',
     cancelledNotice: 'This request has been cancelled.',
+    rejectedNotice: 'This request was rejected.',
+    rejectionReason: 'Reason',
+    myRating: 'Your rating',
   },
   review: {
     title: 'Rate Service',
@@ -157,6 +163,7 @@ const en = {
     submitting: 'Submitting...',
     thanks: 'Thank you for your review!',
     required: 'Please select a rating before submitting',
+    submitError: 'Could not submit the review, please try again',
   },
   artisanRegister: {
     title: 'New Artisan Registration',
@@ -224,6 +231,7 @@ const en = {
     save: 'Save Changes',
     saving: 'Saving...',
     saved: 'Changes saved successfully',
+    saveError: 'Could not save changes, please try again',
   },
   adminArtisans: {
     title: 'Manage Artisans',
@@ -289,7 +297,9 @@ const en = {
     filters: {
       all: 'All',
       open: 'Open',
+      pending: 'Pending',
       accepted: 'Accepted',
+      rejected: 'Rejected',
       in_progress: 'In Progress',
       completed: 'Completed',
       cancelled: 'Cancelled',
