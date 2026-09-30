@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { translate } from '../i18n'
 import { getArtisanAccounts, approveArtisan, rejectArtisan } from '../services/adminService'
+import { LoadingState, ErrorState } from '../components/StatusState'
 import './AdminArtisans.css'
 
 function AdminArtisans() {
@@ -56,15 +57,14 @@ function AdminArtisans() {
     <section>
       <h1>{translate('adminArtisans.title')}</h1>
 
-      {isLoading && <p className="admin-status">{translate('adminArtisans.loading')}</p>}
+      {isLoading && <LoadingState message={translate('adminArtisans.loading')} />}
 
       {!isLoading && error && (
-        <div className="admin-status">
-          <p>{translate('adminArtisans.error')}</p>
-          <button type="button" className="admin-retry" onClick={handleRetry}>
-            {translate('adminArtisans.retry')}
-          </button>
-        </div>
+        <ErrorState
+          message={translate('adminArtisans.error')}
+          onRetry={handleRetry}
+          retryLabel={translate('adminArtisans.retry')}
+        />
       )}
 
       {!isLoading && !error && (

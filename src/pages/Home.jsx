@@ -4,6 +4,7 @@ import { getCategories } from '../services/categoriesService'
 import { serviceImages, defaultServiceImage } from '../config/serviceImages'
 import { serviceVisuals, defaultServiceVisual } from '../config/serviceVisuals'
 import AccordionGallery from '../components/AccordionGallery'
+import { LoadingState, ErrorState } from '../components/StatusState'
 import './Home.css'
 
 function Home() {
@@ -51,15 +52,14 @@ function Home() {
     <section>
       <h1>{translate('home.title')}</h1>
 
-      {isLoading && <p className="home-status">{translate('home.loading')}</p>}
+      {isLoading && <LoadingState message={translate('home.loading')} />}
 
       {!isLoading && error && (
-        <div className="home-status">
-          <p>{translate('home.error')}</p>
-          <button type="button" className="home-retry" onClick={handleRetry}>
-            {translate('home.retry')}
-          </button>
-        </div>
+        <ErrorState
+          message={translate('home.error')}
+          onRetry={handleRetry}
+          retryLabel={translate('home.retry')}
+        />
       )}
 
       {!isLoading && !error && categories.length === 0 && (

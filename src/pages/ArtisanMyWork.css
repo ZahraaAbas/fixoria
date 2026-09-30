@@ -3,18 +3,6 @@
   color: var(--color-text-muted);
 }
 
-.my-work-retry {
-  margin-top: 12px;
-  padding: 10px 20px;
-  font: inherit;
-  font-weight: 700;
-  color: var(--color-dark);
-  background: var(--color-accent);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
 .my-work-list {
   display: flex;
   flex-direction: column;

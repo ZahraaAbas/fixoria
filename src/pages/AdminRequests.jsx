@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { translate } from '../i18n'
 import { getRequestsOverview } from '../services/adminService'
 import { statusKey } from '../utils/requestStatus'
+import { LoadingState, ErrorState } from '../components/StatusState'
 import './AdminRequests.css'
 
 const STATUS_FILTERS = ['all', 'pending', 'accepted', 'rejected', 'in_progress', 'completed', 'cancelled']
@@ -85,15 +86,14 @@ function AdminRequests() {
         </div>
       </div>
 
-      {isLoading && <p className="admin-requests-status">{translate('adminRequests.loading')}</p>}
+      {isLoading && <LoadingState message={translate('adminRequests.loading')} />}
 
       {!isLoading && error && (
-        <div className="admin-requests-status">
-          <p>{translate('adminRequests.error')}</p>
-          <button type="button" className="admin-requests-retry" onClick={handleRetry}>
-            {translate('adminRequests.retry')}
-          </button>
-        </div>
+        <ErrorState
+          message={translate('adminRequests.error')}
+          onRetry={handleRetry}
+          retryLabel={translate('adminRequests.retry')}
+        />
       )}
 
       {!isLoading && !error && filtered.length === 0 && (

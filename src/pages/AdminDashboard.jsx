@@ -4,6 +4,7 @@ import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
 import { getDashboardStats } from '../services/adminService'
 import PeekRating from '../components/PeekRating'
+import { LoadingState, ErrorState } from '../components/StatusState'
 import './AdminDashboard.css'
 
 function pct(part, total) {
@@ -101,15 +102,14 @@ function AdminDashboard() {
         </p>
       </div>
 
-      {isLoading && <p className="admin-dashboard-status">{translate('adminDashboard.loading')}</p>}
+      {isLoading && <LoadingState message={translate('adminDashboard.loading')} />}
 
       {!isLoading && error && (
-        <div className="admin-dashboard-status">
-          <p>{translate('adminDashboard.error')}</p>
-          <button type="button" className="admin-dashboard-retry" onClick={handleRetry}>
-            {translate('adminDashboard.retry')}
-          </button>
-        </div>
+        <ErrorState
+          message={translate('adminDashboard.error')}
+          onRetry={handleRetry}
+          retryLabel={translate('adminDashboard.retry')}
+        />
       )}
 
       {!isLoading && !error && stats && (

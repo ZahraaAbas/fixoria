@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Star } from 'lucide-react'
 import { translate } from '../i18n'
 import { getArtisans } from '../services/artisansService'
+import { LoadingState, ErrorState } from '../components/StatusState'
 import './Artisans.css'
 import { Link } from 'react-router'
 
@@ -40,15 +41,14 @@ function Artisans() {
     <section>
       <h1>{translate('artisans.title')}</h1>
 
-      {isLoading && <p className="artisans-status">{translate('artisans.loading')}</p>}
+      {isLoading && <LoadingState message={translate('artisans.loading')} />}
 
       {!isLoading && error && (
-        <div className="artisans-status">
-          <p>{translate('artisans.error')}</p>
-          <button type="button" className="artisans-retry" onClick={handleRetry}>
-            {translate('artisans.retry')}
-          </button>
-        </div>
+        <ErrorState
+          message={translate('artisans.error')}
+          onRetry={handleRetry}
+          retryLabel={translate('artisans.retry')}
+        />
       )}
 
       {!isLoading && !error && artisans.length === 0 && (

@@ -3,18 +3,6 @@
   color: var(--color-text-muted);
 }
 
-.artisans-retry {
-  margin-top: 12px;
-  padding: 10px 20px;
-  font: inherit;
-  font-weight: 700;
-  color: var(--color-dark);
-  background: var(--color-accent);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
 .artisan-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

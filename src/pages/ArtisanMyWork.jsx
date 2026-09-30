@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { translate } from '../i18n'
 import { getRequestsForArtisan, startRequest, completeRequest } from '../services/requestsService'
 import { statusKey } from '../utils/requestStatus'
+import { LoadingState, ErrorState } from '../components/StatusState'
 import './ArtisanMyWork.css'
 
 const STATUS_ORDER = { accepted: 0, in_progress: 1, completed: 2, cancelled: 3, rejected: 4 }
@@ -60,15 +61,14 @@ function ArtisanMyWork() {
     <section>
       <h1>{translate('artisanMyWork.title')}</h1>
 
-      {isLoading && <p className="my-work-status">{translate('artisanMyWork.loading')}</p>}
+      {isLoading && <LoadingState message={translate('artisanMyWork.loading')} />}
 
       {!isLoading && error && (
-        <div className="my-work-status">
-          <p>{translate('artisanMyWork.error')}</p>
-          <button type="button" className="my-work-retry" onClick={handleRetry}>
-            {translate('artisanMyWork.retry')}
-          </button>
-        </div>
+        <ErrorState
+          message={translate('artisanMyWork.error')}
+          onRetry={handleRetry}
+          retryLabel={translate('artisanMyWork.retry')}
+        />
       )}
 
       {!isLoading && !error && sorted.length === 0 && (

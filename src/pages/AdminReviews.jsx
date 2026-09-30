@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { translate } from '../i18n'
 import { getReviewsOverview, setReviewVisibility } from '../services/adminService'
 import PeekRating from '../components/PeekRating'
+import { LoadingState, ErrorState } from '../components/StatusState'
 import './AdminReviews.css'
 
 function AdminReviews() {
@@ -49,15 +50,14 @@ function AdminReviews() {
     <section>
       <h1>{translate('adminReviews.title')}</h1>
 
-      {isLoading && <p className="admin-reviews-status">{translate('adminReviews.loading')}</p>}
+      {isLoading && <LoadingState message={translate('adminReviews.loading')} />}
 
       {!isLoading && error && (
-        <div className="admin-reviews-status">
-          <p>{translate('adminReviews.error')}</p>
-          <button type="button" className="admin-reviews-retry" onClick={handleRetry}>
-            {translate('adminReviews.retry')}
-          </button>
-        </div>
+        <ErrorState
+          message={translate('adminReviews.error')}
+          onRetry={handleRetry}
+          retryLabel={translate('adminReviews.retry')}
+        />
       )}
 
       {!isLoading && !error && reviews.length === 0 && (

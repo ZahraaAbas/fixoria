@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { translate } from '../i18n'
 import { getArtisanById } from '../services/artisansService'
 import PeekRating from '../components/PeekRating'
+import { LoadingState, ErrorState } from '../components/StatusState'
 import './ArtisanProfile.css'
 
 function ArtisanProfile() {
@@ -44,7 +45,7 @@ function ArtisanProfile() {
   }
 
   if (isLoading) {
-    return <p className="artisan-profile-status">{translate('artisanProfile.loading')}</p>
+    return <LoadingState message={translate('artisanProfile.loading')} />
   }
 
   if (error?.message === 'NOT_FOUND') {
@@ -58,12 +59,11 @@ function ArtisanProfile() {
 
   if (error) {
     return (
-      <div className="artisan-profile-status">
-        <p>{translate('artisanProfile.error')}</p>
-        <button type="button" className="artisan-profile-retry" onClick={handleRetry}>
-          {translate('artisanProfile.retry')}
-        </button>
-      </div>
+      <ErrorState
+        message={translate('artisanProfile.error')}
+        onRetry={handleRetry}
+        retryLabel={translate('artisanProfile.retry')}
+      />
     )
   }
 

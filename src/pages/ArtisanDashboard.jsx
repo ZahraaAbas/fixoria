@@ -6,6 +6,7 @@ import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
 import { getRequestsForArtisan, getReviewsForArtisan } from '../services/requestsService'
 import { statusKey } from '../utils/requestStatus'
+import { LoadingState, ErrorState } from '../components/StatusState'
 import './ArtisanDashboard.css'
 
 function average(numbers) {
@@ -71,17 +72,16 @@ function ArtisanDashboard() {
   }
 
   if (isLoading) {
-    return <p className="artisan-dashboard-status">{translate('artisanDashboard.loading')}</p>
+    return <LoadingState message={translate('artisanDashboard.loading')} />
   }
 
   if (error) {
     return (
-      <div className="artisan-dashboard-status">
-        <p>{translate('artisanDashboard.error')}</p>
-        <button type="button" className="artisan-dashboard-retry" onClick={handleRetry}>
-          {translate('artisanDashboard.retry')}
-        </button>
-      </div>
+      <ErrorState
+        message={translate('artisanDashboard.error')}
+        onRetry={handleRetry}
+        retryLabel={translate('artisanDashboard.retry')}
+      />
     )
   }
 

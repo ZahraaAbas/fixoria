@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { translate } from '../i18n'
 import { getReviewsForArtisan } from '../services/requestsService'
 import PeekRating from '../components/PeekRating'
+import { LoadingState, ErrorState } from '../components/StatusState'
 import './ArtisanReviews.css'
 
 function average(numbers) {
@@ -47,15 +48,14 @@ function ArtisanReviews() {
     <section>
       <h1>{translate('artisanReviews.title')}</h1>
 
-      {isLoading && <p className="artisan-reviews-status">{translate('artisanReviews.loading')}</p>}
+      {isLoading && <LoadingState message={translate('artisanReviews.loading')} />}
 
       {!isLoading && error && (
-        <div className="artisan-reviews-status">
-          <p>{translate('artisanReviews.error')}</p>
-          <button type="button" className="artisan-reviews-retry" onClick={handleRetry}>
-            {translate('artisanReviews.retry')}
-          </button>
-        </div>
+        <ErrorState
+          message={translate('artisanReviews.error')}
+          onRetry={handleRetry}
+          retryLabel={translate('artisanReviews.retry')}
+        />
       )}
 
       {!isLoading && !error && reviews.length === 0 && (

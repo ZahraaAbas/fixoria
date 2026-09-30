@@ -28,23 +28,6 @@
   font-size: 1rem;
 }
 
-.home-retry {
-  margin-top: 12px;
-  padding: 10px 20px;
-  font: inherit;
-  font-weight: 700;
-  color: #fff;
-  background: #f19035;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.home-retry:hover {
-  background: #e07f24;
-}
-
 /* تحسين مسافات شبكة البطاقات */
 .home-content .grid {
   display: grid;

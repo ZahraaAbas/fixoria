@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import { getCategoryById } from '../services/categoriesService'
 import { createResidentRequest } from '../services/requestsService'
 import { validateRequest } from '../utils/validators'
+import { LoadingState } from '../components/StatusState'
 import './RequestForm.css'
 
 function RequestForm() {
@@ -77,7 +78,7 @@ function RequestForm() {
   }
 
   if (isLoadingCategory) {
-    return <p className="request-form-status">{translate('request.loadingCategory')}</p>
+    return <LoadingState message={translate('request.loadingCategory')} />
   }
 
   if (categoryError) {

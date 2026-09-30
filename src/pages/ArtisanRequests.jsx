@@ -6,6 +6,7 @@ import {
   dismissRequestForArtisan,
 } from '../services/requestsService'
 import { formatDate } from '../utils/formatDate'
+import { LoadingState, ErrorState } from '../components/StatusState'
 import './ArtisanRequests.css'
 
 function ArtisanRequests() {
@@ -67,15 +68,14 @@ function ArtisanRequests() {
     <section>
       <h1>{translate('artisanRequests.title')}</h1>
 
-      {isLoading && <p className="artisan-requests-status">{translate('artisanRequests.loading')}</p>}
+      {isLoading && <LoadingState message={translate('artisanRequests.loading')} />}
 
       {!isLoading && error && (
-        <div className="artisan-requests-status">
-          <p>{translate('artisanRequests.error')}</p>
-          <button type="button" className="artisan-requests-retry" onClick={handleRetry}>
-            {translate('artisanRequests.retry')}
-          </button>
-        </div>
+        <ErrorState
+          message={translate('artisanRequests.error')}
+          onRetry={handleRetry}
+          retryLabel={translate('artisanRequests.retry')}
+        />
       )}
 
       {actionError && (

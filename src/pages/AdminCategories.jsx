@@ -7,6 +7,7 @@ import {
   deleteCategory,
 } from '../services/categoriesService'
 import { validateCategoryName } from '../utils/validators'
+import { LoadingState, ErrorState } from '../components/StatusState'
 import './AdminCategories.css'
 
 function AdminCategories() {
@@ -119,15 +120,14 @@ function AdminCategories() {
       </form>
       {newNameError && <span className="admin-category-error">{translate(newNameError)}</span>}
 
-      {isLoading && <p className="admin-categories-status">{translate('adminCategories.loading')}</p>}
+      {isLoading && <LoadingState message={translate('adminCategories.loading')} />}
 
       {!isLoading && error && (
-        <div className="admin-categories-status">
-          <p>{translate('adminCategories.error')}</p>
-          <button type="button" className="admin-categories-retry" onClick={handleRetry}>
-            {translate('adminCategories.retry')}
-          </button>
-        </div>
+        <ErrorState
+          message={translate('adminCategories.error')}
+          onRetry={handleRetry}
+          retryLabel={translate('adminCategories.retry')}
+        />
       )}
 
       {!isLoading && !error && categories.length === 0 && (

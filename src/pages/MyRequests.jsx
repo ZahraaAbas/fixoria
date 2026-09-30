@@ -4,6 +4,7 @@ import { translate } from '../i18n'
 import { getMyResidentRequests } from '../services/requestsService'
 import { statusKey } from '../utils/requestStatus'
 import { formatDate } from '../utils/formatDate'
+import { LoadingState, ErrorState } from '../components/StatusState'
 import './MyRequests.css'
 
 function MyRequests() {
@@ -41,15 +42,14 @@ function MyRequests() {
     <section>
       <h1>{translate('myRequests.title')}</h1>
 
-      {isLoading && <p className="my-requests-status">{translate('myRequests.loading')}</p>}
+      {isLoading && <LoadingState message={translate('myRequests.loading')} />}
 
       {!isLoading && error && (
-        <div className="my-requests-status">
-          <p>{translate('myRequests.error')}</p>
-          <button type="button" className="my-requests-retry" onClick={handleRetry}>
-            {translate('myRequests.retry')}
-          </button>
-        </div>
+        <ErrorState
+          message={translate('myRequests.error')}
+          onRetry={handleRetry}
+          retryLabel={translate('myRequests.retry')}
+        />
       )}
 
       {!isLoading && !error && requests.length === 0 && (

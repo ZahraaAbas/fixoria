@@ -6,6 +6,7 @@ import { statusKey, CANCELLABLE_STATUSES } from '../utils/requestStatus'
 import { formatDate } from '../utils/formatDate'
 import PeekRating from '../components/PeekRating'
 import ReviewForm from './ReviewForm'
+import { LoadingState, ErrorState } from '../components/StatusState'
 import './RequestDetail.css'
 
 function RequestDetail() {
@@ -59,7 +60,7 @@ function RequestDetail() {
   }
 
   if (isLoading) {
-    return <p className="request-detail-status">{translate('requestDetail.loading')}</p>
+    return <LoadingState message={translate('requestDetail.loading')} />
   }
 
   if (error?.message === 'NOT_FOUND') {
@@ -73,12 +74,11 @@ function RequestDetail() {
 
   if (error) {
     return (
-      <div className="request-detail-status">
-        <p>{translate('requestDetail.error')}</p>
-        <button type="button" className="request-detail-retry" onClick={handleRetry}>
-          {translate('requestDetail.retry')}
-        </button>
-      </div>
+      <ErrorState
+        message={translate('requestDetail.error')}
+        onRetry={handleRetry}
+        retryLabel={translate('requestDetail.retry')}
+      />
     )
   }
 

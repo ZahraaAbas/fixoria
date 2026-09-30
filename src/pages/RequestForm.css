@@ -51,10 +51,12 @@
 .request-field-row {
   display: flex;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .request-field-row .request-field {
   flex: 1;
+  min-width: 140px;
 }
 
 .request-submit {
