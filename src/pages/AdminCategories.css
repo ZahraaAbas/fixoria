@@ -1,152 +1,228 @@
-.admin-category-add {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-  max-width: 420px;
+.ac-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-weight: 800;
+  color: var(--text-strong);
+  background: var(--surface-glass-strong);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
 }
 
-.admin-category-add input {
+.ac-count svg {
+  color: var(--orange-500);
+}
+
+/* ===== Add form ===== */
+.ac-add {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding: var(--space-3);
+  border-style: dashed;
+  border-color: var(--border-default);
+  background: rgb(255 255 255 / 0.65);
+}
+
+.ac-add-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  color: var(--navy-900);
+  background: var(--gradient-action);
+}
+
+.ac-add-field {
   flex: 1;
-  padding: 10px 14px;
-  font: inherit;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  display: grid;
+  gap: 6px;
 }
 
-.admin-category-add-button {
-  padding: 10px 20px;
-  font: inherit;
-  font-weight: 700;
-  color: var(--color-dark);
-  background: var(--color-accent);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+.ac-add .fx-btn {
+  min-height: 48px;
 }
 
-.admin-category-add-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.admin-category-error {
-  display: block;
-  margin-top: 6px;
-  font-size: 0.875rem;
-  color: var(--color-error);
-}
-
-.admin-categories-status {
-  margin-top: 20px;
-  color: var(--color-text-muted);
-}
-
-.admin-categories-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 20px 0 0;
+/* ===== Tiles ===== */
+.ac-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: var(--space-3);
+  margin: 0;
   padding: 0;
   list-style: none;
-  max-width: 480px;
 }
 
-.admin-category-row {
+.ac-tile {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-height: 84px;
+  padding: var(--space-4);
+  transition:
+    border-color var(--dur-base) ease,
+    background var(--dur-base) ease,
+    box-shadow var(--dur-base) ease;
+}
+
+.ac-tile:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.ac-tile.is-editing {
+  border-color: var(--orange-500);
+  box-shadow: 0 0 0 4px rgb(241 144 53 / 0.12);
+}
+
+.ac-tile.is-danger {
+  border-color: rgb(194 65 45 / 0.35);
+  background: var(--danger-soft);
+}
+
+.ac-tile-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  color: #fff;
+  box-shadow: var(--shadow-inset-light);
+}
+
+.ac-tile-body {
+  flex: 1;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ac-tile-body--view {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  align-self: center;
+}
+
+.ac-tile-name {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+
+.ac-tile-tools {
+  display: flex;
+  gap: 4px;
+  opacity: 0.55;
+  transition: opacity var(--dur-base) ease;
+}
+
+.ac-tile:hover .ac-tile-tools,
+.ac-tile:focus-within .ac-tile-tools {
+  opacity: 1;
+}
+
+.ac-tool {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--text-muted);
+  background: var(--sand-100);
+  border: 0;
   border-radius: 10px;
-}
-
-.admin-category-name {
-  font-weight: 600;
-}
-
-.admin-category-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.admin-category-edit-button,
-.admin-category-save {
-  padding: 6px 14px;
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--color-dark);
-  background: var(--color-accent);
-  border: none;
-  border-radius: 8px;
   cursor: pointer;
+  transition:
+    color var(--dur-base) ease,
+    background var(--dur-base) ease;
 }
 
-.admin-category-delete-button {
-  padding: 6px 14px;
-  font: inherit;
-  font-size: 0.85rem;
-  color: var(--color-error);
-  background: none;
-  border: 1px solid var(--color-error);
-  border-radius: 8px;
-  cursor: pointer;
+.ac-tool:hover {
+  color: var(--navy-900);
+  background: var(--peach-200);
 }
 
-.admin-category-cancel {
-  padding: 6px 14px;
-  font: inherit;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.admin-category-edit {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: 100%;
-}
-
-.admin-category-edit input {
-  padding: 8px 12px;
-  font: inherit;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-}
-
-.admin-category-confirm {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-}
-
-.admin-category-confirm-yes {
-  padding: 6px 14px;
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 700;
+.ac-tool--danger:hover {
   color: #fff;
-  background: var(--color-error);
-  border: none;
+  background: var(--danger);
+}
+
+.ac-edit-input {
+  min-height: 40px;
+  padding: 8px 12px;
+}
+
+.ac-tile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ac-confirm-text {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--danger);
+}
+
+.ac-confirm-text svg {
+  flex: 0 0 auto;
+  margin-top: 3px;
+}
+
+.ac-delete-yes {
+  color: #fff;
+  background: var(--danger);
+}
+
+.ac-delete-yes:hover:not(:disabled) {
+  background: #a73622;
+}
+
+.ac-dismiss {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 8px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: var(--danger);
+  background: transparent;
+  border: 0;
   border-radius: 8px;
   cursor: pointer;
 }
 
-.admin-category-confirm-no {
-  padding: 6px 14px;
-  font: inherit;
-  font-size: 0.85rem;
-  color: var(--color-text);
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  cursor: pointer;
+.ac-dismiss:hover {
+  background: rgb(194 65 45 / 0.1);
+}
+
+@media (hover: none) {
+  .ac-tile-tools {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 520px) {
+  .ac-add {
+    flex-wrap: wrap;
+  }
+
+  .ac-add-icon {
+    display: none;
+  }
+
+  .ac-add .fx-btn {
+    width: 100%;
+  }
 }
