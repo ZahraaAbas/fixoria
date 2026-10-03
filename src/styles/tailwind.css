@@ -2,9 +2,16 @@
 @import "tailwindcss/utilities.css" layer(utilities);
 
 @theme {
+  --font-sans: 'Tajawal', system-ui, 'Segoe UI', Tahoma, sans-serif;
+
   --color-fixoria-navy: #263056;
+  --color-fixoria-navy-deep: #121731;
   --color-fixoria-orange: #f19035;
   --color-fixoria-peach: #fdb78e;
   --color-fixoria-rose: #aa8173;
+  --color-fixoria-rose-deep: #7a5a4f;
   --color-fixoria-beige: #dac7c0;
+  --color-fixoria-sand: #fcf8f5;
+
+  --ease-fixoria: cubic-bezier(0.22, 1, 0.36, 1);
 }
