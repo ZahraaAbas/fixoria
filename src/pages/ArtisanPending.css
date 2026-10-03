@@ -1,34 +1,130 @@
-.artisan-pending-page {
+.pending-page {
   min-height: 100svh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: var(--color-bg, #f6f6f6);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: var(--space-6);
+  padding: var(--space-6) var(--gutter);
 }
 
-.artisan-pending {
-  max-width: 480px;
+.pending-brand {
+  display: inline-flex;
+}
+
+.pending-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
   width: 100%;
-  padding: 32px 24px;
+  max-width: 520px;
+  padding: clamp(32px, 6vw, 56px) clamp(20px, 5vw, 48px);
+  overflow: hidden;
+  isolation: isolate;
   text-align: center;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
 }
 
-.artisan-pending-name {
-  font-weight: 700;
+.pending-glow {
+  position: absolute;
+  z-index: -1;
+  top: -50%;
+  left: 50%;
+  width: 120%;
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgb(253 183 142 / 0.35), transparent 55%);
+  pointer-events: none;
 }
 
-.artisan-pending-logout {
-  margin-top: 16px;
-  padding: 10px 24px;
-  font: inherit;
-  font-weight: 700;
-  color: var(--color-dark);
-  background: var(--color-accent);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+.pending-card.is-rejected .pending-glow {
+  background: radial-gradient(circle, rgb(194 65 45 / 0.12), transparent 55%);
+}
+
+.pending-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  color: var(--navy-900);
+  background: var(--gradient-action);
+  box-shadow: var(--shadow-inset-light), var(--shadow-glow);
+}
+
+.pending-icon svg {
+  animation: pending-flip 3.2s var(--ease-out) infinite;
+}
+
+@keyframes pending-flip {
+  0%, 40% { transform: rotate(0deg); }
+  55%, 95% { transform: rotate(180deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* حلقة دوّارة توحي بالانتظار */
+.pending-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--orange-500);
+  border-right-color: rgb(241 144 53 / 0.35);
+  animation: fx-spin 2.4s linear infinite;
+}
+
+.pending-card.is-rejected .pending-icon {
+  color: #fff;
+  background: var(--danger);
+  box-shadow: 0 0 0 10px rgb(194 65 45 / 0.1);
+}
+
+.pending-card.is-rejected .pending-icon svg {
+  animation: none;
+}
+
+.pending-title {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.pending-text {
+  margin: 0;
+  max-width: 40ch;
+  line-height: 1.8;
+  color: var(--text-muted);
+}
+
+.pending-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: var(--space-2) 0;
+  padding: 6px 16px 6px 6px;
+  padding-inline-start: 6px;
+  font-weight: 800;
+  color: var(--text-strong);
+  background: var(--sand-100);
+  border-radius: var(--radius-pill);
+}
+
+.pending-avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: var(--text-sm);
+  color: var(--text-on-dark);
+  background: var(--gradient-depth);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pending-icon svg,
+  .pending-ring {
+    animation: none;
+  }
 }

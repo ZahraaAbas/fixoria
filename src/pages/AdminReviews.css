@@ -1,80 +1,162 @@
-.admin-reviews-status {
-  margin-top: 16px;
-  color: var(--color-text-muted);
+.arv-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-weight: 800;
+  color: var(--text-strong);
+  background: var(--surface-glass-strong);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
 }
 
-.admin-reviews-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 20px 0 0;
+.arv-count svg {
+  color: var(--orange-500);
+  fill: var(--orange-500);
+}
+
+.arv-count--hidden svg {
+  color: var(--text-muted);
+  fill: none;
+}
+
+.arv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-4);
+  margin: 0;
   padding: 0;
   list-style: none;
-  max-width: 560px;
 }
 
-.admin-review-card {
-  padding: 16px 20px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
+.arv-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  overflow: hidden;
+  transition:
+    background var(--dur-slow) var(--ease-out),
+    border-color var(--dur-slow) var(--ease-out),
+    box-shadow var(--dur-slow) var(--ease-out);
 }
 
-.admin-review-card-hidden {
-  opacity: 0.6;
+/* التقييم المخفي: باهت مع خطوط مائلة خفيفة */
+.arv-card.is-hidden {
+  background:
+    repeating-linear-gradient(-45deg, rgb(170 129 115 / 0.06) 0 10px, transparent 10px 20px),
+    var(--sand-50);
   border-style: dashed;
+  border-color: var(--border-default);
+  box-shadow: none;
 }
 
-.admin-review-header {
+.arv-card.is-hidden .arv-head,
+.arv-card.is-hidden .arv-people,
+.arv-card.is-hidden .arv-comment,
+.arv-card.is-hidden .peek-rating {
+  opacity: 0.55;
+}
+
+.arv-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.arv-head-text {
+  min-width: 0;
+}
+
+.arv-title {
+  margin: 0;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.arv-category {
+  margin: 2px 0 0;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.arv-score {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: var(--orange-700);
+  background: var(--orange-50);
+  border-radius: var(--radius-pill);
+}
+
+.arv-score svg {
+  fill: currentColor;
+}
+
+.arv-people {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+}
+
+.arv-people > div {
+  padding: 8px 12px;
+  background: var(--sand-100);
+  border-radius: var(--radius-sm);
+}
+
+.arv-people dt {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 5px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-muted);
 }
 
-.admin-review-title {
+.arv-people dd {
+  margin: 2px 0 0;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.arv-comment {
+  display: flex;
+  gap: 8px;
   margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.75;
+  color: var(--text-body);
+}
+
+.arv-comment svg {
+  flex: 0 0 auto;
+  margin-top: 4px;
+  color: var(--rose-500);
+}
+
+.arv-hidden-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
+  color: #5d6577;
+  background: #eef0f3;
+  border-radius: var(--radius-sm);
 }
 
-.admin-review-meta {
-  margin: 4px 0 0;
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-}
-
-.admin-review-comment {
-  margin: 10px 0 0;
-  line-height: 1.6;
-}
-
-.admin-review-hidden-notice {
-  margin: 10px 0 0;
-  font-size: 0.85rem;
-  color: var(--color-error);
-}
-
-.admin-review-hide-button {
-  margin-top: 12px;
-  padding: 6px 16px;
-  font: inherit;
-  font-size: 0.85rem;
-  color: var(--color-error);
-  background: none;
-  border: 1px solid var(--color-error);
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.admin-review-show-button {
-  margin-top: 12px;
-  padding: 6px 16px;
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--color-dark);
-  background: var(--color-accent);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+.arv-toggle {
+  align-self: flex-start;
+  margin-top: auto;
 }

@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Wrench, Users, TrendingUp, ClipboardList, Star } from 'lucide-react'
-import { translate } from '../i18n'
+import { motion, useReducedMotion } from 'motion/react'
+import { Wrench, Users, TrendingUp, ClipboardList, Star, Activity, CheckCircle2 } from 'lucide-react'
+import { translate, getCurrentLanguage } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
 import { getDashboardStats } from '../services/adminService'
 import PeekRating from '../components/PeekRating'
-import { LoadingState, ErrorState } from '../components/StatusState'
+import { ErrorState } from '../components/StatusState'
+import CountUp from '../components/ui/CountUp'
+import { Reveal, RevealGroup, RevealItem } from '../components/ui/Reveal'
+import { easeOut } from '../components/ui/motion'
 import './AdminDashboard.css'
 
 function pct(part, total) {
@@ -20,28 +24,76 @@ function ratingLabel(rating) {
 }
 
 function CompletionGauge({ percent }) {
+  const reduceMotion = useReducedMotion()
   const radius = 70
   const circumference = 2 * Math.PI * radius
   const offset = circumference * (1 - percent / 100)
 
   return (
-    <svg width={180} height={180} viewBox="0 0 180 180" className="completion-gauge">
-      <circle cx="90" cy="90" r={radius} className="completion-gauge-track" />
-      <circle
+    <svg width={180} height={180} viewBox="0 0 180 180" className="gauge" role="img" aria-label={`${percent}%`}>
+      <defs>
+        <linearGradient id="gaugeStroke" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#fdb78e" />
+          <stop offset="100%" stopColor="#f19035" />
+        </linearGradient>
+      </defs>
+      <circle cx="90" cy="90" r={radius} className="gauge-track" />
+      <motion.circle
         cx="90"
         cy="90"
         r={radius}
-        className="completion-gauge-value"
+        className="gauge-value"
         strokeDasharray={circumference}
-        strokeDashoffset={offset}
+        initial={reduceMotion ? false : { strokeDashoffset: circumference }}
+        animate={{ strokeDashoffset: offset }}
+        transition={{ duration: 1.4, ease: easeOut, delay: 0.3 }}
       />
-      <text x="90" y="84" textAnchor="middle" className="completion-gauge-percent">
+      <text x="90" y="88" textAnchor="middle" className="gauge-percent">
         {percent}%
       </text>
-      <text x="90" y="108" textAnchor="middle" className="completion-gauge-caption">
+      <text x="90" y="112" textAnchor="middle" className="gauge-caption">
         {translate('adminDashboard.completionLegendDone')}
       </text>
     </svg>
+  )
+}
+
+// شريط أفقي ينمو عند الظهور
+function Bar({ label, value, total, tone }) {
+  const reduceMotion = useReducedMotion()
+  return (
+    <div className="bar-row">
+      <div className="bar-labels">
+        <span>{label}</span>
+        <strong>{value}</strong>
+      </div>
+      <div className="bar-track">
+        <motion.span
+          className={`bar-fill bar-fill--${tone}`}
+          initial={reduceMotion ? false : { scaleX: 0 }}
+          whileInView={{ scaleX: pct(value, total) / 100 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1, ease: easeOut }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="adb-skeleton" aria-hidden="true">
+      <div className="adb-skeleton-row">
+        {[0, 1, 2, 3].map((n) => (
+          <span key={n} className="fx-skeleton" />
+        ))}
+      </div>
+      <div className="adb-skeleton-row adb-skeleton-row--big">
+        {[0, 1, 2].map((n) => (
+          <span key={n} className="fx-skeleton" />
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -77,7 +129,7 @@ function AdminDashboard() {
     setAttempt((count) => count + 1)
   }
 
-  const today = new Date().toLocaleDateString('ar-IQ', {
+  const today = new Date().toLocaleDateString(getCurrentLanguage() === 'en' ? 'en' : 'ar-IQ', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -90,19 +142,36 @@ function AdminDashboard() {
     : 0
   const completionPercent = stats ? pct(stats.completedRequestsCount, stats.totalRequestsCount) : 0
 
-  return (
-    <section className="admin-dashboard">
-      <div className="admin-dashboard-hero">
-        <p className="admin-dashboard-greeting">
-          {translate('adminDashboard.greeting')}، {user.fullName}
-        </p>
-        <h1>{translate('adminDashboard.title')}</h1>
-        <p className="admin-dashboard-subtitle">
-          {translate('adminDashboard.subtitle')} · {today}
-        </p>
-      </div>
+  const userSegments = stats
+    ? [
+        { key: 'residents', label: translate('adminDashboard.residents'), value: stats.residentsCount, tone: 'navy' },
+        { key: 'approved', label: translate('adminDashboard.approvedArtisans'), value: stats.approvedArtisansCount, tone: 'orange' },
+        { key: 'pending', label: translate('adminDashboard.pendingArtisans'), value: stats.pendingArtisansCount, tone: 'sand' },
+      ]
+    : []
 
-      {isLoading && <LoadingState message={translate('adminDashboard.loading')} />}
+  return (
+    <section className="adb">
+      <Reveal className="adb-head">
+        <p className="adb-greeting">
+          {translate('adminDashboard.greeting')}
+          {translate('common.comma')}
+          {user.fullName}
+        </p>
+        <h1 className="fx-h1">{translate('adminDashboard.title')}</h1>
+        <p className="adb-subtitle">
+          {translate('adminDashboard.subtitle')} <span aria-hidden="true">·</span> <time>{today}</time>
+        </p>
+      </Reveal>
+
+      {isLoading && (
+        <>
+          <p className="sr-only" role="status">
+            {translate('adminDashboard.loading')}
+          </p>
+          <DashboardSkeleton />
+        </>
+      )}
 
       {!isLoading && error && (
         <ErrorState
@@ -114,197 +183,131 @@ function AdminDashboard() {
 
       {!isLoading && !error && stats && (
         <>
-          <div className="admin-dashboard-row admin-dashboard-row-top">
-            <div className="dash-card">
-              <div className="dash-card-head">
-                <span className="dash-card-icon">
-                  <Wrench size={18} />
+          {/* مؤشرات رئيسية */}
+          <RevealGroup className="adb-kpis" gap={0.06}>
+            {[
+              { label: translate('adminDashboard.totalRequests'), value: stats.totalRequestsCount, Icon: ClipboardList },
+              { label: translate('adminDashboard.activeRequests'), value: stats.activeRequestsCount, Icon: Activity },
+              { label: translate('adminDashboard.completedRequests'), value: stats.completedRequestsCount, Icon: CheckCircle2 },
+              { label: translate('adminDashboard.usersTotal'), value: usersTotal, Icon: Users },
+            ].map(({ label, value, Icon }) => (
+              <RevealItem key={label} className="adb-kpi fx-card">
+                <span className="adb-kpi-icon" aria-hidden="true">
+                  <Icon size={18} />
                 </span>
-                <span className="dash-card-title">{translate('adminDashboard.artisansCardTitle')}</span>
-              </div>
+                <p className="adb-kpi-value">
+                  <CountUp value={value} />
+                </p>
+                <p className="adb-kpi-label">{label}</p>
+              </RevealItem>
+            ))}
+          </RevealGroup>
 
-              <div className="dash-bar-row">
-                <div className="dash-bar-labels">
-                  <span>{translate('adminDashboard.approvedArtisans')}</span>
-                  <span>{stats.approvedArtisansCount}</span>
-                </div>
-                <div className="dash-bar-track">
-                  <div
-                    className="dash-bar-fill dash-bar-fill-accent"
-                    style={{ width: `${pct(stats.approvedArtisansCount, stats.artisansCount)}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="dash-bar-row">
-                <div className="dash-bar-labels">
-                  <span>{translate('adminDashboard.pendingArtisans')}</span>
-                  <span>{stats.pendingArtisansCount}</span>
-                </div>
-                <div className="dash-bar-track">
-                  <div
-                    className="dash-bar-fill dash-bar-fill-muted"
-                    style={{ width: `${pct(stats.pendingArtisansCount, stats.artisansCount)}%` }}
-                  />
-                </div>
-              </div>
-
-              <p className="dash-card-total">
-                {stats.artisansCount}
-                <span>{translate('adminDashboard.artisansTotal')}</span>
-              </p>
-            </div>
-
-            <div className="dash-card">
-              <div className="dash-card-head">
-                <span className="dash-card-icon">
-                  <Users size={18} />
-                </span>
-                <span className="dash-card-title">{translate('adminDashboard.usersCardTitle')}</span>
-              </div>
-
-              <div className="dash-segmented-bar">
-                <span
-                  className="dash-segment dash-segment-1"
-                  style={{ width: `${pct(stats.residentsCount, usersTotal)}%` }}
-                />
-                <span
-                  className="dash-segment dash-segment-2"
-                  style={{ width: `${pct(stats.approvedArtisansCount, usersTotal)}%` }}
-                />
-                <span
-                  className="dash-segment dash-segment-3"
-                  style={{ width: `${pct(stats.pendingArtisansCount, usersTotal)}%` }}
-                />
-              </div>
-
-              <div className="dash-legend">
-                <span className="dash-legend-item">
-                  <i className="dash-dot dash-dot-1" />
-                  {translate('adminDashboard.residents')} {pct(stats.residentsCount, usersTotal)}%
-                </span>
-                <span className="dash-legend-item">
-                  <i className="dash-dot dash-dot-2" />
-                  {translate('adminDashboard.approvedArtisans')} {pct(stats.approvedArtisansCount, usersTotal)}%
-                </span>
-                <span className="dash-legend-item">
-                  <i className="dash-dot dash-dot-3" />
-                  {translate('adminDashboard.pendingArtisans')} {pct(stats.pendingArtisansCount, usersTotal)}%
-                </span>
-              </div>
-
-              <p className="dash-card-total">
-                {usersTotal}
-                <span>{translate('adminDashboard.usersTotal')}</span>
-              </p>
-            </div>
-
-            <div className="dash-card dash-card-wide">
-              <div className="dash-card-head">
-                <span className="dash-card-icon">
-                  <TrendingUp size={18} />
-                </span>
-                <span className="dash-card-title">{translate('adminDashboard.completionCardTitle')}</span>
-              </div>
-
-              <div className="dash-gauge-wrapper">
+          <div className="adb-bento">
+            {/* معدّل الإنجاز */}
+            <Reveal as="section" className="adb-card adb-card--gauge fx-surface-depth">
+              <h2 className="adb-card-title">
+                <TrendingUp size={17} aria-hidden="true" />
+                {translate('adminDashboard.completionCardTitle')}
+              </h2>
+              <div className="adb-gauge">
                 <CompletionGauge percent={completionPercent} />
               </div>
-
-              <div className="dash-legend dash-legend-centered">
-                <span className="dash-legend-item">
-                  <i className="dash-dot dash-dot-1" />
+              <div className="adb-legend adb-legend--center">
+                <span>
+                  <i className="adb-dot adb-dot--orange" />
                   {translate('adminDashboard.completionLegendDone')}
                 </span>
-                <span className="dash-legend-item">
-                  <i className="dash-dot dash-dot-muted" />
+                <span>
+                  <i className="adb-dot adb-dot--ghost" />
                   {translate('adminDashboard.completionLegendRest')}
                 </span>
               </div>
+              <p className="adb-card-caption">{translate('adminDashboard.completionSubtitle')}</p>
+            </Reveal>
 
-              <p className="dash-card-caption">{translate('adminDashboard.completionSubtitle')}</p>
-            </div>
-          </div>
-
-          <div className="admin-dashboard-row admin-dashboard-row-bottom">
-            <div className="dash-card">
-              <div className="dash-card-head">
-                <span className="dash-card-icon">
-                  <ClipboardList size={18} />
-                </span>
-                <span className="dash-card-title">{translate('adminDashboard.requestsCardTitle')}</span>
-              </div>
-
-              <div className="dash-bar-row">
-                <div className="dash-bar-labels">
-                  <span>{translate('adminDashboard.activeRequests')}</span>
-                  <span>{stats.activeRequestsCount}</span>
-                </div>
-                <div className="dash-bar-track">
-                  <div
-                    className="dash-bar-fill dash-bar-fill-accent"
-                    style={{ width: `${pct(stats.activeRequestsCount, stats.totalRequestsCount)}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="dash-bar-row">
-                <div className="dash-bar-labels">
-                  <span>{translate('adminDashboard.completedRequests')}</span>
-                  <span>{stats.completedRequestsCount}</span>
-                </div>
-                <div className="dash-bar-track">
-                  <div
-                    className="dash-bar-fill dash-bar-fill-light"
-                    style={{ width: `${pct(stats.completedRequestsCount, stats.totalRequestsCount)}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="dash-bar-row">
-                <div className="dash-bar-labels">
-                  <span>{translate('adminDashboard.otherRequests')}</span>
-                  <span>{otherRequests}</span>
-                </div>
-                <div className="dash-bar-track">
-                  <div
-                    className="dash-bar-fill dash-bar-fill-muted"
-                    style={{ width: `${pct(otherRequests, stats.totalRequestsCount)}%` }}
-                  />
-                </div>
-              </div>
-
-              <p className="dash-card-total">
-                {stats.totalRequestsCount}
-                <span>{translate('adminDashboard.totalRequests')}</span>
+            {/* الطلبات */}
+            <Reveal as="section" className="adb-card fx-card" delay={0.05}>
+              <h2 className="adb-card-title">
+                <ClipboardList size={17} aria-hidden="true" />
+                {translate('adminDashboard.requestsCardTitle')}
+              </h2>
+              <Bar label={translate('adminDashboard.activeRequests')} value={stats.activeRequestsCount} total={stats.totalRequestsCount} tone="orange" />
+              <Bar label={translate('adminDashboard.completedRequests')} value={stats.completedRequestsCount} total={stats.totalRequestsCount} tone="green" />
+              <Bar label={translate('adminDashboard.otherRequests')} value={otherRequests} total={stats.totalRequestsCount} tone="sand" />
+              <p className="adb-total">
+                <strong>{stats.totalRequestsCount}</strong>
+                {translate('adminDashboard.totalRequests')}
               </p>
-            </div>
+            </Reveal>
 
-            <div className="dash-card">
-              <div className="dash-card-head">
-                <span className="dash-card-icon">
-                  <Star size={18} />
-                </span>
-                <span className="dash-card-title">{translate('adminDashboard.ratingCardTitle')}</span>
-              </div>
-
-              <p className="dash-rating-value">
-                {stats.averageRating || '—'}
-                <span className="dash-rating-word">{ratingLabel(stats.averageRating)}</span>
+            {/* الحرفيون */}
+            <Reveal as="section" className="adb-card fx-card" delay={0.1}>
+              <h2 className="adb-card-title">
+                <Wrench size={17} aria-hidden="true" />
+                {translate('adminDashboard.artisansCardTitle')}
+              </h2>
+              <Bar label={translate('adminDashboard.approvedArtisans')} value={stats.approvedArtisansCount} total={stats.artisansCount} tone="navy" />
+              <Bar label={translate('adminDashboard.pendingArtisans')} value={stats.pendingArtisansCount} total={stats.artisansCount} tone="sand" />
+              <p className="adb-total">
+                <strong>{stats.artisansCount}</strong>
+                {translate('adminDashboard.artisansTotal')}
               </p>
+            </Reveal>
 
+            {/* المستخدمون */}
+            <Reveal as="section" className="adb-card fx-card" delay={0.05}>
+              <h2 className="adb-card-title">
+                <Users size={17} aria-hidden="true" />
+                {translate('adminDashboard.usersCardTitle')}
+              </h2>
+              <div className="adb-segments" aria-hidden="true">
+                {userSegments.map(({ key, value, tone }) => (
+                  <span
+                    key={key}
+                    className={`adb-segment adb-segment--${tone}`}
+                    style={{ flexGrow: Math.max(value, 0.0001) }}
+                  />
+                ))}
+              </div>
+              <ul className="adb-legend">
+                {userSegments.map(({ key, label, value, tone }) => (
+                  <li key={key}>
+                    <i className={`adb-dot adb-dot--${tone}`} />
+                    {label}
+                    <strong>{pct(value, usersTotal)}%</strong>
+                  </li>
+                ))}
+              </ul>
+              <p className="adb-total">
+                <strong>{usersTotal}</strong>
+                {translate('adminDashboard.usersTotal')}
+              </p>
+            </Reveal>
+
+            {/* التقييم */}
+            <Reveal as="section" className="adb-card adb-card--rating" delay={0.1}>
+              <h2 className="adb-card-title">
+                <Star size={17} aria-hidden="true" />
+                {translate('adminDashboard.ratingCardTitle')}
+              </h2>
+              <p className="adb-rating">
+                <span className="adb-rating-value">
+                  {stats.averageRating ? <CountUp value={stats.averageRating} decimals={1} /> : '—'}
+                </span>
+                <span className="adb-rating-word">{ratingLabel(stats.averageRating)}</span>
+              </p>
               <PeekRating
                 value={Math.round(stats.averageRating)}
                 readOnly
                 size={22}
-                activeColor="#f19035"
-                idleColor="rgba(255,255,255,0.2)"
+                activeColor="#263056"
+                idleColor="rgba(38, 48, 86, 0.2)"
               />
-
-              <p className="dash-card-caption">
+              <p className="adb-card-caption">
                 {stats.reviewsCount} {translate('adminDashboard.ratingCount')}
               </p>
-            </div>
+            </Reveal>
           </div>
         </>
       )}

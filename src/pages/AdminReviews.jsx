@@ -1,16 +1,24 @@
 import { useEffect, useState } from 'react'
+import { motion, useReducedMotion } from 'motion/react'
+import { Eye, EyeOff, MessageSquareQuote, Star, User, Wrench } from 'lucide-react'
 import { translate } from '../i18n'
 import { getReviewsOverview, setReviewVisibility } from '../services/adminService'
 import PeekRating from '../components/PeekRating'
-import { LoadingState, ErrorState } from '../components/StatusState'
+import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
+import PageHeader from '../components/ui/PageHeader'
+import { RevealGroup, RevealItem } from '../components/ui/Reveal'
+import { spring } from '../components/ui/motion'
+import ActionError from '../components/ui/ActionError'
 import './AdminReviews.css'
 
 function AdminReviews() {
+  const reduceMotion = useReducedMotion()
   const [reviews, setReviews] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [attempt, setAttempt] = useState(0)
   const [actioningId, setActioningId] = useState(null)
+  const [actionError, setActionError] = useState('')
 
   useEffect(() => {
     let isCancelled = false
@@ -39,18 +47,53 @@ function AdminReviews() {
 
   async function handleToggle(requestId, currentlyHidden) {
     setActioningId(requestId)
-    const updated = await setReviewVisibility(requestId, !currentlyHidden)
-    setReviews((current) =>
-      current.map((review) => (review.requestId === requestId ? updated : review)),
-    )
-    setActioningId(null)
+    setActionError('')
+    try {
+      const updated = await setReviewVisibility(requestId, !currentlyHidden)
+      setReviews((current) =>
+        current.map((review) => (review.requestId === requestId ? updated : review)),
+      )
+    } catch {
+      setActionError('common.actionError')
+    } finally {
+      setActioningId(null)
+    }
   }
+
+  const hiddenCount = reviews.filter((review) => review.isHidden).length
 
   return (
     <section>
-      <h1>{translate('adminReviews.title')}</h1>
+      <PageHeader
+        title={translate('adminReviews.title')}
+        meta={
+          !isLoading && !error && reviews.length > 0 ? (
+            <>
+              <span className="arv-count">
+                <Star size={14} aria-hidden="true" />
+                {reviews.length}
+              </span>
+              {hiddenCount > 0 && (
+                <span className="arv-count arv-count--hidden">
+                  <EyeOff size={14} aria-hidden="true" />
+                  {hiddenCount}
+                </span>
+              )}
+            </>
+          ) : null
+        }
+      />
 
-      {isLoading && <LoadingState message={translate('adminReviews.loading')} />}
+      <ActionError messageKey={actionError} className="arv-error" />
+
+      {isLoading && (
+        <>
+          <p className="sr-only" role="status">
+            {translate('adminReviews.loading')}
+          </p>
+          <SkeletonList count={4} variant="grid" />
+        </>
+      )}
 
       {!isLoading && error && (
         <ErrorState
@@ -61,50 +104,78 @@ function AdminReviews() {
       )}
 
       {!isLoading && !error && reviews.length === 0 && (
-        <p className="admin-reviews-status">{translate('adminReviews.empty')}</p>
+        <EmptyState icon={Star} title={translate('adminReviews.empty')} />
       )}
 
       {!isLoading && !error && reviews.length > 0 && (
-        <ul className="admin-reviews-list">
-          {reviews.map((review) => (
-            <li
-              key={review.requestId}
-              className={
-                review.isHidden
-                  ? 'admin-review-card admin-review-card-hidden'
-                  : 'admin-review-card'
-              }
-            >
-              <div className="admin-review-header">
-                <p className="admin-review-title">{review.title || review.categoryName}</p>
-                <PeekRating value={review.rating} readOnly size={18} activeColor="#f19035" idleColor="#dac7c0" />
-              </div>
-              <p className="admin-review-meta">
-                {translate('adminReviews.resident')}: {review.residentName} ·{' '}
-                {translate('adminReviews.artisan')}: {review.artisanName}
-              </p>
-              <p className="admin-review-meta">{review.categoryName}</p>
-              {review.comment && <p className="admin-review-comment">{review.comment}</p>}
-
-              {review.isHidden && (
-                <p className="admin-review-hidden-notice">
-                  {translate('adminReviews.hiddenNotice')}
-                </p>
-              )}
-
-              <button
-                type="button"
-                className={
-                  review.isHidden ? 'admin-review-show-button' : 'admin-review-hide-button'
-                }
-                onClick={() => handleToggle(review.requestId, review.isHidden)}
-                disabled={actioningId === review.requestId}
+        <RevealGroup as="ul" className="arv-grid" gap={0.05}>
+          {reviews.map((review) => {
+            const isBusy = actioningId === review.requestId
+            return (
+              <RevealItem
+                as="li"
+                key={review.requestId}
+                className={`arv-card fx-card ${review.isHidden ? 'is-hidden' : ''}`}
               >
-                {translate(review.isHidden ? 'adminReviews.show' : 'adminReviews.hide')}
-              </button>
-            </li>
-          ))}
-        </ul>
+                <div className="arv-head">
+                  <div className="arv-head-text">
+                    <p className="arv-title">{review.title || review.categoryName}</p>
+                    <p className="arv-category">{review.categoryName}</p>
+                  </div>
+                  <span className="arv-score">
+                    <Star size={13} aria-hidden="true" />
+                    {review.rating}
+                  </span>
+                </div>
+
+                <PeekRating value={review.rating} readOnly size={16} activeColor="#f19035" idleColor="#dac7c0" />
+
+                <dl className="arv-people">
+                  <div>
+                    <dt>
+                      <User size={13} aria-hidden="true" />
+                      {translate('adminReviews.resident')}
+                    </dt>
+                    <dd>{review.residentName}</dd>
+                  </div>
+                  <div>
+                    <dt>
+                      <Wrench size={13} aria-hidden="true" />
+                      {translate('adminReviews.artisan')}
+                    </dt>
+                    <dd>{review.artisanName}</dd>
+                  </div>
+                </dl>
+
+                {review.comment && (
+                  <p className="arv-comment">
+                    <MessageSquareQuote size={15} aria-hidden="true" />
+                    <span>{review.comment}</span>
+                  </p>
+                )}
+
+                {review.isHidden && (
+                  <p className="arv-hidden-notice">
+                    <EyeOff size={15} aria-hidden="true" />
+                    {translate('adminReviews.hiddenNotice')}
+                  </p>
+                )}
+
+                <motion.button
+                  type="button"
+                  layout={!reduceMotion}
+                  transition={spring}
+                  className={`fx-btn fx-btn--sm ${review.isHidden ? 'fx-btn--dark' : 'fx-btn--secondary'} arv-toggle`}
+                  onClick={() => handleToggle(review.requestId, review.isHidden)}
+                  disabled={isBusy}
+                >
+                  {review.isHidden ? <Eye size={15} aria-hidden="true" /> : <EyeOff size={15} aria-hidden="true" />}
+                  {translate(review.isHidden ? 'adminReviews.show' : 'adminReviews.hide')}
+                </motion.button>
+              </RevealItem>
+            )
+          })}
+        </RevealGroup>
       )}
     </section>
   )

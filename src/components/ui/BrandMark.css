@@ -1,0 +1,49 @@
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.brand-mark__icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  color: var(--navy-900);
+  background: var(--gradient-action);
+  box-shadow: var(--shadow-inset-light), 0 6px 14px -6px rgb(241 144 53 / 0.8);
+  transform: rotate(-8deg);
+  transition: transform var(--dur-slow) var(--ease-spring);
+}
+
+a:hover .brand-mark__icon,
+.brand-mark:hover .brand-mark__icon {
+  transform: rotate(4deg) scale(1.06);
+}
+
+.brand-mark__name {
+  font-size: 1.3rem;
+}
+
+.brand-mark--dark .brand-mark__name {
+  color: var(--navy-800);
+}
+
+.brand-mark--light .brand-mark__name {
+  color: var(--text-on-dark);
+}
+
+.brand-mark--lg .brand-mark__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+}
+
+.brand-mark--lg .brand-mark__name {
+  font-size: 1.6rem;
+}

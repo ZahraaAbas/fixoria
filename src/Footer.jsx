@@ -1,38 +1,64 @@
 import { Link } from 'react-router'
 import { translate } from './i18n'
+import BrandMark from './components/ui/BrandMark'
 import './Footer.css'
 
 function Footer() {
+  const columns = [
+    {
+      title: translate('footer.linksTitle'),
+      links: [
+        { to: '/home', label: translate('footer.home') },
+        { to: '/artisans', label: translate('footer.artisans') },
+        { to: '/about', label: translate('about.title') },
+        { to: '/contact', label: translate('contact.title') },
+      ],
+    },
+    {
+      title: translate('footer.accountTitle'),
+      links: [
+        { to: '/login', label: translate('footer.residentLogin') },
+        { to: '/register', label: translate('footer.residentRegister') },
+        { to: '/artisan/login', label: translate('footer.artisanLogin') },
+        { to: '/artisan/register', label: translate('footer.artisanRegister') },
+      ],
+    },
+  ]
+
   return (
     <footer className="app-footer">
-      <div className="footer-content">
-        <div className="footer-column footer-brand">
-          <span className="footer-logo">🛠️ {translate('common.brand')}</span>
-          <p className="footer-desc">{translate('footer.description')}</p>
+      <div className="footer-panel">
+        <span className="footer-glow" aria-hidden="true" />
+        <span className="footer-wordmark" aria-hidden="true">
+          {translate('common.brand')}
+        </span>
+
+        <div className="footer-content">
+          <div className="footer-brand">
+            <BrandMark tone="light" size="lg" />
+            <p className="footer-desc">{translate('footer.description')}</p>
+          </div>
+
+          {columns.map((column) => (
+            <nav key={column.title} className="footer-column" aria-label={column.title}>
+              <p className="footer-heading">{column.title}</p>
+              <ul>
+                {column.links.map((link) => (
+                  <li key={link.to}>
+                    <Link to={link.to}>{link.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
         </div>
 
-               <div className="footer-column">
-          <p className="footer-heading">{translate('footer.linksTitle')}</p>
-          <Link to="/home">{translate('footer.home')}</Link>
-          <Link to="/artisans">{translate('footer.artisans')}</Link>
-          <Link to="/about">{translate('about.title')}</Link>
-          <Link to="/contact">{translate('contact.title')}</Link>
+        <div className="footer-bottom">
+          <p className="footer-copy">
+            {translate('footer.compound')} · &copy; {new Date().getFullYear()} {translate('common.brand')} —{' '}
+            {translate('footer.rights')}
+          </p>
         </div>
-        
-        <div className="footer-column">
-          <p className="footer-heading">{translate('footer.accountTitle')}</p>
-          <Link to="/login">{translate('footer.residentLogin')}</Link>
-          <Link to="/register">{translate('footer.residentRegister')}</Link>
-          <Link to="/artisan/login">{translate('footer.artisanLogin')}</Link>
-          <Link to="/artisan/register">{translate('footer.artisanRegister')}</Link>
-        </div>
-      </div>
-
-      <div className="footer-bottom">
-        <p className="footer-copy">
-          {translate('footer.compound')} · &copy; {new Date().getFullYear()} Fixoria —{' '}
-          {translate('footer.rights')}
-        </p>
       </div>
     </footer>
   )

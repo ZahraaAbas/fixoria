@@ -1,212 +1,371 @@
-.landing-container {
+.landing {
   position: relative;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 28px 40px;
-  color: #fff;
-  background-image:
-    linear-gradient(to top, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.25) 60%),
-    url('/src/assets/images/background.webp');
-  background-size: cover;
-  background-position: center;
+  gap: var(--space-7);
+  padding: clamp(16px, 3vw, 32px) clamp(16px, 4vw, 56px) clamp(24px, 5vw, 56px);
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--text-on-dark);
+  background: var(--navy-950);
 }
 
-/* الشريط العلوي */
+/* ===== الخلفية ===== */
+.landing-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.landing-image {
+  position: absolute;
+  inset: -3%;
+  width: 106%;
+  height: 106%;
+  object-fit: cover;
+  object-position: 40% center;
+  transform: scale(1.08);
+}
+
+.landing-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(0deg, rgb(18 23 49 / 0.92) 0%, rgb(18 23 49 / 0.55) 38%, rgb(18 23 49 / 0.05) 70%),
+    linear-gradient(270deg, rgb(18 23 49 / 0.55) 0%, transparent 55%);
+}
+
+[dir='ltr'] .landing-shade {
+  background:
+    linear-gradient(0deg, rgb(18 23 49 / 0.92) 0%, rgb(18 23 49 / 0.55) 38%, rgb(18 23 49 / 0.05) 70%),
+    linear-gradient(90deg, rgb(18 23 49 / 0.55) 0%, transparent 55%);
+}
+
+.landing-orb {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.landing-orb--a {
+  bottom: -20%;
+  inset-inline-start: -10%;
+  width: 55vmax;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgb(241 144 53 / 0.3), transparent 62%);
+  animation: fx-drift-a 22s ease-in-out infinite alternate;
+}
+
+.landing-orb--b {
+  top: -25%;
+  inset-inline-end: -15%;
+  width: 45vmax;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgb(253 183 142 / 0.18), transparent 62%);
+  animation: fx-drift-b 28s ease-in-out infinite alternate;
+}
+
+/* ===== الشريط العلوي ===== */
 .landing-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   width: 100%;
-  max-width: 1300px;
-  margin: 0 auto;
+  max-width: 1320px;
+  margin-inline: auto;
 }
 
-.landing-brand-wrapper {
-  display: flex;
+.landing-lang {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-}
-
-.landing-brand-icon {
-  font-size: 1.3rem;
-  background: rgba(241, 144, 53, 0.25);
-  padding: 5px 8px;
-  border-radius: 10px;
-  border: 1px solid rgba(241, 144, 53, 0.4);
-}
-
-.landing-brand {
-  font-size: 1.2rem;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  color: #fff;
-}
-
-/* زر تبديل اللغة */
-.lang-toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  padding: 5px 12px;
-  border-radius: 20px;
-  color: #fff;
-  font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
+  min-height: 40px;
+  padding: 0 16px;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-on-dark);
+  background: rgb(255 255 255 / 0.1);
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition:
+    background var(--dur-base) ease,
+    transform var(--dur-base) var(--ease-out);
 }
 
-.lang-toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
+.landing-lang:hover {
+  background: rgb(255 255 255 / 0.2);
   transform: translateY(-2px);
 }
 
-/* القسم الرئيسي والهيرو */
-.landing-hero {
-  max-width: 850px;
-  margin: auto 0 15px 0;
-  padding-block: 5px;
+.landing-lang svg {
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+
+.landing-lang:hover svg {
+  transform: rotate(-30deg);
+}
+
+/* ===== المحتوى ===== */
+.landing-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  align-items: end;
+  gap: clamp(32px, 6vw, 96px);
+  width: 100%;
+  max-width: 1320px;
+  margin-inline: auto;
+}
+
+.landing-copy {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
 }
 
 .landing-badge {
-  display: inline-block;
-  background: rgba(241, 144, 53, 0.25);
-  color: #fdb78e;
-  border: 1px solid rgba(241, 144, 53, 0.4);
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-  backdrop-filter: blur(4px);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  color: var(--peach-400);
+  background: rgb(241 144 53 / 0.14);
+  border: 1px solid rgb(241 144 53 / 0.35);
+  border-radius: var(--radius-pill);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.landing-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--orange-500);
+  box-shadow: 0 0 0 0 rgb(241 144 53 / 0.6);
+  animation: landing-ping 2.2s ease-out infinite;
+}
+
+@keyframes landing-ping {
+  0% { box-shadow: 0 0 0 0 rgb(241 144 53 / 0.6); }
+  80%, 100% { box-shadow: 0 0 0 9px rgb(241 144 53 / 0); }
 }
 
 .landing-title {
-  margin: 0 0 6px;
-  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  margin: 0;
+  max-width: 14ch;
+  font-size: clamp(2.6rem, 1.4rem + 5vw, 5.2rem);
   font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -1px;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  text-shadow: 0 4px 40px rgb(18 23 49 / 0.5);
 }
 
 .landing-description {
-  max-width: 480px;
   margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.85);
+  max-width: 46ch;
+  font-size: var(--text-lg);
+  line-height: 1.75;
+  color: rgb(253 243 238 / 0.82);
 }
 
-/* شبكة الأزرار */
-.landing-actions {
+/* ===== بطاقات الأدوار ===== */
+.landing-roles {
   display: grid;
-  grid-template-columns: repeat(2, minmax(200px, 260px));
   gap: 10px;
-  width: 100%;
-  max-width: 540px;
-  margin: 15px 0 0 0;
+  padding: 10px;
+  background: rgb(18 23 49 / 0.45);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: var(--radius-xl);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 30px 60px -20px rgb(0 0 0 / 0.5);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
 }
 
-.landing-card-action {
+.landing-role {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
+  min-height: 64px;
   padding: 10px 14px;
-  background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 30px;
-  backdrop-filter: blur(12px);
-  text-decoration: none;
-  color: #fff;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
   overflow: hidden;
+  isolation: isolate;
+  color: var(--text-on-dark);
+  text-decoration: none;
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: var(--radius-lg);
+  transition:
+    background var(--dur-base) ease,
+    border-color var(--dur-base) ease,
+    transform var(--dur-base) var(--ease-out);
 }
 
-.landing-card-action::before {
+.landing-role::before {
   content: '';
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 3px;
-  height: 100%;
-  background: #f19035;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(270deg, rgb(241 144 53 / 0.22), transparent 70%);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--dur-base) ease;
 }
 
-.landing-card-action:hover {
-  background: rgba(30, 41, 59, 0.9);
-  border-color: rgba(241, 144, 53, 0.6);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+[dir='ltr'] .landing-role::before {
+  background: linear-gradient(90deg, rgb(241 144 53 / 0.22), transparent 70%);
 }
 
-.landing-card-action:hover::before {
+.landing-role:hover {
+  border-color: rgb(241 144 53 / 0.45);
+  transform: translateX(-4px);
+}
+
+[dir='ltr'] .landing-role:hover {
+  transform: translateX(4px);
+}
+
+.landing-role:hover::before {
   opacity: 1;
 }
 
-.card-icon-bg {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: rgba(241, 144, 53, 0.2);
-  color: #fdb78e;
-  border-radius: 50%;
-  flex-shrink: 0;
+.landing-role:active {
+  transform: scale(0.98);
 }
 
-.card-texts {
-  flex-grow: 1;
+.landing-role-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  color: var(--peach-400);
+  background: rgb(241 144 53 / 0.14);
+  border: 1px solid rgb(241 144 53 / 0.25);
+  transition: transform var(--dur-slow) var(--ease-spring);
 }
 
-.card-texts h3 {
-  margin: 0 0 1px;
-  font-size: 0.8rem;
+.landing-role:hover .landing-role-icon {
+  transform: rotate(-8deg) scale(1.06);
+}
+
+.landing-role-label {
+  flex: 1;
+  font-size: var(--text-base);
   font-weight: 700;
-  color: #fff;
 }
 
-.card-texts span {
-  font-size: 0.6rem;
-  color: rgba(255, 255, 255, 0.65);
-  display: block;
+.landing-role-arrow {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: rgb(253 243 238 / 0.55);
+  transition:
+    color var(--dur-base) ease,
+    background var(--dur-base) ease,
+    transform var(--dur-base) var(--ease-out);
 }
 
-.arrow-icon {
-  color: rgba(255, 255, 255, 0.4);
-  transition: transform 0.3s ease, color 0.3s ease;
-}
-
-.landing-card-action:hover .arrow-icon {
-  color: #f19035;
+.landing-role:hover .landing-role-arrow {
+  color: var(--navy-900);
+  background: var(--orange-500);
   transform: translateX(-3px);
 }
 
-.landing-guest-card {
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+[dir='ltr'] .landing-role:hover .landing-role-arrow {
+  transform: translateX(3px);
 }
 
-.landing-admin-card {
-  background: rgba(15, 23, 42, 0.65);
+/* الساكن: الخيار الأساسي */
+.landing-role--primary {
+  min-height: 76px;
+  color: var(--navy-900);
+  background: var(--gradient-action);
+  border-color: transparent;
+  box-shadow: var(--shadow-inset-light), 0 14px 30px -12px rgb(241 144 53 / 0.7);
 }
 
-/* استجابة الشاشات الصغيرة */
-@media (max-width: 768px) {
-  .landing-container {
-    padding: 20px 16px;
-  }
-  .landing-actions {
+.landing-role--primary::before {
+  background: linear-gradient(270deg, rgb(255 255 255 / 0.3), transparent 70%);
+}
+
+.landing-role--primary:hover {
+  border-color: transparent;
+}
+
+.landing-role--primary .landing-role-icon {
+  color: var(--navy-900);
+  background: rgb(255 255 255 / 0.4);
+  border-color: rgb(255 255 255 / 0.5);
+}
+
+.landing-role--primary .landing-role-label {
+  font-size: var(--text-lg);
+  font-weight: 800;
+}
+
+.landing-role--primary .landing-role-arrow {
+  color: var(--navy-900);
+  background: rgb(255 255 255 / 0.45);
+}
+
+.landing-role--primary:hover .landing-role-arrow {
+  color: var(--text-on-dark);
+  background: var(--navy-800);
+}
+
+/* المشرف: أقل بروزًا */
+.landing-role--subtle {
+  min-height: 52px;
+  background: transparent;
+  border-style: dashed;
+  border-color: rgb(255 255 255 / 0.14);
+}
+
+.landing-role--subtle .landing-role-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  color: rgb(253 243 238 / 0.7);
+  background: rgb(255 255 255 / 0.06);
+  border-color: rgb(255 255 255 / 0.1);
+}
+
+.landing-role--subtle .landing-role-label {
+  font-size: var(--text-sm);
+  color: rgb(253 243 238 / 0.75);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .landing-body {
     grid-template-columns: 1fr;
-    max-width: 100%;
+    gap: var(--space-6);
+  }
+
+  .landing-title {
+    max-width: none;
+  }
+
+  .landing-description {
+    font-size: var(--text-base);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-orb,
+  .landing-badge-dot {
+    animation: none;
   }
 }

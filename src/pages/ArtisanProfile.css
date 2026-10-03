@@ -1,73 +1,188 @@
-.artisan-profile {
-  max-width: 640px;
-  margin: 0 auto;
+.ap {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 920px;
+  margin-inline: auto;
 }
 
-.artisan-profile-status {
-  margin-top: 24px;
-  color: var(--color-text-muted);
-}
-
-.artisan-profile-back {
-  display: inline-block;
-  margin-bottom: 16px;
-  color: var(--color-text-muted);
-}
-
-.artisan-profile-card {
-  padding: 28px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
-}
-
-.artisan-profile-header {
+/* ===== Hero ===== */
+.ap-hero {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: clamp(20px, 4vw, 40px);
+  padding: clamp(28px, 5vw, 52px);
+  isolation: isolate;
 }
 
-.artisan-profile-avatar {
+/* شبكة نقطية خفيفة تعطي ملمسًا تقنيًا */
+.ap-hero-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(rgb(255 255 255 / 0.09) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(90deg, transparent, #000 40%, #000 70%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 40%, #000 70%, transparent);
+}
+
+.ap-avatar {
   flex: 0 0 auto;
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: linear-gradient(137deg, #263056 0%, #f19035 100%);
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 1.6rem;
+  display: grid;
+  place-items: center;
+  width: clamp(88px, 14vw, 128px);
+  aspect-ratio: 1;
+  border-radius: 32px;
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  color: var(--navy-900);
+  background: var(--gradient-action);
+  box-shadow: var(--shadow-inset-light), 0 24px 48px -16px rgb(241 144 53 / 0.7), 0 0 0 6px rgb(255 255 255 / 0.08);
+  transform: rotate(-6deg);
 }
 
-.artisan-profile-name {
-  margin: 0 0 4px;
+.ap-identity {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  min-width: 0;
 }
 
-.artisan-profile-category {
+.ap-name {
   margin: 0;
-  color: var(--color-text-muted);
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
 }
 
-.artisan-profile-rating {
+.ap-rating {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  margin: 0 0 20px;
-  font-weight: 600;
-  color: #263056;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: rgb(253 243 238 / 0.75);
 }
 
-.artisan-profile-rating-empty {
-  color: var(--color-text-muted);
-  font-weight: 500;
+.ap-rating strong {
+  font-size: var(--text-lg);
+  color: var(--text-on-dark);
 }
 
-.artisan-profile-bio {
-  max-width: 560px;
-  line-height: 1.7;
-  padding-top: 16px;
-  border-top: 1px solid var(--color-border);
+.ap-rating--empty {
+  font-style: italic;
+}
+
+/* ===== Body ===== */
+.ap-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.ap-card {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.ap-card:only-child {
+  grid-column: 1 / -1;
+}
+
+.ap-card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.ap-card-title svg {
+  color: var(--orange-500);
+}
+
+.ap-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ap-tag {
+  padding: 8px 14px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--navy-800);
+  background: var(--navy-50);
+  border: 1px solid var(--navy-100);
+  border-radius: var(--radius-pill);
+}
+
+.ap-bio {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: 1.9;
+  color: var(--text-body);
+  white-space: pre-line;
+}
+
+.ap-card--bio {
+  position: relative;
+  overflow: hidden;
+}
+
+.ap-card--bio > * {
+  position: relative;
+  z-index: 1;
+}
+
+.ap-card--bio::after {
+  content: '”';
+  position: absolute;
+  z-index: 0;
+  top: -0.12em;
+  inset-inline-end: 18px;
+  font-size: 9rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--sand-200);
+  pointer-events: none;
+}
+
+/* ===== Skeleton ===== */
+.ap-skeleton {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.ap-skeleton-hero {
+  height: 200px;
+  border-radius: var(--radius-xl);
+}
+
+.ap-skeleton-line {
+  height: 14px;
+  width: 70%;
+}
+
+.ap-skeleton-line--short {
+  width: 40%;
+}
+
+@media (max-width: 720px) {
+  .ap-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ap-body {
+    grid-template-columns: 1fr;
+  }
 }

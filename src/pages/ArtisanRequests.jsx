@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AlertCircle, Building2, CalendarDays, Check, DoorOpen, Inbox, X } from 'lucide-react'
 import { translate } from '../i18n'
 import {
   getAvailableRequestsForArtisan,
@@ -6,10 +8,13 @@ import {
   dismissRequestForArtisan,
 } from '../services/requestsService'
 import { formatDate } from '../utils/formatDate'
-import { LoadingState, ErrorState } from '../components/StatusState'
+import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
+import PageHeader from '../components/ui/PageHeader'
+import { easeOut } from '../components/ui/motion'
 import './ArtisanRequests.css'
 
 function ArtisanRequests() {
+  const reduceMotion = useReducedMotion()
   const [requests, setRequests] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -59,16 +64,39 @@ function ArtisanRequests() {
 
   async function handleDismiss(requestId) {
     setActioningId(requestId)
-    await dismissRequestForArtisan(requestId)
-    setRequests((current) => current.filter((request) => request.id !== requestId))
-    setActioningId(null)
+    setActionError('')
+    try {
+      await dismissRequestForArtisan(requestId)
+      setRequests((current) => current.filter((request) => request.id !== requestId))
+    } catch {
+      setActionError('common.actionError')
+    } finally {
+      setActioningId(null)
+    }
   }
 
   return (
     <section>
-      <h1>{translate('artisanRequests.title')}</h1>
+      <PageHeader
+        title={translate('artisanRequests.title')}
+        meta={
+          !isLoading && !error && requests.length > 0 ? (
+            <span className="ar-count">
+              <span className="ar-count-dot" aria-hidden="true" />
+              {requests.length}
+            </span>
+          ) : null
+        }
+      />
 
-      {isLoading && <LoadingState message={translate('artisanRequests.loading')} />}
+      {isLoading && (
+        <>
+          <p className="sr-only" role="status">
+            {translate('artisanRequests.loading')}
+          </p>
+          <SkeletonList count={4} variant="grid" />
+        </>
+      )}
 
       {!isLoading && error && (
         <ErrorState
@@ -78,57 +106,94 @@ function ArtisanRequests() {
         />
       )}
 
-      {actionError && (
-        <p className="artisan-requests-alert" role="alert">
-          {translate(actionError)}
-        </p>
-      )}
+      <AnimatePresence>
+        {actionError && (
+          <motion.p
+            className="fx-notice fx-notice--danger ar-alert"
+            role="alert"
+            initial={reduceMotion ? false : { opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+          >
+            <AlertCircle size={18} aria-hidden="true" />
+            {translate(actionError)}
+          </motion.p>
+        )}
+      </AnimatePresence>
 
       {!isLoading && !error && requests.length === 0 && (
-        <p className="artisan-requests-status">{translate('artisanRequests.empty')}</p>
+        <EmptyState icon={Inbox} title={translate('artisanRequests.empty')} />
       )}
 
       {!isLoading && !error && requests.length > 0 && (
-        <ul className="artisan-requests-list">
-          {requests.map((request) => (
-            <li key={request.id} className="artisan-request-card">
-              <p className="artisan-request-title">{request.title || request.categoryName}</p>
-              <p className="artisan-request-meta">{request.categoryName}</p>
-              <p className="artisan-request-meta">
-                {translate('artisanRequests.building')}: {request.building} ·{' '}
-                {translate('artisanRequests.apartment')}: {request.apartment}
-              </p>
-              {request.preferredDate && (
-                <p className="artisan-request-meta">
-                  {translate('artisanRequests.preferredDate')}: {formatDate(request.preferredDate)}
-                </p>
-              )}
-              <p className="artisan-request-description">{request.description}</p>
+        <ul className="ar-grid">
+          <AnimatePresence initial={!reduceMotion} mode="popLayout">
+            {requests.map((request, index) => {
+              const isBusy = actioningId === request.id
+              return (
+                <motion.li
+                  key={request.id}
+                  layout={!reduceMotion}
+                  className="ar-card fx-card"
+                  initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0, transition: { duration: 0.45, ease: easeOut, delay: index * 0.05 } }}
+                  exit={reduceMotion ? undefined : { opacity: 0, scale: 0.92, transition: { duration: 0.25 } }}
+                >
+                  <div className="ar-card-head">
+                    <span className="fx-badge fx-badge--navy fx-badge--plain">{request.categoryName}</span>
+                    {request.preferredDate && (
+                      <span className="ar-date">
+                        <CalendarDays size={14} aria-hidden="true" />
+                        <span className="sr-only">{translate('artisanRequests.preferredDate')}: </span>
+                        {formatDate(request.preferredDate)}
+                      </span>
+                    )}
+                  </div>
 
-              <div className="artisan-request-actions">
-                <button
-                  type="button"
-                  className="artisan-accept-button"
-                  onClick={() => handleAccept(request.id)}
-                  disabled={actioningId === request.id}
-                >
-                  {translate(
-                    actioningId === request.id
-                      ? 'artisanRequests.accepting'
-                      : 'artisanRequests.accept',
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="artisan-dismiss-button"
-                  onClick={() => handleDismiss(request.id)}
-                  disabled={actioningId === request.id}
-                >
-                  {translate('artisanRequests.dismiss')}
-                </button>
-              </div>
-            </li>
-          ))}
+                  <p className="ar-title">{request.title || request.categoryName}</p>
+                  <p className="ar-description">{request.description}</p>
+
+                  <dl className="ar-location">
+                    <div>
+                      <dt>
+                        <Building2 size={14} aria-hidden="true" />
+                        {translate('artisanRequests.building')}
+                      </dt>
+                      <dd>{request.building}</dd>
+                    </div>
+                    <div>
+                      <dt>
+                        <DoorOpen size={14} aria-hidden="true" />
+                        {translate('artisanRequests.apartment')}
+                      </dt>
+                      <dd>{request.apartment}</dd>
+                    </div>
+                  </dl>
+
+                  <div className="ar-actions">
+                    <button
+                      type="button"
+                      className="fx-btn fx-btn--primary"
+                      onClick={() => handleAccept(request.id)}
+                      disabled={isBusy}
+                    >
+                      <Check size={16} aria-hidden="true" />
+                      {translate(isBusy ? 'artisanRequests.accepting' : 'artisanRequests.accept')}
+                    </button>
+                    <button
+                      type="button"
+                      className="fx-btn fx-btn--ghost"
+                      onClick={() => handleDismiss(request.id)}
+                      disabled={isBusy}
+                    >
+                      <X size={16} aria-hidden="true" />
+                      {translate('artisanRequests.dismiss')}
+                    </button>
+                  </div>
+                </motion.li>
+              )
+            })}
+          </AnimatePresence>
         </ul>
       )}
     </section>

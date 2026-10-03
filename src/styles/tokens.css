@@ -1,0 +1,145 @@
+/*
+ * سبع صنايع — Design Tokens
+ * ---------------------
+ * الهوية مبنية على خمسة ألوان أساسية فقط:
+ *   برتقالي #F19035 · خوخي #FDB78E · كحلي #263056 · بني وردي #AA8173 · بيج #DAC7C0
+ * كل الدرجات والتدرجات والظلال أدناه مشتقة منها. لتغيير الهوية: عدّلي هذا الملف فقط.
+ */
+
+:root {
+  /* ===== الدرجات (Scales) ===== */
+  --navy-950: #121731;
+  --navy-900: #1a2142;
+  --navy-800: #263056; /* أساسي */
+  --navy-700: #3a4570;
+  --navy-600: #535e8a;
+  --navy-100: #e6e8f0;
+  --navy-50: #f3f4f8;
+
+  --orange-700: #9e5214; /* نص برتقالي صغير (تباين ≥ 4.5) */
+  --orange-600: #d9761f;
+  --orange-500: #f19035; /* أساسي */
+  --orange-400: #f6a65c;
+  --orange-100: #fde6d0;
+  --orange-50: #fef4ea;
+
+  --peach-400: #fdb78e; /* أساسي */
+  --peach-200: #fed5bd;
+  --peach-100: #ffe9dc;
+
+  --rose-700: #7a5a4f; /* نص ثانوي (تباين ≥ 4.5 على الخلفية) */
+  --rose-600: #8f6c60;
+  --rose-500: #aa8173; /* أساسي */
+  --rose-300: #c9aa9f;
+
+  --sand-500: #dac7c0; /* أساسي */
+  --sand-300: #eadcd6;
+  --sand-200: #f2e8e3;
+  --sand-100: #f8f1ed;
+  --sand-50: #fcf8f5;
+
+  /* ===== الأدوار الدلالية (Semantic) ===== */
+  --surface-page: var(--sand-50);
+  --surface-raised: #ffffff;
+  --surface-sunken: var(--sand-100);
+  --surface-inverse: var(--navy-800);
+  --surface-glass: rgb(255 255 255 / 0.62);
+  --surface-glass-strong: rgb(255 255 255 / 0.82);
+  --surface-glass-dark: rgb(26 33 66 / 0.62);
+
+  --text-strong: var(--navy-800);
+  --text-body: #3b4366;
+  --text-muted: var(--rose-700);
+  --text-subtle: #8a685c; /* أفتح نص مقروء (تباين ≥ 4.5 على الأبيض) */
+  --text-on-dark: #fdf3ee;
+  --text-on-accent: var(--navy-900);
+
+  --border-soft: rgb(170 129 115 / 0.18);
+  --border-default: rgb(170 129 115 / 0.3);
+  --border-strong: var(--rose-300);
+  --border-glass: rgb(255 255 255 / 0.55);
+
+  --accent: var(--orange-500);
+  --accent-hover: var(--orange-600);
+  --accent-soft: var(--orange-50);
+
+  --danger: #b33a26;
+  --danger-soft: #fdecea;
+  --success: #24774c;
+  --success-soft: #e7f5ee;
+
+  /* ===== التدرجات (Gradients) ===== */
+  /* الفعل: الأزرار الأساسية والعناصر النشطة */
+  --gradient-action: linear-gradient(135deg, var(--orange-500) 0%, #f7a062 55%, var(--peach-400) 100%);
+  --gradient-action-hover: linear-gradient(135deg, var(--orange-600) 0%, var(--orange-500) 55%, #fca97a 100%);
+  /* العمق: الأسطح الداكنة (Sidebar, Footer, Hero panels) */
+  --gradient-depth: linear-gradient(160deg, var(--navy-700) 0%, var(--navy-800) 45%, var(--navy-950) 100%);
+  /* المحيط: خلفيات ناعمة دافئة */
+  --gradient-ambient: linear-gradient(180deg, var(--sand-50) 0%, var(--sand-100) 100%);
+  /* حد متدرّج للبطاقات المميزة */
+  --gradient-border: linear-gradient(135deg, rgb(241 144 53 / 0.55), rgb(253 183 142 / 0.25) 40%, rgb(218 199 192 / 0.4));
+  /* نص متدرّج للعناوين المميزة */
+  --gradient-text: linear-gradient(120deg, var(--navy-800) 10%, var(--navy-600) 45%, var(--orange-500) 100%);
+
+  /* ===== الظلال (ملوّنة بالكحلي لا بالأسود) ===== */
+  --shadow-xs: 0 1px 2px rgb(38 48 86 / 0.06);
+  --shadow-sm: 0 1px 2px rgb(38 48 86 / 0.05), 0 4px 12px -2px rgb(38 48 86 / 0.07);
+  --shadow-md: 0 2px 4px rgb(38 48 86 / 0.04), 0 12px 28px -6px rgb(38 48 86 / 0.13);
+  --shadow-lg: 0 4px 8px rgb(38 48 86 / 0.04), 0 24px 56px -12px rgb(38 48 86 / 0.22);
+  --shadow-glow: 0 10px 30px -8px rgb(241 144 53 / 0.55);
+  --shadow-inset-light: inset 0 1px 0 rgb(255 255 255 / 0.7);
+
+  /* ===== الحواف والمسافات ===== */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  --container: 1200px;
+  --gutter: clamp(16px, 4vw, 40px);
+
+  /* ===== الطباعة ===== */
+  --font-sans: 'Tajawal', system-ui, 'Segoe UI', Tahoma, sans-serif;
+  --text-xs: 0.78rem;
+  --text-sm: 0.88rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --text-2xl: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+  --text-3xl: clamp(1.9rem, 1.4rem + 2vw, 2.75rem);
+  --text-display: clamp(2.3rem, 1.5rem + 3.6vw, 4.2rem);
+
+  /* ===== الحركة ===== */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 150ms;
+  --dur-base: 240ms;
+  --dur-slow: 480ms;
+
+  --focus-ring: 0 0 0 3px var(--surface-page), 0 0 0 5px var(--orange-500);
+
+  /* ===== توافق خلفي: المتغيرات القديمة تُشير للنظام الجديد ===== */
+  --color-bg: var(--surface-page);
+  --color-surface: var(--surface-raised);
+  --color-dark: var(--navy-800);
+  --color-dark-soft: var(--navy-700);
+  --color-accent: var(--orange-500);
+  --color-accent-soft: var(--peach-400);
+  --color-on-dark: var(--text-on-dark);
+  --color-text: var(--text-strong);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--sand-300);
+  --color-error: var(--danger);
+}
