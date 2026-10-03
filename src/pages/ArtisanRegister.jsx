@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { AlertCircle, Check, Wrench } from 'lucide-react'
 import { translate } from '../i18n'
 import { registerArtisan } from '../services/authService'
 import { getCategories } from '../services/categoriesService'
 import { validateArtisanRegister } from '../utils/validators'
 import { useAuth } from '../hooks/useAuth'
-import './ArtisanRegister.css'
+import AuthShell from '../components/ui/AuthShell'
 
 function ArtisanRegister() {
   const navigate = useNavigate()
@@ -76,107 +77,129 @@ function ArtisanRegister() {
   }
 
   return (
-    <main className="auth-page">
-      <form className="auth-card artisan-register-card" onSubmit={handleSubmit} noValidate>
-        <Link to="/" className="auth-brand">
-          {translate('common.brand')}
-        </Link>
+    <AuthShell title={translate('artisanRegister.title')} icon={Wrench} wide>
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        <div className="auth-grid">
+          <label className="fx-field fx-field--full">
+            <span className="fx-label">{translate('artisanRegister.fullName')}</span>
+            <input
+              className="fx-input"
+              type="text"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              autoComplete="name"
+              aria-invalid={Boolean(errors.fullName)}
+            />
+            {errors.fullName && <span className="fx-error-text">{translate(errors.fullName)}</span>}
+          </label>
 
-        <h1 className="auth-title">{translate('artisanRegister.title')}</h1>
+          <label className="fx-field">
+            <span className="fx-label">{translate('artisanRegister.phone')}</span>
+            <input
+              className="fx-input"
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              autoComplete="tel"
+              dir="ltr"
+              aria-invalid={Boolean(errors.phone)}
+            />
+            {errors.phone && <span className="fx-error-text">{translate(errors.phone)}</span>}
+          </label>
 
-        <label className="auth-field">
-          <span>{translate('artisanRegister.fullName')}</span>
-          <input
-            type="text"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
-            autoComplete="name"
-            aria-invalid={Boolean(errors.fullName)}
-          />
-          {errors.fullName && <span className="auth-error">{translate(errors.fullName)}</span>}
-        </label>
+          <label className="fx-field">
+            <span className="fx-label">{translate('artisanRegister.email')}</span>
+            <input
+              className="fx-input"
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              autoComplete="email"
+              dir="ltr"
+              aria-invalid={Boolean(errors.email)}
+            />
+            {errors.email && <span className="fx-error-text">{translate(errors.email)}</span>}
+          </label>
 
-        <label className="auth-field">
-          <span>{translate('artisanRegister.phone')}</span>
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            autoComplete="tel"
-            aria-invalid={Boolean(errors.phone)}
-          />
-          {errors.phone && <span className="auth-error">{translate(errors.phone)}</span>}
-        </label>
+          <label className="fx-field fx-field--full">
+            <span className="fx-label">{translate('artisanRegister.password')}</span>
+            <input
+              className="fx-input"
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              autoComplete="new-password"
+              dir="ltr"
+              aria-invalid={Boolean(errors.password)}
+            />
+            {errors.password && <span className="fx-error-text">{translate(errors.password)}</span>}
+          </label>
 
-        <label className="auth-field">
-          <span>{translate('artisanRegister.email')}</span>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            autoComplete="email"
-            aria-invalid={Boolean(errors.email)}
-          />
-          {errors.email && <span className="auth-error">{translate(errors.email)}</span>}
-        </label>
+          <fieldset className="fx-field fx-field--full auth-chips-field">
+            <legend className="fx-label">{translate('artisanRegister.categories')}</legend>
+            <div className="fx-chips">
+              {categories.map((category) => (
+                <label key={category.id} className="fx-chip">
+                  <input
+                    type="checkbox"
+                    checked={categoryIds.includes(category.id)}
+                    onChange={() => toggleCategory(category.id)}
+                  />
+                  <span className="fx-chip-check" aria-hidden="true">
+                    <Check size={12} strokeWidth={3} />
+                  </span>
+                  <span>{category.name}</span>
+                </label>
+              ))}
+            </div>
+            {errors.categoryIds && (
+              <span className="fx-error-text">{translate(errors.categoryIds)}</span>
+            )}
+          </fieldset>
 
-        <label className="auth-field">
-          <span>{translate('artisanRegister.password')}</span>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            autoComplete="new-password"
-            aria-invalid={Boolean(errors.password)}
-          />
-          {errors.password && <span className="auth-error">{translate(errors.password)}</span>}
-        </label>
-
-        <div className="auth-field">
-          <span>{translate('artisanRegister.categories')}</span>
-          <div className="artisan-register-categories">
-            {categories.map((category) => (
-              <label key={category.id} className="artisan-register-category">
-                <input
-                  type="checkbox"
-                  checked={categoryIds.includes(category.id)}
-                  onChange={() => toggleCategory(category.id)}
-                />
-                <span>{category.name}</span>
-              </label>
-            ))}
-          </div>
-          {errors.categoryIds && (
-            <span className="auth-error">{translate(errors.categoryIds)}</span>
-          )}
+          <label className="fx-field fx-field--full">
+            <span className="fx-label">{translate('artisanRegister.bio')}</span>
+            <textarea
+              className="fx-input"
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
+              rows={3}
+              aria-invalid={Boolean(errors.bio)}
+            />
+            {errors.bio && <span className="fx-error-text">{translate(errors.bio)}</span>}
+          </label>
         </div>
-
-        <label className="auth-field">
-          <span>{translate('artisanRegister.bio')}</span>
-          <textarea name="bio" value={formData.bio} onChange={handleChange} rows={3} />
-          {errors.bio && <span className="auth-error">{translate(errors.bio)}</span>}
-        </label>
 
         {submitError && (
           <p className="auth-alert" role="alert">
+            <AlertCircle size={18} aria-hidden="true" />
             {translate(submitError)}
           </p>
         )}
 
-        <button type="submit" className="auth-submit" disabled={isSubmitting}>
-          {translate(isSubmitting ? 'artisanRegister.submitting' : 'artisanRegister.submit')}
-        </button>
+        <div className="auth-submit-row">
+          <button
+            type="submit"
+            className="fx-btn fx-btn--primary fx-btn--lg fx-btn--block"
+            disabled={isSubmitting}
+          >
+            {translate(isSubmitting ? 'artisanRegister.submitting' : 'artisanRegister.submit')}
+          </button>
+        </div>
 
-        <p className="auth-switch">
-          {translate('artisanRegister.haveAccount')}{' '}
-          <Link to="/artisan/login">{translate('artisanRegister.login')}</Link>
-        </p>
+        <div className="auth-links">
+          <p>
+            {translate('artisanRegister.haveAccount')}{' '}
+            <Link to="/artisan/login">{translate('artisanRegister.login')}</Link>
+          </p>
+        </div>
       </form>
-    </main>
+    </AuthShell>
   )
 }
 

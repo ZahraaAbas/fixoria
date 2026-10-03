@@ -1,10 +1,28 @@
 import { Link } from 'react-router'
-import { motion } from 'motion/react'
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react'
 import { translate } from '../i18n'
-import { Globe, ArrowRight, Shield, Wrench, UserCheck, Eye } from 'lucide-react'
+import { Globe, ArrowLeft, Shield, Wrench, UserCheck, Eye } from 'lucide-react'
+import BrandMark from '../components/ui/BrandMark'
+import { easeOut, fadeUp, stagger } from '../components/ui/motion'
+import heroImage from '../assets/images/background.webp'
 import './Landing.css'
 
+const ROLES = [
+  { to: '/login', labelKey: 'landing.residentLogin', Icon: UserCheck, tone: 'primary' },
+  { to: '/artisan/login', labelKey: 'landing.artisanLogin', Icon: Wrench, tone: 'default' },
+  { to: '/home', labelKey: 'landing.guest', Icon: Eye, tone: 'default' },
+  { to: '/admin/login', labelKey: 'landing.adminLogin', Icon: Shield, tone: 'subtle' },
+]
+
 function Landing() {
+  const reduceMotion = useReducedMotion()
+  const pointerX = useMotionValue(0)
+  const pointerY = useMotionValue(0)
+  const smoothX = useSpring(pointerX, { stiffness: 50, damping: 20 })
+  const smoothY = useSpring(pointerY, { stiffness: 50, damping: 20 })
+  const imageX = useTransform(smoothX, [-1, 1], [14, -14])
+  const imageY = useTransform(smoothY, [-1, 1], [10, -10])
+
   const toggleLanguage = () => {
     const currentLang = localStorage.getItem('fixoria_lang') || 'ar'
     const newLang = currentLang === 'ar' ? 'en' : 'ar'
@@ -12,84 +30,93 @@ function Landing() {
     window.location.reload()
   }
 
+  function handlePointerMove(event) {
+    if (reduceMotion || event.pointerType !== 'mouse') return
+    pointerX.set((event.clientX / window.innerWidth) * 2 - 1)
+    pointerY.set((event.clientY / window.innerHeight) * 2 - 1)
+  }
+
   return (
-    <main className="landing-container">
-      {/* شريط علوي يضم الشعار وزر اللغة */}
+    <main className="landing" onPointerMove={handlePointerMove}>
+      <div className="landing-backdrop" aria-hidden="true">
+        <motion.img
+          src={heroImage}
+          alt=""
+          className="landing-image"
+          fetchPriority="high"
+          decoding="async"
+          style={reduceMotion ? undefined : { x: imageX, y: imageY }}
+          initial={reduceMotion ? false : { scale: 1.18, opacity: 0 }}
+          animate={{ scale: 1.08, opacity: 1 }}
+          transition={{ duration: 1.8, ease: easeOut }}
+        />
+        <span className="landing-shade" />
+        <span className="landing-orb landing-orb--a" />
+        <span className="landing-orb landing-orb--b" />
+      </div>
+
       <header className="landing-header">
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="landing-brand-wrapper"
+          transition={{ duration: 0.6, ease: easeOut }}
         >
-          <span className="landing-brand-icon">🔧</span>
-          <span className="landing-brand">{translate('common.brand')}</span>
+          <BrandMark tone="light" size="lg" />
         </motion.div>
 
-        <motion.button 
-          initial={{ opacity: 0, y: -20 }}
+        <motion.button
+          type="button"
+          initial={reduceMotion ? false : { opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          transition={{ duration: 0.6, delay: 0.1, ease: easeOut }}
           onClick={toggleLanguage}
-          className="lang-toggle-btn"
+          className="landing-lang"
           title="تبديل اللغة / Change Language"
         >
-          <Globe size={18} />
+          <Globe size={16} aria-hidden="true" />
           <span>{localStorage.getItem('fixoria_lang') === 'en' ? 'العربية' : 'English'}</span>
         </motion.button>
       </header>
 
-      {/* القسم الرئيسي */}
-      <div className="landing-hero">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6 }}
-          className="landing-hero-content"
+      <div className="landing-body">
+        <motion.div
+          className="landing-copy"
+          variants={stagger(0.35, 0.12)}
+          initial={reduceMotion ? false : 'hidden'}
+          animate="visible"
         >
-          <span className="landing-badge">مجمع البدور السكني</span>
-          <h1 className="landing-title">{translate('landing.title')}</h1>
-          <p className="landing-description">{translate('landing.description')}</p>
+          <motion.span variants={fadeUp} className="landing-badge">
+            <span className="landing-badge-dot" aria-hidden="true" />
+            {translate('footer.compound')}
+          </motion.span>
+          <motion.h1 variants={fadeUp} className="landing-title">
+            {translate('landing.title')}
+          </motion.h1>
+          <motion.p variants={fadeUp} className="landing-description">
+            {translate('landing.description')}
+          </motion.p>
         </motion.div>
 
-        {/* أزرار الأدوار بتصميم بطاقات زجاجية تفاعلية ومضغوطة */}
-        <motion.nav 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="landing-actions"
+        <motion.nav
+          className="landing-roles"
+          aria-label={translate('nav.mainNav')}
+          variants={stagger(0.55, 0.08)}
+          initial={reduceMotion ? false : 'hidden'}
+          animate="visible"
         >
-          <Link to="/login" className="landing-card-action">
-            <div className="card-icon-bg"><UserCheck size={20} /></div>
-            <div className="card-texts">
-              <h3>{translate('landing.residentLogin')}</h3>
-            </div>
-            <ArrowRight className="arrow-icon" size={16} />
-          </Link>
-
-          <Link to="/artisan/login" className="landing-card-action">
-            <div className="card-icon-bg"><Wrench size={20} /></div>
-            <div className="card-texts">
-              <h3>{translate('landing.artisanLogin')}</h3>
-            </div>
-            <ArrowRight className="arrow-icon" size={16} />
-          </Link>
-
-          <Link to="/home" className="landing-card-action landing-guest-card">
-            <div className="card-icon-bg"><Eye size={20} /></div>
-            <div className="card-texts">
-              <h3>{translate('landing.guest')}</h3>
-            </div>
-            <ArrowRight className="arrow-icon" size={16} />
-          </Link>
-
-          <Link to="/admin/login" className="landing-card-action landing-admin-card">
-            <div className="card-icon-bg"><Shield size={20} /></div>
-            <div className="card-texts">
-              <h3>{translate('landing.adminLogin')}</h3>
-            </div>
-            <ArrowRight className="arrow-icon" size={16} />
-          </Link>
+          {ROLES.map(({ to, labelKey, Icon, tone }) => (
+            <motion.div key={to} variants={fadeUp}>
+              <Link to={to} className={`landing-role landing-role--${tone}`}>
+                <span className="landing-role-icon" aria-hidden="true">
+                  <Icon size={20} />
+                </span>
+                <span className="landing-role-label">{translate(labelKey)}</span>
+                <span className="landing-role-arrow" aria-hidden="true">
+                  <ArrowLeft size={18} className="icon-forward" />
+                </span>
+              </Link>
+            </motion.div>
+          ))}
         </motion.nav>
       </div>
     </main>

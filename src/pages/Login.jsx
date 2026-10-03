@@ -1,14 +1,21 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
+import { AlertCircle, ArrowLeft, Shield, UserCheck, Wrench } from 'lucide-react'
 import { translate } from '../i18n'
 import { login } from '../services/authService'
 import { validateLogin } from '../utils/validators'
 import { useAuth } from '../hooks/useAuth'
-import './Auth.css'
+import AuthShell from '../components/ui/AuthShell'
 
 const REGISTER_PATH = {
   resident: '/register',
   artisan: '/artisan/register',
+}
+
+const ROLE_ICON = {
+  resident: UserCheck,
+  artisan: Wrench,
+  admin: Shield,
 }
 
 const DEFAULT_REDIRECT = {
@@ -75,66 +82,69 @@ function Login({ role }) {
   }
 
   return (
-    <main className="auth-page">
-      <form className="auth-card" onSubmit={handleSubmit} noValidate>
-        <Link to="/" className="auth-brand">
-          {translate('common.brand')}
-        </Link>
-
-        <h1 className="auth-title">{translate(`login.title.${role}`)}</h1>
-
-        <label className="auth-field">
-          <span>{translate('login.email')}</span>
+    <AuthShell title={translate(`login.title.${role}`)} icon={ROLE_ICON[role]}>
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        <label className="fx-field">
+          <span className="fx-label">{translate('login.email')}</span>
           <input
+            className="fx-input"
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
             autoComplete="email"
+            dir="ltr"
             aria-invalid={Boolean(errors.email)}
           />
-          {errors.email && (
-            <span className="auth-error">{translate(errors.email)}</span>
-          )}
+          {errors.email && <span className="fx-error-text">{translate(errors.email)}</span>}
         </label>
 
-        <label className="auth-field">
-          <span>{translate('login.password')}</span>
+        <label className="fx-field">
+          <span className="fx-label">{translate('login.password')}</span>
           <input
+            className="fx-input"
             type="password"
             name="password"
             value={formData.password}
             onChange={handleChange}
             autoComplete="current-password"
+            dir="ltr"
             aria-invalid={Boolean(errors.password)}
           />
-          {errors.password && (
-            <span className="auth-error">{translate(errors.password)}</span>
-          )}
+          {errors.password && <span className="fx-error-text">{translate(errors.password)}</span>}
         </label>
 
         {submitError && (
           <p className="auth-alert" role="alert">
+            <AlertCircle size={18} aria-hidden="true" />
             {translate(submitError)}
           </p>
         )}
 
-        <button type="submit" className="auth-submit" disabled={isSubmitting}>
-          {translate(isSubmitting ? 'login.submitting' : 'login.submit')}
-        </button>
+        <div className="auth-submit-row">
+          <button
+            type="submit"
+            className="fx-btn fx-btn--primary fx-btn--lg fx-btn--block"
+            disabled={isSubmitting}
+          >
+            {translate(isSubmitting ? 'login.submitting' : 'login.submit')}
+            {!isSubmitting && <ArrowLeft size={18} aria-hidden="true" className="icon-forward" />}
+          </button>
+        </div>
 
-        {REGISTER_PATH[role] && (
-          <p className="auth-switch">
-            {translate('login.noAccount')}{' '}
-            <Link to={REGISTER_PATH[role]}>{translate('login.createAccount')}</Link>
-          </p>
-        )}
-
-        <Link to="/" className="auth-back">
-          {translate('login.backHome')}
-        </Link>
+        <div className="auth-links">
+          {REGISTER_PATH[role] && (
+            <p>
+              {translate('login.noAccount')}{' '}
+              <Link to={REGISTER_PATH[role]}>{translate('login.createAccount')}</Link>
+            </p>
+          )}
+          <Link to="/" className="auth-back">
+            {translate('login.backHome')}
+          </Link>
+        </div>
       </form>
-    </main>
+    </AuthShell>
   )
 }
 
