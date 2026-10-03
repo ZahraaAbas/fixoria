@@ -1,67 +1,185 @@
-.artisan-reviews-status {
-  margin-top: 16px;
-  color: var(--color-text-muted);
+.rv-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 2fr);
+  gap: var(--space-5);
+  align-items: start;
 }
 
-.artisan-reviews-summary {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 20px 0;
-  padding: 20px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  max-width: 400px;
+/* ===== Summary ===== */
+.rv-summary {
+  position: sticky;
+  top: 100px;
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+  padding: var(--space-6);
 }
 
-.artisan-reviews-average {
-  font-size: 2.5rem;
+.rv-summary-label {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--peach-400);
+}
+
+.rv-average {
+  margin: 0;
+  font-size: clamp(3.4rem, 6vw, 4.6rem);
   font-weight: 800;
-  color: var(--color-dark);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #fff, var(--peach-200));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-.artisan-reviews-count {
-  margin: 4px 0 0;
-  color: var(--color-text-muted);
+.rv-count {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: rgb(253 243 238 / 0.7);
 }
 
-.artisan-reviews-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.rv-bars {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  margin: var(--space-4) 0 0;
+  padding: var(--space-4) 0 0;
+  list-style: none;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.rv-bars li {
+  display: grid;
+  grid-template-columns: 30px 1fr 24px;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: rgb(253 243 238 / 0.7);
+}
+
+.rv-bar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.rv-bar-label svg {
+  color: var(--orange-500);
+  fill: var(--orange-500);
+}
+
+.rv-bar-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.1);
+}
+
+.rv-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gradient-action);
+  transform-origin: right;
+}
+
+[dir='ltr'] .rv-bar-fill {
+  transform-origin: left;
+}
+
+.rv-bar-count {
+  text-align: end;
+}
+
+/* ===== Cards ===== */
+.rv-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: var(--space-4);
   margin: 0;
   padding: 0;
   list-style: none;
-  max-width: 560px;
 }
 
-.artisan-review-card {
-  padding: 16px 20px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
+.rv-card {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  transition:
+    transform var(--dur-slow) var(--ease-out),
+    box-shadow var(--dur-slow) var(--ease-out);
 }
 
-.artisan-review-header {
+.rv-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.rv-card-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
-.artisan-review-title {
+.rv-card-title {
   margin: 0;
-  font-weight: 700;
+  font-weight: 800;
+  color: var(--text-strong);
 }
 
-.artisan-review-category {
-  margin: 4px 0 0;
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
+.rv-card-category {
+  margin: 2px 0 0;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 
-.artisan-review-comment {
-  margin: 10px 0 0;
-  line-height: 1.6;
+.rv-card-score {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: var(--orange-700);
+  background: var(--orange-50);
+  border-radius: var(--radius-pill);
+}
+
+.rv-card-score svg {
+  fill: currentColor;
+}
+
+.rv-card-comment {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  line-height: 1.75;
+  color: var(--text-body);
+  background: var(--sand-100);
+  border-radius: var(--radius-md);
+}
+
+.rv-card-comment svg {
+  flex: 0 0 auto;
+  margin-top: 4px;
+  color: var(--rose-500);
+}
+
+@media (max-width: 860px) {
+  .rv-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .rv-summary {
+    position: static;
+  }
 }

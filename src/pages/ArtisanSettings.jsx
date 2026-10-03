@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AlertCircle, Check, CheckCircle2, Phone } from 'lucide-react'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
 import { updateArtisanProfile } from '../services/profileService'
 import { getCategories } from '../services/categoriesService'
 import { validateArtisanProfile } from '../utils/validators'
+import PageHeader from '../components/ui/PageHeader'
+import { Reveal } from '../components/ui/Reveal'
 import './ArtisanSettings.css'
 
 function ArtisanSettings() {
   const { user, updateUser } = useAuth()
+  const reduceMotion = useReducedMotion()
 
   const [categories, setCategories] = useState([])
   const [formData, setFormData] = useState({
@@ -70,82 +75,138 @@ function ArtisanSettings() {
     }
   }
 
+  const selectedNames = categories
+    .filter((category) => categoryIds.includes(category.id))
+    .map((category) => category.name)
+
   return (
     <section>
-      <h1>{translate('artisanSettings.title')}</h1>
+      <PageHeader title={translate('artisanSettings.title')} />
 
-      <form className="artisan-settings-form" onSubmit={handleSubmit} noValidate>
-        <label className="artisan-settings-field">
-          <span>{translate('artisanSettings.fullName')}</span>
-          <input
-            type="text"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
-            aria-invalid={Boolean(errors.fullName)}
-          />
-          {errors.fullName && (
-            <span className="artisan-settings-error">{translate(errors.fullName)}</span>
-          )}
-        </label>
+      <div className="as-layout">
+        <Reveal as="form" className="as-form fx-card" onSubmit={handleSubmit} noValidate>
+          <div className="as-row">
+            <label className="fx-field">
+              <span className="fx-label">{translate('artisanSettings.fullName')}</span>
+              <input
+                className="fx-input"
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.fullName)}
+              />
+              {errors.fullName && <span className="fx-error-text">{translate(errors.fullName)}</span>}
+            </label>
 
-        <label className="artisan-settings-field">
-          <span>{translate('artisanSettings.phone')}</span>
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            aria-invalid={Boolean(errors.phone)}
-          />
-          {errors.phone && (
-            <span className="artisan-settings-error">{translate(errors.phone)}</span>
-          )}
-        </label>
-
-        <label className="artisan-settings-field">
-          <span>{translate('artisanSettings.bio')}</span>
-          <textarea name="bio" value={formData.bio} onChange={handleChange} rows={3} />
-          {errors.bio && (
-            <span className="artisan-settings-error">{translate(errors.bio)}</span>
-          )}
-        </label>
-
-        <div className="artisan-settings-field">
-          <span>{translate('artisanSettings.categories')}</span>
-          <div className="artisan-settings-categories">
-            {categories.map((category) => (
-              <label key={category.id} className="artisan-settings-category">
-                <input
-                  type="checkbox"
-                  checked={categoryIds.includes(category.id)}
-                  onChange={() => toggleCategory(category.id)}
-                />
-                <span>{category.name}</span>
-              </label>
-            ))}
+            <label className="fx-field">
+              <span className="fx-label">{translate('artisanSettings.phone')}</span>
+              <input
+                className="fx-input"
+                type="tel"
+                name="phone"
+                dir="ltr"
+                value={formData.phone}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.phone)}
+              />
+              {errors.phone && <span className="fx-error-text">{translate(errors.phone)}</span>}
+            </label>
           </div>
-          {errors.categoryIds && (
-            <span className="artisan-settings-error">{translate(errors.categoryIds)}</span>
+
+          <label className="fx-field">
+            <span className="fx-label">{translate('artisanSettings.bio')}</span>
+            <textarea
+              className="fx-input"
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
+              rows={4}
+              aria-invalid={Boolean(errors.bio)}
+            />
+            {errors.bio && <span className="fx-error-text">{translate(errors.bio)}</span>}
+          </label>
+
+          <fieldset className="fx-field as-fieldset">
+            <legend className="fx-label">{translate('artisanSettings.categories')}</legend>
+            <div className="fx-chips">
+              {categories.map((category) => (
+                <label key={category.id} className="fx-chip">
+                  <input
+                    type="checkbox"
+                    checked={categoryIds.includes(category.id)}
+                    onChange={() => toggleCategory(category.id)}
+                  />
+                  <span className="fx-chip-check" aria-hidden="true">
+                    <Check size={12} strokeWidth={3} />
+                  </span>
+                  <span>{category.name}</span>
+                </label>
+              ))}
+            </div>
+            {errors.categoryIds && <span className="fx-error-text">{translate(errors.categoryIds)}</span>}
+          </fieldset>
+
+          <AnimatePresence>
+            {savedMessage && (
+              <motion.p
+                className="fx-notice fx-notice--success"
+                role="status"
+                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+              >
+                <CheckCircle2 size={18} aria-hidden="true" />
+                {translate(savedMessage)}
+              </motion.p>
+            )}
+          </AnimatePresence>
+
+          {saveError && (
+            <p className="fx-notice fx-notice--danger" role="alert">
+              <AlertCircle size={18} aria-hidden="true" />
+              {translate('artisanSettings.saveError')}
+            </p>
           )}
-        </div>
 
-        {savedMessage && (
-          <p className="artisan-settings-saved" role="status">
-            {translate(savedMessage)}
-          </p>
-        )}
+          <div className="as-submit">
+            <button type="submit" className="fx-btn fx-btn--primary fx-btn--lg" disabled={isSubmitting}>
+              {translate(isSubmitting ? 'artisanSettings.saving' : 'artisanSettings.save')}
+            </button>
+          </div>
+        </Reveal>
 
-        {saveError && (
-          <span className="artisan-settings-error" role="alert">
-            {translate('artisanSettings.saveError')}
-          </span>
-        )}
-
-        <button type="submit" className="artisan-settings-submit" disabled={isSubmitting}>
-          {translate(isSubmitting ? 'artisanSettings.saving' : 'artisanSettings.save')}
-        </button>
-      </form>
+        {/* معاينة حية لما يُكتب في النموذج */}
+        <Reveal as="aside" className="as-preview" delay={0.1} aria-label={translate('artisanSettings.preview')}>
+          <p className="as-preview-label">{translate('artisanSettings.preview')}</p>
+          <div className="as-preview-card fx-card fx-card--featured">
+            <div className="as-preview-head">
+              <span className="as-preview-avatar" aria-hidden="true">
+                {formData.fullName.trim().charAt(0) || '?'}
+              </span>
+              <div className="as-preview-id">
+                <p className="as-preview-name">{formData.fullName || '—'}</p>
+                {formData.phone && (
+                  <p className="as-preview-phone" dir="ltr">
+                    <Phone size={13} aria-hidden="true" />
+                    {formData.phone}
+                  </p>
+                )}
+              </div>
+            </div>
+            {selectedNames.length > 0 && (
+              <ul className="as-preview-tags">
+                {selectedNames.map((name) => (
+                  <li key={name} className="fx-badge fx-badge--plain">
+                    {name}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {formData.bio && <p className="as-preview-bio">{formData.bio}</p>}
+          </div>
+        </Reveal>
+      </div>
     </section>
   )
 }
