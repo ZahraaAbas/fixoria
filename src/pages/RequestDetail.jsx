@@ -1,16 +1,77 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AlertTriangle, Ban, Building2, CalendarDays, Check, DoorOpen, FileQuestion, LayoutGrid, Star, XCircle } from 'lucide-react'
 import { translate } from '../i18n'
 import { getResidentRequestById, cancelResidentRequest } from '../services/requestsService'
 import { statusKey, CANCELLABLE_STATUSES } from '../utils/requestStatus'
 import { formatDate } from '../utils/formatDate'
 import PeekRating from '../components/PeekRating'
 import ReviewForm from './ReviewForm'
-import { LoadingState, ErrorState } from '../components/StatusState'
+import { ErrorState, EmptyState } from '../components/StatusState'
+import PageHeader, { BackLink } from '../components/ui/PageHeader'
+import StatusBadge from '../components/ui/StatusBadge'
+import { Reveal } from '../components/ui/Reveal'
+import { easeOut, spring } from '../components/ui/motion'
 import './RequestDetail.css'
+
+function DetailSkeleton() {
+  return (
+    <div className="rd-skeleton" aria-hidden="true">
+      <span className="fx-skeleton" style={{ width: '45%', height: 34 }} />
+      <div className="rd-skeleton-grid">
+        <span className="fx-skeleton" style={{ height: 220, borderRadius: 20 }} />
+        <span className="fx-skeleton" style={{ height: 220, borderRadius: 20 }} />
+      </div>
+    </div>
+  )
+}
+
+function Timeline({ steps }) {
+  const reduceMotion = useReducedMotion()
+  const reached = steps.filter((step) => step.done || step.active).length
+  const fill = steps.length > 1 ? Math.max(0, reached - 1) / (steps.length - 1) : 0
+
+  return (
+    <section className="rd-card fx-card">
+      <h2 className="rd-card-title">{translate('requestDetail.timeline')}</h2>
+      <ol className="rd-timeline">
+        <span className="rd-timeline-track" aria-hidden="true">
+          <motion.span
+            className="rd-timeline-fill"
+            initial={reduceMotion ? false : { scaleY: 0 }}
+            animate={{ scaleY: fill }}
+            transition={{ duration: 1, ease: easeOut, delay: 0.3 }}
+          />
+        </span>
+        {steps.map((step, index) => {
+          // آخر خطوة عندما تكون الحالية تعني أن الطلب اكتمل، فتُعرض كمنجزة لا كجارية
+          const isFinished = step.active && index === steps.length - 1
+          const state = isFinished || (step.done && !step.active) ? 'done' : step.active ? 'active' : 'todo'
+          return (
+            <motion.li
+              key={step.key}
+              className={`rd-step rd-step--${state}`}
+              initial={reduceMotion ? false : { opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ ...spring, delay: 0.2 + index * 0.1 }}
+              aria-current={step.active ? 'step' : undefined}
+            >
+              <span className="rd-step-dot" aria-hidden="true">
+                {state === 'done' ? <Check size={14} strokeWidth={3} /> : index + 1}
+              </span>
+              <span className="rd-step-label">{step.label}</span>
+            </motion.li>
+          )
+        })}
+      </ol>
+    </section>
+  )
+}
 
 function RequestDetail() {
   const { id } = useParams()
+  const reduceMotion = useReducedMotion()
 
   const [request, setRequest] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -59,16 +120,31 @@ function RequestDetail() {
     setIsConfirmingCancel(false)
   }
 
+  const back = <BackLink to="/my-requests">{translate('requestDetail.backToList')}</BackLink>
+
   if (isLoading) {
-    return <LoadingState message={translate('requestDetail.loading')} />
+    return (
+      <article className="rd">
+        {back}
+        <p className="sr-only" role="status">
+          {translate('requestDetail.loading')}
+        </p>
+        <DetailSkeleton />
+      </article>
+    )
   }
 
   if (error?.message === 'NOT_FOUND') {
     return (
-      <div className="request-detail-status">
-        <p>{translate('requestDetail.notFound')}</p>
-        <Link to="/my-requests">{translate('requestDetail.backToList')}</Link>
-      </div>
+      <EmptyState
+        icon={FileQuestion}
+        title={translate('requestDetail.notFound')}
+        action={
+          <Link to="/my-requests" className="fx-btn fx-btn--secondary">
+            {translate('requestDetail.backToList')}
+          </Link>
+        }
+      />
     )
   }
 
@@ -85,123 +161,146 @@ function RequestDetail() {
   const currentStatus = statusKey(request.status)
   const isCancellable = CANCELLABLE_STATUSES.includes(currentStatus)
 
+  const info = [
+    { key: 'category', Icon: LayoutGrid, value: request.categoryName },
+    { key: 'building', Icon: Building2, value: request.building },
+    { key: 'apartment', Icon: DoorOpen, value: request.apartment },
+    ...(request.preferredDate
+      ? [{ key: 'preferredDate', Icon: CalendarDays, value: formatDate(request.preferredDate) }]
+      : []),
+  ]
+
   return (
-    <article className="request-detail">
-      <Link to="/my-requests" className="request-detail-back">
-        {translate('requestDetail.backToList')}
-      </Link>
+    <article className="rd">
+      <PageHeader
+        back={back}
+        title={request.title || request.categoryName}
+        meta={<StatusBadge status={request.status} className="rd-status" />}
+      />
 
-      <div className="request-detail-header">
-        <h1>{request.title || request.categoryName}</h1>
-        <span className={`request-badge status-${currentStatus}`}>
-          {translate(`requestStatus.${currentStatus}`)}
-        </span>
-      </div>
+      <div className="rd-layout">
+        <div className="rd-main">
+          {currentStatus === 'cancelled' && (
+            <p className="fx-notice fx-notice--muted">
+              <Ban size={18} aria-hidden="true" />
+              {translate('requestDetail.cancelledNotice')}
+            </p>
+          )}
 
-      <dl className="request-detail-info">
-        <div>
-          <dt>{translate('requestDetail.category')}</dt>
-          <dd>{request.categoryName}</dd>
-        </div>
-        <div>
-          <dt>{translate('requestDetail.building')}</dt>
-          <dd>{request.building}</dd>
-        </div>
-        <div>
-          <dt>{translate('requestDetail.apartment')}</dt>
-          <dd>{request.apartment}</dd>
-        </div>
-        {request.preferredDate && (
-          <div>
-            <dt>{translate('requestDetail.preferredDate')}</dt>
-            <dd>{formatDate(request.preferredDate)}</dd>
-          </div>
-        )}
-      </dl>
+          {currentStatus === 'rejected' && (
+            <p className="fx-notice fx-notice--danger">
+              <XCircle size={18} aria-hidden="true" />
+              <span>
+                {translate('requestDetail.rejectedNotice')}
+                {request.rejectionReason &&
+                  ` — ${translate('requestDetail.rejectionReason')}: ${request.rejectionReason}`}
+              </span>
+            </p>
+          )}
 
-      <p className="request-detail-description-label">{translate('requestDetail.description')}</p>
-      <p className="request-detail-description">{request.description}</p>
+          {currentStatus !== 'cancelled' && currentStatus !== 'rejected' && request.progress?.length > 0 && (
+            <Timeline steps={request.progress} />
+          )}
 
-      {currentStatus === 'cancelled' && (
-        <p className="request-detail-cancelled-notice">
-          {translate('requestDetail.cancelledNotice')}
-        </p>
-      )}
+          <Reveal as="section" className="rd-card fx-card">
+            <h2 className="rd-card-title">{translate('requestDetail.description')}</h2>
+            <p className="rd-description">{request.description}</p>
+          </Reveal>
 
-      {currentStatus === 'rejected' && (
-        <p className="request-detail-cancelled-notice">
-          {translate('requestDetail.rejectedNotice')}
-          {request.rejectionReason && ` — ${translate('requestDetail.rejectionReason')}: ${request.rejectionReason}`}
-        </p>
-      )}
+          {currentStatus === 'completed' && request.myRating != null && (
+            <Reveal as="section" className="rd-card rd-card--reviewed fx-card fx-card--featured">
+              <h2 className="rd-card-title">
+                <Star size={18} aria-hidden="true" />
+                {translate('requestDetail.myRating')}
+              </h2>
+              <PeekRating value={request.myRating} readOnly size={24} activeColor="#f19035" idleColor="#dac7c0" />
+              {request.myReviewComment && <p className="rd-review-comment">{request.myReviewComment}</p>}
+            </Reveal>
+          )}
 
-      {currentStatus !== 'cancelled' && currentStatus !== 'rejected' && request.progress?.length > 0 && (
-        <div className="request-timeline">
-          <p className="request-timeline-label">{translate('requestDetail.timeline')}</p>
-          <ol>
-            {request.progress.map((step) => (
-              <li key={step.key} className={step.done || step.active ? 'timeline-step active' : 'timeline-step'}>
-                {step.label}
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
-
-      {isCancellable && (
-        <div className="request-cancel">
-          {isConfirmingCancel ? (
-            <div className="request-cancel-confirm">
-              <p>{translate('requestDetail.confirmCancel')}</p>
-              <button
-                type="button"
-                className="request-cancel-confirm-yes"
-                onClick={handleCancel}
-                disabled={isCancelling}
-              >
-                {translate(isCancelling ? 'requestDetail.cancelling' : 'requestDetail.confirmYes')}
-              </button>
-              <button
-                type="button"
-                className="request-cancel-confirm-no"
-                onClick={() => setIsConfirmingCancel(false)}
-                disabled={isCancelling}
-              >
-                {translate('requestDetail.confirmNo')}
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="request-cancel-button"
-              onClick={() => setIsConfirmingCancel(true)}
-            >
-              {translate('requestDetail.cancel')}
-            </button>
+          {currentStatus === 'completed' && request.myRating == null && request.canReview && (
+            <ReviewForm
+              requestId={request.id}
+              onSubmitted={(review) =>
+                setRequest((current) => ({
+                  ...current,
+                  myRating: review.rating,
+                  myReviewComment: review.comment,
+                }))
+              }
+            />
           )}
         </div>
-      )}
 
-      {currentStatus === 'completed' && request.myRating != null && (
-        <div className="request-detail-reviewed">
-          <p>{translate('requestDetail.myRating')}</p>
-          <PeekRating value={request.myRating} readOnly size={20} activeColor="#f19035" idleColor="#dac7c0" />
-          {request.myReviewComment && <p>{request.myReviewComment}</p>}
-        </div>
-      )}
+        <Reveal as="aside" className="rd-aside" delay={0.1}>
+          <dl className="rd-info fx-card">
+            {info.map(({ key, Icon, value }) => (
+              <div key={key} className="rd-info-row">
+                <span className="rd-info-icon" aria-hidden="true">
+                  <Icon size={17} />
+                </span>
+                <dt>{translate(`requestDetail.${key}`)}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
 
-      {currentStatus === 'completed' && request.myRating == null && request.canReview && (
-        <ReviewForm
-          requestId={request.id}
-          onSubmitted={(review) =>
-            setRequest((current) => ({
-              ...current,
-              myRating: review.rating,
-              myReviewComment: review.comment,
-            }))
-          }
-        />
-      )}
+          {isCancellable && (
+            <div className="rd-cancel">
+              <AnimatePresence mode="wait" initial={false}>
+                {isConfirmingCancel ? (
+                  <motion.div
+                    key="confirm"
+                    className="rd-cancel-confirm"
+                    role="alertdialog"
+                    aria-label={translate('requestDetail.confirmCancel')}
+                    initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: 6 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={reduceMotion ? undefined : { opacity: 0, scale: 0.96 }}
+                    transition={{ duration: 0.25, ease: easeOut }}
+                  >
+                    <p>
+                      <AlertTriangle size={18} aria-hidden="true" />
+                      {translate('requestDetail.confirmCancel')}
+                    </p>
+                    <div className="rd-cancel-actions">
+                      <button
+                        type="button"
+                        className="fx-btn fx-btn--sm rd-cancel-yes"
+                        onClick={handleCancel}
+                        disabled={isCancelling}
+                      >
+                        {translate(isCancelling ? 'requestDetail.cancelling' : 'requestDetail.confirmYes')}
+                      </button>
+                      <button
+                        type="button"
+                        className="fx-btn fx-btn--secondary fx-btn--sm"
+                        onClick={() => setIsConfirmingCancel(false)}
+                        disabled={isCancelling}
+                      >
+                        {translate('requestDetail.confirmNo')}
+                      </button>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.button
+                    key="cancel"
+                    type="button"
+                    className="fx-btn fx-btn--danger fx-btn--block"
+                    onClick={() => setIsConfirmingCancel(true)}
+                    initial={reduceMotion ? false : { opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={reduceMotion ? undefined : { opacity: 0 }}
+                  >
+                    <Ban size={16} aria-hidden="true" />
+                    {translate('requestDetail.cancel')}
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </Reveal>
+      </div>
     </article>
   )
 }

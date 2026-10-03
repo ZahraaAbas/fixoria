@@ -1,96 +1,186 @@
-.artisans-status {
-  margin-top: 24px;
-  color: var(--color-text-muted);
+.artisans-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-weight: 800;
+  color: var(--text-strong);
+  background: var(--surface-glass-strong);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
 }
 
-.artisan-list {
+.artisans-count svg {
+  color: var(--orange-500);
+}
+
+.artisan-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-  margin: 24px 0 0;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--space-4);
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.artisan-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.artisan-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 24px -12px rgba(38, 48, 86, 0.25);
-  border-color: var(--color-accent);
-}
-
-.artisan-card-link {
-  display: block;
-  padding: 20px;
-  color: inherit;
-  text-decoration: none;
-}
-
-.artisan-card-header {
+.artisan-grid-item,
+.artisan-tilt {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  min-width: 0;
 }
 
-.artisan-avatar {
-  flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
+.artisan-tilt {
+  flex: 1;
+  border-radius: var(--radius-xl);
+}
+
+.artisan-tile {
+  position: relative;
+  flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: linear-gradient(137deg, #263056 0%, #f19035 100%);
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.artisan-name {
-  margin: 0 0 2px;
-  font-weight: 700;
-  color: var(--color-text, #1e293b);
-}
-
-.artisan-category {
-  margin: 0;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-}
-
-.artisan-bio {
-  margin: 0 0 12px;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
   overflow: hidden;
+  isolation: isolate;
+  color: var(--text-strong);
+  text-decoration: none;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow var(--dur-slow) var(--ease-out),
+    border-color var(--dur-base) ease;
 }
 
-.artisan-rating {
+.artisan-tile:hover {
+  border-color: rgb(241 144 53 / 0.35);
+  box-shadow: var(--shadow-lg);
+}
+
+.artisan-tile-glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  background: radial-gradient(240px circle at var(--glow-x, 50%) var(--glow-y, 0%), rgb(253 183 142 / 0.3), transparent 70%);
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+
+.artisan-tile:hover .artisan-tile-glow {
+  opacity: 1;
+}
+
+.artisan-tile-head {
   display: flex;
   align-items: center;
+  gap: var(--space-3);
+}
+
+.artisan-tile-avatar {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-on-dark);
+  background: var(--gradient-depth);
+  box-shadow: 0 0 0 3px #fff, 0 0 0 4px var(--sand-300), var(--shadow-sm);
+  transition: transform var(--dur-slow) var(--ease-spring);
+}
+
+.artisan-tile:hover .artisan-tile-avatar {
+  transform: rotate(-6deg) scale(1.05);
+}
+
+.artisan-tile-id {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.artisan-tile-name {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artisan-tile-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.artisan-tile-rating svg {
+  color: var(--orange-500);
+  fill: var(--orange-500);
+}
+
+.artisan-tile-rating strong {
+  color: var(--text-strong);
+}
+
+.artisan-tile-rating--empty {
+  font-style: italic;
+}
+
+.artisan-tile-tags {
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin: 0;
-  font-weight: 600;
-  color: #263056;
+  padding: 0;
+  list-style: none;
 }
 
-.artisan-rating-star {
-  color: #f19035;
-  fill: #f19035;
+.artisan-tile-bio {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--text-sm);
+  line-height: 1.75;
+  color: var(--text-muted);
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
-.artisan-rating-empty {
-  color: var(--color-text-muted);
-  font-weight: 500;
+.artisan-tile-arrow {
+  position: absolute;
+  top: var(--space-5);
+  inset-inline-end: var(--space-5);
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: var(--text-subtle);
+  background: var(--sand-100);
+  transition:
+    color var(--dur-base) ease,
+    background var(--dur-base) ease,
+    transform var(--dur-base) var(--ease-out);
+}
+
+.artisan-tile:hover .artisan-tile-arrow {
+  color: var(--navy-900);
+  background: var(--gradient-action);
+  transform: translateX(-3px);
+}
+
+[dir='ltr'] .artisan-tile:hover .artisan-tile-arrow {
+  transform: translateX(3px);
+}
+
+.artisan-tile-head {
+  padding-inline-end: 44px;
 }

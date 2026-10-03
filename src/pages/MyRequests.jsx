@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { CalendarDays, ChevronLeft, ClipboardList, LayoutGrid, Plus } from 'lucide-react'
 import { translate } from '../i18n'
 import { getMyResidentRequests } from '../services/requestsService'
-import { statusKey } from '../utils/requestStatus'
 import { formatDate } from '../utils/formatDate'
-import { LoadingState, ErrorState } from '../components/StatusState'
+import { statusTone } from '../utils/requestStatus'
+import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
+import PageHeader from '../components/ui/PageHeader'
+import StatusBadge from '../components/ui/StatusBadge'
+import { RevealGroup, RevealItem } from '../components/ui/Reveal'
 import './MyRequests.css'
 
 function MyRequests() {
@@ -39,10 +43,33 @@ function MyRequests() {
   }
 
   return (
-    <section>
-      <h1>{translate('myRequests.title')}</h1>
+    <section className="mr">
+      <PageHeader
+        title={translate('myRequests.title')}
+        meta={
+          !isLoading && !error && requests.length > 0 ? (
+            <span className="mr-count">
+              <ClipboardList size={15} aria-hidden="true" />
+              {requests.length}
+            </span>
+          ) : null
+        }
+        actions={
+          <Link to="/home" className="fx-btn fx-btn--primary">
+            <Plus size={17} aria-hidden="true" />
+            {translate('home.heroPrimary')}
+          </Link>
+        }
+      />
 
-      {isLoading && <LoadingState message={translate('myRequests.loading')} />}
+      {isLoading && (
+        <>
+          <p className="sr-only" role="status">
+            {translate('myRequests.loading')}
+          </p>
+          <SkeletonList count={4} />
+        </>
+      )}
 
       {!isLoading && error && (
         <ErrorState
@@ -53,35 +80,48 @@ function MyRequests() {
       )}
 
       {!isLoading && !error && requests.length === 0 && (
-        <div className="my-requests-status">
-          <p>{translate('myRequests.empty')}</p>
-          <Link to="/home">{translate('myRequests.browseCategories')}</Link>
-        </div>
+        <EmptyState
+          icon={ClipboardList}
+          title={translate('myRequests.empty')}
+          action={
+            <Link to="/home" className="fx-btn fx-btn--primary">
+              <LayoutGrid size={16} aria-hidden="true" />
+              {translate('myRequests.browseCategories')}
+            </Link>
+          }
+        />
       )}
 
       {!isLoading && !error && requests.length > 0 && (
-        <ul className="request-list">
+        <RevealGroup as="ul" className="mr-list" gap={0.05}>
           {requests.map((request) => (
-            <li key={request.id} className="request-card">
-              <Link to={`/my-requests/${request.id}`} className="request-card-link">
-                <div className="request-card-header">
-                  <p className="request-card-title">{request.title || request.categoryName}</p>
-                  <span className={`request-badge status-${statusKey(request.status)}`}>
-                    {translate(`requestStatus.${statusKey(request.status)}`)}
-                  </span>
-                </div>
-                <p className="request-card-category">
-                  {translate('myRequests.category')}: {request.categoryName}
-                </p>
-                {request.preferredDate && (
-                  <p className="request-card-date">
-                    {translate('myRequests.preferredDate')}: {formatDate(request.preferredDate)}
+            <RevealItem as="li" key={request.id}>
+              <Link
+                to={`/my-requests/${request.id}`}
+                className={`mr-card mr-card--${statusTone(request.status)}`}
+              >
+                <span className="mr-card-stripe" aria-hidden="true" />
+                <div className="mr-card-main">
+                  <p className="mr-card-title">{request.title || request.categoryName}</p>
+                  <p className="mr-card-meta">
+                    <span>
+                      {translate('myRequests.category')}: <strong>{request.categoryName}</strong>
+                    </span>
+                    {request.preferredDate && (
+                      <span className="mr-card-date">
+                        <CalendarDays size={14} aria-hidden="true" />
+                        <span className="sr-only">{translate('myRequests.preferredDate')}: </span>
+                        {formatDate(request.preferredDate)}
+                      </span>
+                    )}
                   </p>
-                )}
+                </div>
+                <StatusBadge status={request.status} />
+                <ChevronLeft size={18} aria-hidden="true" className="mr-card-chevron icon-forward" />
               </Link>
-            </li>
+            </RevealItem>
           ))}
-        </ul>
+        </RevealGroup>
       )}
     </section>
   )

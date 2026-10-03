@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Star } from 'lucide-react'
+import { Link } from 'react-router'
+import { ArrowLeft, Star, Users } from 'lucide-react'
 import { translate } from '../i18n'
 import { getArtisans } from '../services/artisansService'
-import { LoadingState, ErrorState } from '../components/StatusState'
+import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
+import PageHeader from '../components/ui/PageHeader'
+import { RevealGroup, RevealItem } from '../components/ui/Reveal'
+import TiltCard from '../components/ui/TiltCard'
 import './Artisans.css'
-import { Link } from 'react-router'
 
 function Artisans() {
   const [artisans, setArtisans] = useState([])
@@ -39,9 +42,27 @@ function Artisans() {
 
   return (
     <section>
-      <h1>{translate('artisans.title')}</h1>
+      <PageHeader
+        eyebrow={translate('home.featuredEyebrow')}
+        title={translate('artisans.title')}
+        meta={
+          !isLoading && !error && artisans.length > 0 ? (
+            <span className="artisans-count">
+              <Users size={15} aria-hidden="true" />
+              {artisans.length}
+            </span>
+          ) : null
+        }
+      />
 
-      {isLoading && <LoadingState message={translate('artisans.loading')} />}
+      {isLoading && (
+        <>
+          <p className="sr-only" role="status">
+            {translate('artisans.loading')}
+          </p>
+          <SkeletonList count={6} variant="grid" />
+        </>
+      )}
 
       {!isLoading && error && (
         <ErrorState
@@ -52,40 +73,58 @@ function Artisans() {
       )}
 
       {!isLoading && !error && artisans.length === 0 && (
-        <p className="artisans-status">{translate('artisans.empty')}</p>
+        <EmptyState icon={Users} title={translate('artisans.empty')} />
       )}
 
       {!isLoading && !error && artisans.length > 0 && (
-        <ul className="artisan-list">
+        <RevealGroup as="ul" className="artisan-grid" gap={0.06}>
           {artisans.map((artisan) => (
-            <li key={artisan.id} className="artisan-card">
-              <Link to={`/artisans/${artisan.id}`} className="artisan-card-link">
-                <div className="artisan-card-header">
-                  <span className="artisan-avatar" aria-hidden="true">
-                    {artisan.fullName?.charAt(0)}
-                  </span>
-                  <div>
-                    <p className="artisan-name">{artisan.fullName}</p>
-                    <p className="artisan-category">{artisan.categoryNames.join('، ')}</p>
+            <RevealItem as="li" key={artisan.id} className="artisan-grid-item">
+              <TiltCard className="artisan-tilt" max={5}>
+                <Link to={`/artisans/${artisan.id}`} className="artisan-tile">
+                  <span className="artisan-tile-glow" aria-hidden="true" />
+                  <div className="artisan-tile-head">
+                    <span className="artisan-tile-avatar" aria-hidden="true">
+                      {artisan.fullName?.charAt(0)}
+                    </span>
+                    <div className="artisan-tile-id">
+                      <p className="artisan-tile-name">{artisan.fullName}</p>
+                      {artisan.reviewsCount > 0 ? (
+                        <p className="artisan-tile-rating">
+                          <Star size={14} aria-hidden="true" />
+                          <strong>{artisan.rating}</strong>
+                          <span>
+                            ({artisan.reviewsCount} {translate('artisans.reviewsCount')})
+                          </span>
+                        </p>
+                      ) : (
+                        <p className="artisan-tile-rating artisan-tile-rating--empty">
+                          {translate('artisans.noReviews')}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {artisan.bio && <p className="artisan-bio">{artisan.bio}</p>}
+                  {artisan.categoryNames.length > 0 && (
+                    <ul className="artisan-tile-tags" aria-label={translate('artisanRegister.categories')}>
+                      {artisan.categoryNames.map((name) => (
+                        <li key={name} className="fx-badge fx-badge--plain">
+                          {name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
 
-                {artisan.reviewsCount > 0 ? (
-                  <p className="artisan-rating">
-                    <Star size={14} className="artisan-rating-star" />
-                    {artisan.rating} ({artisan.reviewsCount} {translate('artisans.reviewsCount')})
-                  </p>
-                ) : (
-                  <p className="artisan-rating artisan-rating-empty">
-                    {translate('artisans.noReviews')}
-                  </p>
-                )}
-              </Link>
-            </li>
+                  {artisan.bio && <p className="artisan-tile-bio">{artisan.bio}</p>}
+
+                  <span className="artisan-tile-arrow" aria-hidden="true">
+                    <ArrowLeft size={18} className="icon-forward" />
+                  </span>
+                </Link>
+              </TiltCard>
+            </RevealItem>
           ))}
-        </ul>
+        </RevealGroup>
       )}
     </section>
   )

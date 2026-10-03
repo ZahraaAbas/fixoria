@@ -1,53 +1,65 @@
-.review-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 420px;
-  padding: 16px;
-  margin-top: 16px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
+.review-card {
+  position: relative;
+  display: grid;
+  gap: var(--space-5);
+  padding: clamp(20px, 3vw, 32px);
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.review-form-title {
+.review-card-glow {
+  position: absolute;
+  z-index: -1;
+  top: -60%;
+  inset-inline-end: -30%;
+  width: 80%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(253 183 142 / 0.35), transparent 65%);
+  pointer-events: none;
+}
+
+.review-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.review-card-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  color: var(--navy-900);
+  background: var(--gradient-action);
+  box-shadow: var(--shadow-glow);
+}
+
+.review-card-title {
   margin: 0;
-  font-weight: 700;
+  font-size: var(--text-xl);
+  font-weight: 800;
+  color: var(--text-strong);
 }
 
-.review-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-weight: 600;
+.review-rating {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--sand-50);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-lg);
 }
 
-.review-field textarea {
-  padding: 10px;
-  font: inherit;
-  font-family: inherit;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+.review-card > .fx-btn {
+  justify-self: start;
+  min-width: 180px;
 }
 
-.review-error {
-  font-size: 0.875rem;
-  color: var(--color-error);
-}
-
-.review-submit {
-  align-self: flex-start;
-  padding: 10px 24px;
-  font: inherit;
-  font-weight: 700;
-  color: var(--color-dark);
-  background: var(--color-accent);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.review-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+@media (max-width: 520px) {
+  .review-card > .fx-btn {
+    justify-self: stretch;
+  }
 }

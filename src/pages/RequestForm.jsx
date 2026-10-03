@@ -1,16 +1,29 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { motion, useReducedMotion } from 'motion/react'
+import { AlertCircle, CalendarDays, Check, FileText, Home, ListChecks, MessageSquareHeart, SearchX, Send } from 'lucide-react'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
 import { getCategoryById } from '../services/categoriesService'
 import { createResidentRequest } from '../services/requestsService'
 import { validateRequest } from '../utils/validators'
-import { LoadingState } from '../components/StatusState'
+import { serviceVisuals, defaultServiceVisual } from '../config/serviceVisuals'
+import { LoadingState, EmptyState } from '../components/StatusState'
+import PageHeader, { BackLink } from '../components/ui/PageHeader'
+import { Reveal } from '../components/ui/Reveal'
+import { easeOut } from '../components/ui/motion'
 import './RequestForm.css'
+
+const STEPS = [
+  { titleKey: 'home.howStep1Title', Icon: ListChecks },
+  { titleKey: 'home.howStep2Title', Icon: Send },
+  { titleKey: 'home.howStep3Title', Icon: MessageSquareHeart },
+]
 
 function RequestForm() {
   const { categoryId } = useParams()
   const { user } = useAuth()
+  const reduceMotion = useReducedMotion()
 
   const [category, setCategory] = useState(null)
   const [isLoadingCategory, setIsLoadingCategory] = useState(true)
@@ -83,105 +96,183 @@ function RequestForm() {
 
   if (categoryError) {
     return (
-      <div className="request-form-status">
-        <p>{translate('request.categoryNotFound')}</p>
-        <Link to="/home">{translate('request.backHome')}</Link>
-      </div>
+      <EmptyState
+        icon={SearchX}
+        title={translate('request.categoryNotFound')}
+        action={
+          <Link to="/home" className="fx-btn fx-btn--secondary">
+            {translate('request.backHome')}
+          </Link>
+        }
+      />
     )
   }
 
+  const { Icon: CategoryIcon, gradient } = serviceVisuals[category.icon] || defaultServiceVisual
+
   if (isSuccess) {
     return (
-      <div className="request-form-status">
-        <p>{translate('request.success')}</p>
-        <Link to="/home">{translate('request.backHome')}</Link>
-      </div>
+      <motion.div
+        className="rf-success fx-card"
+        role="status"
+        initial={reduceMotion ? false : { opacity: 0, y: 24, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: easeOut }}
+      >
+        <span className="rf-success-burst" aria-hidden="true" />
+        <motion.span
+          className="rf-success-icon"
+          aria-hidden="true"
+          initial={reduceMotion ? false : { scale: 0, rotate: -45 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 14, delay: 0.15 }}
+        >
+          <Check size={36} strokeWidth={3} />
+        </motion.span>
+        <p className="rf-success-category">
+          <CategoryIcon size={16} aria-hidden="true" />
+          {category.name}
+        </p>
+        <p className="rf-success-text">{translate('request.success')}</p>
+        <div className="rf-success-actions">
+          <Link to="/my-requests" className="fx-btn fx-btn--primary">
+            <FileText size={16} aria-hidden="true" />
+            {translate('nav.myRequests')}
+          </Link>
+          <Link to="/home" className="fx-btn fx-btn--secondary">
+            <Home size={16} aria-hidden="true" />
+            {translate('request.backHome')}
+          </Link>
+        </div>
+      </motion.div>
     )
   }
 
   return (
-    <form className="request-form" onSubmit={handleSubmit} noValidate>
-      <h1>{translate('request.title')}</h1>
-      <p className="request-form-category">
-        {translate('request.category')}: {category.name}
-      </p>
+    <div className="rf">
+      <PageHeader
+        back={<BackLink to="/home">{translate('request.backHome')}</BackLink>}
+        title={translate('request.title')}
+      />
 
-      <label className="request-field">
-        <span>{translate('request.titleField')}</span>
-        <input
-          type="text"
-          name="title"
-          value={formData.title}
-          onChange={handleChange}
-          aria-invalid={Boolean(errors.title)}
-        />
-        {errors.title && <span className="request-error">{translate(errors.title)}</span>}
-      </label>
+      <div className="rf-layout">
+        <Reveal as="form" className="rf-form fx-card" onSubmit={handleSubmit} noValidate>
+          <label className="fx-field">
+            <span className="fx-label">{translate('request.titleField')}</span>
+            <input
+              className="fx-input"
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              aria-invalid={Boolean(errors.title)}
+            />
+            {errors.title && <span className="fx-error-text">{translate(errors.title)}</span>}
+          </label>
 
-      <label className="request-field">
-        <span>{translate('request.description')}</span>
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          rows={4}
-          aria-invalid={Boolean(errors.description)}
-        />
-        {errors.description && (
-          <span className="request-error">{translate(errors.description)}</span>
-        )}
-      </label>
+          <label className="fx-field">
+            <span className="fx-label">{translate('request.description')}</span>
+            <textarea
+              className="fx-input"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows={5}
+              aria-invalid={Boolean(errors.description)}
+            />
+            {errors.description && (
+              <span className="fx-error-text">{translate(errors.description)}</span>
+            )}
+          </label>
 
-      <div className="request-field-row">
-        <label className="request-field">
-          <span>{translate('request.building')}</span>
-          <input
-            type="text"
-            name="building"
-            value={formData.building}
-            onChange={handleChange}
-            aria-invalid={Boolean(errors.building)}
-          />
-          {errors.building && (
-            <span className="request-error">{translate(errors.building)}</span>
+          <div className="rf-row">
+            <label className="fx-field">
+              <span className="fx-label">{translate('request.building')}</span>
+              <input
+                className="fx-input"
+                type="text"
+                name="building"
+                value={formData.building}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.building)}
+              />
+              {errors.building && <span className="fx-error-text">{translate(errors.building)}</span>}
+            </label>
+
+            <label className="fx-field">
+              <span className="fx-label">{translate('request.apartment')}</span>
+              <input
+                className="fx-input"
+                type="text"
+                name="apartment"
+                value={formData.apartment}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.apartment)}
+              />
+              {errors.apartment && (
+                <span className="fx-error-text">{translate(errors.apartment)}</span>
+              )}
+            </label>
+          </div>
+
+          <label className="fx-field">
+            <span className="fx-label">
+              <CalendarDays size={15} aria-hidden="true" className="rf-label-icon" />
+              {translate('request.preferredDate')}
+            </span>
+            <input
+              className="fx-input"
+              type="date"
+              name="preferredDate"
+              value={formData.preferredDate}
+              onChange={handleChange}
+              aria-invalid={Boolean(errors.preferredDate)}
+            />
+            {errors.preferredDate && (
+              <span className="fx-error-text">{translate(errors.preferredDate)}</span>
+            )}
+          </label>
+
+          {submitError && (
+            <p className="fx-notice fx-notice--danger" role="alert">
+              <AlertCircle size={18} aria-hidden="true" />
+              {translate('request.submitError')}
+            </p>
           )}
-        </label>
 
-        <label className="request-field">
-          <span>{translate('request.apartment')}</span>
-          <input
-            type="text"
-            name="apartment"
-            value={formData.apartment}
-            onChange={handleChange}
-            aria-invalid={Boolean(errors.apartment)}
-          />
-          {errors.apartment && (
-            <span className="request-error">{translate(errors.apartment)}</span>
-          )}
-        </label>
+          <button
+            type="submit"
+            className="fx-btn fx-btn--primary fx-btn--lg fx-btn--block"
+            disabled={isSubmitting}
+          >
+            {translate(isSubmitting ? 'request.submitting' : 'request.submit')}
+            {!isSubmitting && <Send size={17} aria-hidden="true" />}
+          </button>
+        </Reveal>
+
+        <Reveal as="aside" className="rf-aside" delay={0.15}>
+          <div className="rf-aside-card fx-surface-depth">
+            <span className="rf-aside-icon" style={{ background: gradient }} aria-hidden="true">
+              <CategoryIcon size={30} strokeWidth={1.8} />
+            </span>
+            <p className="rf-aside-name">
+              <span className="rf-aside-label">{translate('request.category')}</span>
+              {category.name}
+            </p>
+            <ol className="rf-steps">
+              {STEPS.map(({ titleKey, Icon }, index) => (
+                <li key={titleKey} className={index === 1 ? 'is-current' : index === 0 ? 'is-done' : ''}>
+                  <span className="rf-step-icon" aria-hidden="true">
+                    {index === 0 ? <Check size={14} strokeWidth={3} /> : <Icon size={14} />}
+                  </span>
+                  {translate(titleKey)}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </Reveal>
       </div>
-
-      <label className="request-field">
-        <span>{translate('request.preferredDate')}</span>
-        <input
-          type="date"
-          name="preferredDate"
-          value={formData.preferredDate}
-          onChange={handleChange}
-          aria-invalid={Boolean(errors.preferredDate)}
-        />
-        {errors.preferredDate && (
-          <span className="request-error">{translate(errors.preferredDate)}</span>
-        )}
-      </label>
-
-      {submitError && <span className="request-error">{translate('request.submitError')}</span>}
-
-      <button type="submit" className="request-submit" disabled={isSubmitting}>
-        {translate(isSubmitting ? 'request.submitting' : 'request.submit')}
-      </button>
-    </form>
+    </div>
   )
 }
 

@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { AlertCircle, Sparkles } from 'lucide-react'
 import { translate } from '../i18n'
 import { submitResidentReview } from '../services/requestsService'
 import PeekRating from '../components/PeekRating'
+import { Reveal } from '../components/ui/Reveal'
 import './ReviewForm.css'
 
-const RATING_LABELS = ['سيء', 'مقبول', 'جيد', 'ممتاز', 'رائع']
+const RATING_KEYS = ['review.rating1', 'review.rating2', 'review.rating3', 'review.rating4', 'review.rating5']
 
 function ReviewForm({ requestId, onSubmitted }) {
   const [rating, setRating] = useState(0)
@@ -34,43 +36,51 @@ function ReviewForm({ requestId, onSubmitted }) {
   }
 
   return (
-    <form className="review-form" onSubmit={handleSubmit}>
-      <p className="review-form-title">{translate('review.title')}</p>
+    <Reveal as="form" className="review-card fx-card fx-card--featured" onSubmit={handleSubmit}>
+      <span className="review-card-glow" aria-hidden="true" />
+      <div className="review-card-head">
+        <span className="review-card-icon" aria-hidden="true">
+          <Sparkles size={20} />
+        </span>
+        <p className="review-card-title">{translate('review.title')}</p>
+      </div>
 
-      <div className="review-field">
-        <span>{translate('review.ratingLabel')}</span>
+      <div className="review-rating">
+        <span className="fx-label">{translate('review.ratingLabel')}</span>
         <PeekRating
           value={rating}
           onChange={setRating}
-          labels={RATING_LABELS}
+          labels={RATING_KEYS.map((key) => translate(key))}
           activeColor="#f19035"
           idleColor="#dac7c0"
           tipColor="#263056"
           tipTextColor="#ffffff"
-          size={32}
+          size={36}
           ariaLabel={translate('review.ratingLabel')}
         />
       </div>
 
       {error && (
-        <span className="review-error" role="alert">
+        <p className="fx-notice fx-notice--danger" role="alert">
+          <AlertCircle size={18} aria-hidden="true" />
           {translate(error)}
-        </span>
+        </p>
       )}
 
-      <label className="review-field">
-        <span>{translate('review.commentLabel')}</span>
+      <label className="fx-field">
+        <span className="fx-label">{translate('review.commentLabel')}</span>
         <textarea
+          className="fx-input"
           value={comment}
           onChange={(event) => setComment(event.target.value)}
           rows={3}
         />
       </label>
 
-      <button type="submit" className="review-submit" disabled={isSubmitting}>
+      <button type="submit" className="fx-btn fx-btn--primary" disabled={isSubmitting}>
         {translate(isSubmitting ? 'review.submitting' : 'review.submit')}
       </button>
-    </form>
+    </Reveal>
   )
 }
 
