@@ -30,7 +30,7 @@ function Footer() {
       <div className="footer-panel">
         <span className="footer-glow" aria-hidden="true" />
         <span className="footer-wordmark" aria-hidden="true">
-          Fixoria
+          {translate('common.brand')}
         </span>
 
         <div className="footer-content">
@@ -55,7 +55,7 @@ function Footer() {
 
         <div className="footer-bottom">
           <p className="footer-copy">
-            {translate('footer.compound')} · &copy; {new Date().getFullYear()} Fixoria —{' '}
+            {translate('footer.compound')} · &copy; {new Date().getFullYear()} {translate('common.brand')} —{' '}
             {translate('footer.rights')}
           </p>
         </div>

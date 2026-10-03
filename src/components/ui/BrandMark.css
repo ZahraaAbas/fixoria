@@ -3,9 +3,8 @@
   align-items: center;
   gap: 10px;
   font-weight: 800;
-  letter-spacing: -0.02em;
   line-height: 1;
-  direction: ltr;
+  white-space: nowrap;
 }
 
 .brand-mark__icon {

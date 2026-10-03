@@ -1,6 +1,6 @@
 const en = {
   common: {
-    brand: 'Fixoria',
+    brand: 'سبع صنايع',
     loading: 'Loading…',
     comma: ', ',
     actionError: 'Something went wrong, please try again',
@@ -392,7 +392,7 @@ const en = {
   },
     footer: {
     description:
-      'Fixoria connects Al-Budoor residents with trusted local artisans and service providers, quickly and reliably.',
+      'سبع صنايع connects Al-Budoor residents with trusted local artisans and service providers, quickly and reliably.',
     linksTitle: 'Quick Links',
     home: 'Home',
     artisans: 'Browse Artisans',
@@ -406,11 +406,11 @@ const en = {
   },
     about: {
     title: 'About Us',
-    lead: 'Fixoria connects Al-Budoor residents with verified local artisans and maintenance providers, in just a few taps.',
+    lead: 'سبع صنايع connects Al-Budoor residents with verified local artisans and maintenance providers, in just a few taps.',
     missionTitle: 'Our Mission',
     missionText:
       'We make everyday life easier by connecting residents with trusted local artisans, and providing a smooth, safe way to request and track maintenance services.',
-    howTitle: 'How Fixoria Works',
+    howTitle: 'How سبع صنايع Works',
     step1: 'Browse categories and pick the service you need.',
     step2: 'Send a simple request, and the nearest available artisan accepts it.',
     step3: 'Track your request status, and rate the service once completed.',

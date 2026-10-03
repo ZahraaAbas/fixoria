@@ -2,7 +2,7 @@ import { Wrench } from 'lucide-react'
 import { translate } from '../../i18n'
 import './BrandMark.css'
 
-// شعار Fixoria: علامة متدرجة + الاسم. tone="light" للخلفيات الداكنة.
+// شعار سبع صنايع: علامة متدرجة + الاسم. tone="light" للخلفيات الداكنة.
 function BrandMark({ tone = 'dark', size = 'md', showName = true }) {
   return (
     <span className={`brand-mark brand-mark--${tone} brand-mark--${size}`}>
