@@ -8,6 +8,7 @@ import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
 import { RevealGroup, RevealItem } from '../components/ui/Reveal'
 import { spring } from '../components/ui/motion'
+import ActionError from '../components/ui/ActionError'
 import './AdminReviews.css'
 
 function AdminReviews() {
@@ -17,6 +18,7 @@ function AdminReviews() {
   const [error, setError] = useState(null)
   const [attempt, setAttempt] = useState(0)
   const [actioningId, setActioningId] = useState(null)
+  const [actionError, setActionError] = useState('')
 
   useEffect(() => {
     let isCancelled = false
@@ -45,11 +47,17 @@ function AdminReviews() {
 
   async function handleToggle(requestId, currentlyHidden) {
     setActioningId(requestId)
-    const updated = await setReviewVisibility(requestId, !currentlyHidden)
-    setReviews((current) =>
-      current.map((review) => (review.requestId === requestId ? updated : review)),
-    )
-    setActioningId(null)
+    setActionError('')
+    try {
+      const updated = await setReviewVisibility(requestId, !currentlyHidden)
+      setReviews((current) =>
+        current.map((review) => (review.requestId === requestId ? updated : review)),
+      )
+    } catch {
+      setActionError('common.actionError')
+    } finally {
+      setActioningId(null)
+    }
   }
 
   const hiddenCount = reviews.filter((review) => review.isHidden).length
@@ -75,6 +83,8 @@ function AdminReviews() {
           ) : null
         }
       />
+
+      <ActionError messageKey={actionError} className="arv-error" />
 
       {isLoading && (
         <>

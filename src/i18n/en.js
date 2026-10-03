@@ -3,6 +3,7 @@ const en = {
     brand: 'Fixoria',
     loading: 'Loading…',
     comma: ', ',
+    actionError: 'Something went wrong, please try again',
   },
   nav: {
     home: 'Home',

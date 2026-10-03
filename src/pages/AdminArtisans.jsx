@@ -7,6 +7,7 @@ import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
 import { RevealGroup, RevealItem } from '../components/ui/Reveal'
 import { easeOut } from '../components/ui/motion'
+import ActionError from '../components/ui/ActionError'
 import './AdminArtisans.css'
 
 const ACCOUNT_TONE = { approved: 'completed', rejected: 'rejected', pending: 'pending' }
@@ -18,6 +19,7 @@ function AdminArtisans() {
   const [error, setError] = useState(null)
   const [attempt, setAttempt] = useState(0)
   const [actioningId, setActioningId] = useState(null)
+  const [actionError, setActionError] = useState('')
 
   useEffect(() => {
     let isCancelled = false
@@ -44,18 +46,25 @@ function AdminArtisans() {
     setAttempt((count) => count + 1)
   }
 
-  async function handleApprove(id) {
+  async function runDecision(id, action) {
     setActioningId(id)
-    const updated = await approveArtisan(id)
-    setAccounts((current) => current.map((account) => (account.id === id ? updated : account)))
-    setActioningId(null)
+    setActionError('')
+    try {
+      const updated = await action(id)
+      setAccounts((current) => current.map((account) => (account.id === id ? updated : account)))
+    } catch {
+      setActionError('common.actionError')
+    } finally {
+      setActioningId(null)
+    }
   }
 
-  async function handleReject(id) {
-    setActioningId(id)
-    const updated = await rejectArtisan(id)
-    setAccounts((current) => current.map((account) => (account.id === id ? updated : account)))
-    setActioningId(null)
+  function handleApprove(id) {
+    return runDecision(id, approveArtisan)
+  }
+
+  function handleReject(id) {
+    return runDecision(id, rejectArtisan)
   }
 
   const pending = accounts.filter((account) => account.status === 'pending')
@@ -64,6 +73,7 @@ function AdminArtisans() {
   return (
     <section className="aa">
       <PageHeader title={translate('adminArtisans.title')} />
+      <ActionError messageKey={actionError} className="aa-error" />
 
       {isLoading && (
         <>

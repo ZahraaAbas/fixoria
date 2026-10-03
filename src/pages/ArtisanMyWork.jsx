@@ -8,6 +8,7 @@ import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
 import { RevealGroup, RevealItem } from '../components/ui/Reveal'
 import { spring } from '../components/ui/motion'
+import ActionError from '../components/ui/ActionError'
 import './ArtisanMyWork.css'
 
 const STATUS_ORDER = { accepted: 0, in_progress: 1, completed: 2, cancelled: 3, rejected: 4 }
@@ -31,6 +32,7 @@ function ArtisanMyWork() {
   const [error, setError] = useState(null)
   const [attempt, setAttempt] = useState(0)
   const [actioningId, setActioningId] = useState(null)
+  const [actionError, setActionError] = useState('')
 
   useEffect(() => {
     let isCancelled = false
@@ -57,18 +59,26 @@ function ArtisanMyWork() {
     setAttempt((count) => count + 1)
   }
 
-  async function handleStart(id) {
+  // يغيّر حالة الطلب ويعرض رسالة إن فشل الطلب بدل أن يعلق الزر
+  async function runStatusChange(id, action) {
     setActioningId(id)
-    const updated = await startRequest(id)
-    setRequests((current) => current.map((request) => (request.id === id ? updated : request)))
-    setActioningId(null)
+    setActionError('')
+    try {
+      const updated = await action(id)
+      setRequests((current) => current.map((request) => (request.id === id ? updated : request)))
+    } catch {
+      setActionError('common.actionError')
+    } finally {
+      setActioningId(null)
+    }
   }
 
-  async function handleComplete(id) {
-    setActioningId(id)
-    const updated = await completeRequest(id)
-    setRequests((current) => current.map((request) => (request.id === id ? updated : request)))
-    setActioningId(null)
+  function handleStart(id) {
+    return runStatusChange(id, startRequest)
+  }
+
+  function handleComplete(id) {
+    return runStatusChange(id, completeRequest)
   }
 
   const sorted = [...requests].sort(
@@ -79,6 +89,7 @@ function ArtisanMyWork() {
   return (
     <section className="mw">
       <PageHeader title={translate('artisanMyWork.title')} />
+      <ActionError messageKey={actionError} className="mw-error" />
 
       {isLoading && (
         <>

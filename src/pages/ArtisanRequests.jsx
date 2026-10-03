@@ -64,9 +64,15 @@ function ArtisanRequests() {
 
   async function handleDismiss(requestId) {
     setActioningId(requestId)
-    await dismissRequestForArtisan(requestId)
-    setRequests((current) => current.filter((request) => request.id !== requestId))
-    setActioningId(null)
+    setActionError('')
+    try {
+      await dismissRequestForArtisan(requestId)
+      setRequests((current) => current.filter((request) => request.id !== requestId))
+    } catch {
+      setActionError('common.actionError')
+    } finally {
+      setActioningId(null)
+    }
   }
 
   return (

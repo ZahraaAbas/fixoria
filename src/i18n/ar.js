@@ -3,6 +3,7 @@ const ar = {
     brand: 'Fixoria',
     loading: 'جارٍ التحميل…',
     comma: '، ',
+    actionError: 'تعذّر تنفيذ العملية، حاول مرة أخرى',
   },
   nav: {
     home: 'الرئيسية',

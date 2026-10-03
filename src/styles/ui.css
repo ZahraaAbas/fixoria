@@ -439,6 +439,10 @@ select.fx-input {
   margin-top: 3px;
 }
 
+.fx-action-error {
+  margin-bottom: var(--space-4);
+}
+
 .fx-notice--danger {
   color: var(--danger);
   background: var(--danger-soft);

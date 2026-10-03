@@ -13,6 +13,7 @@ import { serviceVisuals, defaultServiceVisual } from '../config/serviceVisuals'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
 import { easeOut, spring } from '../components/ui/motion'
+import ActionError from '../components/ui/ActionError'
 import './AdminCategories.css'
 
 function AdminCategories() {
@@ -32,6 +33,7 @@ function AdminCategories() {
 
   const [confirmingDeleteId, setConfirmingDeleteId] = useState(null)
   const [actioningId, setActioningId] = useState(null)
+  const [actionError, setActionError] = useState('')
 
   useEffect(() => {
     let isCancelled = false
@@ -65,10 +67,16 @@ function AdminCategories() {
     if (validationError) return
 
     setIsAdding(true)
-    const created = await addCategory(newName.trim())
-    setCategories((current) => [...current, created])
-    setNewName('')
-    setIsAdding(false)
+    setActionError('')
+    try {
+      const created = await addCategory(newName.trim())
+      setCategories((current) => [...current, created])
+      setNewName('')
+    } catch {
+      setActionError('common.actionError')
+    } finally {
+      setIsAdding(false)
+    }
   }
 
   function startEditing(category) {
@@ -89,20 +97,32 @@ function AdminCategories() {
     if (validationError) return
 
     setActioningId(id)
-    const updated = await updateCategory(id, editingName.trim())
-    setCategories((current) =>
-      current.map((category) => (category.id === id ? updated : category)),
-    )
-    setActioningId(null)
-    cancelEditing()
+    setActionError('')
+    try {
+      const updated = await updateCategory(id, editingName.trim())
+      setCategories((current) =>
+        current.map((category) => (category.id === id ? updated : category)),
+      )
+      cancelEditing()
+    } catch {
+      setActionError('common.actionError')
+    } finally {
+      setActioningId(null)
+    }
   }
 
   async function handleDelete(id) {
     setActioningId(id)
-    await deleteCategory(id)
-    setCategories((current) => current.filter((category) => category.id !== id))
-    setActioningId(null)
-    setConfirmingDeleteId(null)
+    setActionError('')
+    try {
+      await deleteCategory(id)
+      setCategories((current) => current.filter((category) => category.id !== id))
+      setConfirmingDeleteId(null)
+    } catch {
+      setActionError('common.actionError')
+    } finally {
+      setActioningId(null)
+    }
   }
 
   const swap = {
@@ -149,6 +169,8 @@ function AdminCategories() {
           {translate(isAdding ? 'adminCategories.adding' : 'adminCategories.add')}
         </button>
       </form>
+
+      <ActionError messageKey={actionError} className="ac-error" />
 
       {isLoading && (
         <>

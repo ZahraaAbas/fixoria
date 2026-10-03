@@ -11,6 +11,7 @@ import ReviewForm from './ReviewForm'
 import { ErrorState, EmptyState } from '../components/StatusState'
 import PageHeader, { BackLink } from '../components/ui/PageHeader'
 import StatusBadge from '../components/ui/StatusBadge'
+import ActionError from '../components/ui/ActionError'
 import { Reveal } from '../components/ui/Reveal'
 import { easeOut, spring } from '../components/ui/motion'
 import './RequestDetail.css'
@@ -80,6 +81,7 @@ function RequestDetail() {
 
   const [isConfirmingCancel, setIsConfirmingCancel] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
+  const [actionError, setActionError] = useState('')
 
   const requestKey = `${id}-${attempt}`
   const [loadedFor, setLoadedFor] = useState(requestKey)
@@ -114,10 +116,16 @@ function RequestDetail() {
 
   async function handleCancel() {
     setIsCancelling(true)
-    const updated = await cancelResidentRequest(id)
-    setRequest(updated)
-    setIsCancelling(false)
-    setIsConfirmingCancel(false)
+    setActionError('')
+    try {
+      const updated = await cancelResidentRequest(id)
+      setRequest(updated)
+      setIsConfirmingCancel(false)
+    } catch {
+      setActionError('common.actionError')
+    } finally {
+      setIsCancelling(false)
+    }
   }
 
   const back = <BackLink to="/my-requests">{translate('requestDetail.backToList')}</BackLink>
@@ -247,6 +255,7 @@ function RequestDetail() {
 
           {isCancellable && (
             <div className="rd-cancel">
+              <ActionError messageKey={actionError} className="rd-cancel-error" />
               <AnimatePresence mode="wait" initial={false}>
                 {isConfirmingCancel ? (
                   <motion.div
