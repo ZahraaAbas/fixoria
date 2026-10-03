@@ -1,0 +1,129 @@
+/* عناصر مشتركة بين لوحتي المشرف والحرفي (أُضيفت مع ربط الباكند) */
+
+.dash-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dash-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dash-link-btn {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #334155;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.dash-link-btn:hover {
+  background: #f1f5f9;
+}
+
+.dash-link-btn-danger {
+  color: #dc2626;
+}
+
+.dash-alert {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dash-alert button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.dash-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dash-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.dash-list-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.dash-list-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.dash-list-sub {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.dash-list-warn {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: #b45309;
+}
+
+.dash-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.dash-btn-primary {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.dash-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.dash-chip {
+  font-size: 0.75rem;
+  border-radius: 999px;
+  padding: 3px 10px;
+  background: #f1f5f9;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.dash-chip-warn {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.dash-chip-ok {
+  background: #dcfce7;
+  color: #166534;
+}

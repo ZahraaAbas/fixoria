@@ -1,0 +1,66 @@
+/*
+ * لوحة الساكن مبنية بـ Tailwind CSS v4 (utilities فقط، بدون preflight)
+ * حتى ما تتغير ستايلات باقي صفحات التطبيق. الـ reset الضروري محصور داخل .resident-dash
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@layer base {
+  .resident-dash {
+    font-family: 'Cairo', 'Tajawal', system-ui, 'Segoe UI', Tahoma, sans-serif;
+    line-height: 1.5;
+  }
+
+  .resident-dash *,
+  .resident-dash ::before,
+  .resident-dash ::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0 solid;
+  }
+
+  .resident-dash h1,
+  .resident-dash h2,
+  .resident-dash h3 {
+    font-size: inherit;
+    font-weight: inherit;
+  }
+
+  .resident-dash ol,
+  .resident-dash ul {
+    list-style: none;
+  }
+
+  .resident-dash img {
+    display: block;
+    max-width: 100%;
+  }
+
+  .resident-dash button,
+  .resident-dash input,
+  .resident-dash select,
+  .resident-dash textarea {
+    font: inherit;
+    color: inherit;
+    background-color: transparent;
+  }
+
+  .resident-dash button {
+    cursor: pointer;
+  }
+
+  .resident-dash button:disabled {
+    cursor: default;
+  }
+
+  .resident-dash table {
+    border-collapse: collapse;
+  }
+
+  .resident-dash :focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+}
