@@ -4,6 +4,8 @@ const en = {
     loading: 'Loading…',
     comma: ', ',
     actionError: 'Something went wrong, please try again',
+    networkError: 'Could not reach the server. Check your connection and try again.',
+    close: 'Close',
   },
   nav: {
     home: 'Home',

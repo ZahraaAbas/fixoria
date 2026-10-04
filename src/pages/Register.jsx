@@ -50,7 +50,11 @@ function Register() {
       navigate('/home', { replace: true })
     } catch (error) {
       setSubmitError(
-        error.message === 'EMAIL_TAKEN' ? 'register.emailTaken' : 'register.genericError',
+        error.message === 'EMAIL_TAKEN'
+          ? 'register.emailTaken'
+          : error.message === 'NETWORK_ERROR'
+            ? 'common.networkError'
+            : 'register.genericError',
       )
     } finally {
       setIsSubmitting(false)

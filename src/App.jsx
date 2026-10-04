@@ -9,6 +9,7 @@ import GuestOrResidentOnly from './routes/GuestOrResidentOnly'
 import AmbientBackground from './components/ui/AmbientBackground'
 import PageLoader from './components/ui/PageLoader'
 import ScrollToTop from './components/ui/ScrollToTop'
+import ConnectionBanner from './components/ui/ConnectionBanner'
 import Landing from './pages/Landing'
 
 // كل الصفحات (عدا البوابة) تُحمَّل عند الحاجة فقط، فلا يحمّل الساكن مثلًا كود لوحة المشرف ورسومها البيانية
@@ -42,6 +43,7 @@ function App() {
       <BrowserRouter>
         <ScrollToTop />
         <AmbientBackground />
+        <ConnectionBanner />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Landing />} />
