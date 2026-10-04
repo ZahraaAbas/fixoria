@@ -11,6 +11,7 @@ import ReviewForm from './ReviewForm'
 import { ErrorState, EmptyState } from '../components/StatusState'
 import PageHeader, { BackLink } from '../components/ui/PageHeader'
 import StatusBadge from '../components/ui/StatusBadge'
+import MediaGallery from '../components/ui/MediaGallery'
 import ActionError from '../components/ui/ActionError'
 import { Reveal } from '../components/ui/Reveal'
 import { easeOut, spring } from '../components/ui/motion'
@@ -213,6 +214,9 @@ function RequestDetail() {
           <Reveal as="section" className="rd-card fx-card">
             <h2 className="rd-card-title">{translate('requestDetail.description')}</h2>
             <p className="rd-description">{request.description}</p>
+            {request.images.length > 0 && (
+              <MediaGallery images={request.images} label={translate('requestDetail.photos')} />
+            )}
           </Reveal>
 
           {currentStatus === 'completed' && request.myRating != null && (
