@@ -8,6 +8,7 @@ function mapArtisan(artisan) {
     rating: artisan.average_rating,
     reviewsCount: artisan.reviews_count,
     categoryNames: artisan.service_names,
+    avatar: artisan.image || null,
   }
 }
 

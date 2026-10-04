@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'motion/react'
 import { MessageSquareQuote, UserX } from 'lucide-react'
 import { translate } from '../i18n'
 import { getArtisanById } from '../services/artisansService'
+import { mediaUrl } from '../services/apiClient'
 import PeekRating from '../components/PeekRating'
 import { ErrorState, EmptyState } from '../components/StatusState'
 import { BackLink } from '../components/ui/PageHeader'
@@ -110,13 +111,13 @@ function ArtisanProfile() {
       >
         <span className="ap-hero-grid" aria-hidden="true" />
         <motion.span
-          className="ap-avatar"
+          className="ap-avatar fx-avatar"
           aria-hidden="true"
           initial={reduceMotion ? false : { scale: 0.6, rotate: -20, opacity: 0 }}
           animate={{ scale: 1, rotate: -6, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 220, damping: 16, delay: 0.2 }}
         >
-          {artisan.fullName?.charAt(0)}
+          {artisan.avatar ? <img src={mediaUrl(artisan.avatar)} alt="" /> : artisan.fullName?.charAt(0)}
         </motion.span>
 
         <div className="ap-identity">

@@ -7,6 +7,7 @@ import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
 import { RevealGroup, RevealItem } from '../components/ui/Reveal'
 import TiltCard from '../components/ui/TiltCard'
+import Avatar from '../components/ui/Avatar'
 import './Artisans.css'
 
 function Artisans() {
@@ -84,9 +85,7 @@ function Artisans() {
                 <Link to={`/artisans/${artisan.id}`} className="artisan-tile">
                   <span className="artisan-tile-glow" aria-hidden="true" />
                   <div className="artisan-tile-head">
-                    <span className="artisan-tile-avatar" aria-hidden="true">
-                      {artisan.fullName?.charAt(0)}
-                    </span>
+                    <Avatar src={artisan.avatar} name={artisan.fullName} className="artisan-tile-avatar" />
                     <div className="artisan-tile-id">
                       <p className="artisan-tile-name">{artisan.fullName}</p>
                       {artisan.reviewsCount > 0 ? (

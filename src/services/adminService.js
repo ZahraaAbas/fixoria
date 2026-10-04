@@ -10,6 +10,7 @@ function mapAdminArtisan(row) {
     bio: row.description,
     categoryNames: row.service_names,
     status: row.status,
+    avatar: row.image || null,
   }
 }
 

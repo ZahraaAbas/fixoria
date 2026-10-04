@@ -4,13 +4,14 @@ GET  /artisans          -> List/search (?specialty=, ?location=, ?service_id=, ?
 GET  /artisans/{id}     -> Details
 POST /artisans          -> Create profile (artisan role only, one profile per user) — يقبل service_ids
 PUT  /artisans/me       -> الحرفي يعدل ملفه (الاسم، الهاتف، النبذة، الخدمات)
+POST /artisans/me/image -> رفع صورة الحرفي (multipart: file)
 PUT  /artisans/{id}     -> Update profile (owner or admin)
 """
 
 from typing import List, Optional
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlmodel import Session, select
 
 from app.database import get_session
@@ -18,6 +19,7 @@ from app.models import Artisan, Review, Service, ServiceRequest, User, UserRole
 from app.schemas import ArtisanCreate, ArtisanUpdate, ArtisanRead, ReviewDetailed
 from app.auth import get_current_user, require_role
 from app.analytics import extract_building, last_n_months, month_label
+from app.storage import save_image
 from app.helpers import (
     artisan_to_read, artisans_for_service, set_artisan_services, visible_reviews_query,
 )
@@ -215,6 +217,23 @@ def update_my_profile(
     if not artisan:
         raise HTTPException(status_code=404, detail="ماكو ملف حرفي إلك بعد — سوي وحد أول")
     return _to_read(_apply_update(artisan, user, payload, session), session)
+
+
+@router.post("/me/image", response_model=ArtisanRead)
+async def upload_my_image(
+    file: UploadFile = File(...),
+    session: Session = Depends(get_session),
+    user: User = Depends(require_role(UserRole.artisan)),
+):
+    artisan = session.exec(select(Artisan).where(Artisan.user_id == user.id)).first()
+    if not artisan:
+        raise HTTPException(status_code=404, detail="ماكو ملف حرفي إلك بعد — سوي وحد أول")
+    # نفس قيود صور الساكن (النوع والحجم) عبر save_image
+    artisan.image = await save_image(file, "artisans")
+    session.add(artisan)
+    session.commit()
+    session.refresh(artisan)
+    return _to_read(artisan, session)
 
 
 @router.put("/{artisan_id}", response_model=ArtisanRead)

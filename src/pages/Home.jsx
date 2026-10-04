@@ -29,6 +29,7 @@ import { serviceVisuals, defaultServiceVisual } from '../config/serviceVisuals'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import { Reveal, RevealGroup, RevealItem } from '../components/ui/Reveal'
 import TiltCard from '../components/ui/TiltCard'
+import Avatar from '../components/ui/Avatar'
 import CountUp from '../components/ui/CountUp'
 import { easeOut, fadeUp, spring, stagger } from '../components/ui/motion'
 import heroImage from '../assets/images/background.webp'
@@ -227,9 +228,7 @@ function HeroSection({ categories, artisans, isReady }) {
         {topArtisan && (
           <motion.div className="home-hero-float home-hero-float--rating" style={{ y: parallax(floatYSlow) }}>
             <Link to={`/artisans/${topArtisan.id}`} className="hero-rating fx-glass">
-              <span className="hero-rating-avatar" aria-hidden="true">
-                {topArtisan.fullName?.charAt(0)}
-              </span>
+              <Avatar src={topArtisan.avatar} name={topArtisan.fullName} className="hero-rating-avatar" />
               <span className="hero-rating-text">
                 <span className="hero-rating-name">{topArtisan.fullName}</span>
                 <span className="hero-rating-score">
@@ -471,9 +470,7 @@ function FeaturedSection({ artisans, isLoading, error, onRetry }) {
                   <span className="featured-rank" aria-hidden="true">
                     0{index + 1}
                   </span>
-                  <span className="featured-avatar" aria-hidden="true">
-                    {artisan.fullName?.charAt(0)}
-                  </span>
+                  <Avatar src={artisan.avatar} name={artisan.fullName} className="featured-avatar" />
                   <span className="featured-name">{artisan.fullName}</span>
                   <span className="featured-categories">{artisan.categoryNames.join(translate('common.comma'))}</span>
                   {artisan.reviewsCount > 0 ? (
