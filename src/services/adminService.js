@@ -58,6 +58,7 @@ function mapAdminRequest(row) {
     apartment: row.unit_number,
     description: row.description,
     status: row.status,
+    images: row.images || [],
   }
 }
 

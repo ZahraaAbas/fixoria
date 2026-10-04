@@ -6,6 +6,7 @@ import { getRequestsForArtisan, startRequest, completeRequest } from '../service
 import { statusKey, statusTone } from '../utils/requestStatus'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
+import MediaGallery from '../components/ui/MediaGallery'
 import { RevealGroup, RevealItem } from '../components/ui/Reveal'
 import { spring } from '../components/ui/motion'
 import ActionError from '../components/ui/ActionError'
@@ -143,6 +144,9 @@ function ArtisanMyWork() {
                             </span>
                           </p>
                           <p className="mw-card-description">{request.description}</p>
+                          {request.images.length > 0 && (
+                            <MediaGallery images={request.images} label={translate('requestDetail.photos')} size="sm" />
+                          )}
                         </div>
 
                         {status === 'accepted' && (

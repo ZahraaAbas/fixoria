@@ -155,6 +155,7 @@ class RequestRead(BaseModel):
     artisan_name: Optional[str] = None
     completed_at: Optional[datetime] = None
     review: Optional[RequestReviewInfo] = None
+    images: List[str] = []  # روابط صور الضرر (/uploads/...) — نعبيها بالـ endpoint
 
     class Config:
         from_attributes = True
