@@ -36,6 +36,7 @@ const AdminReviews = lazy(() => import('./pages/AdminReviews'))
 const About = lazy(() => import('./pages/About'))
 const Contact = lazy(() => import('./pages/Contact'))
 const ArtisanDashboard = lazy(() => import('./pages/ArtisanDashboard'))
+const ResidentSettings = lazy(() => import('./pages/ResidentSettings'))
 
 function App() {
   return (
@@ -88,6 +89,14 @@ function App() {
                 element={
                   <RequireAuth role="resident">
                     <MyRequests />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <RequireAuth role="resident">
+                    <ResidentSettings />
                   </RequireAuth>
                 }
               />

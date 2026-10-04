@@ -1,6 +1,12 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 const TOKEN_KEY = 'fixoria_token'
 
+// الخادم يرجع مسارات الملفات المرفوعة نسبية (/uploads/...)، فنكملها بعنوان الخادم
+export function mediaUrl(path) {
+  if (!path) return null
+  return /^(https?:|blob:|data:)/.test(path) ? path : `${API_BASE_URL}${path}`
+}
+
 export function getToken() {
   try {
     return localStorage.getItem(TOKEN_KEY)

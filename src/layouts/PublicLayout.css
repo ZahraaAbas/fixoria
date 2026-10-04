@@ -135,6 +135,21 @@
   max-width: 220px;
 }
 
+/* اسم الساكن وصورته رابط لصفحة "ملفي" */
+.pl-user--link {
+  padding-block: 3px;
+  padding-inline: 3px 12px;
+  text-decoration: none;
+  border-radius: var(--radius-pill);
+  transition: background var(--dur-base) ease;
+}
+
+.pl-user--link:hover,
+.pl-user--link.is-active {
+  background: #fff;
+  box-shadow: var(--shadow-xs);
+}
+
 .pl-avatar {
   flex: 0 0 auto;
   display: grid;

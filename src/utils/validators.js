@@ -72,6 +72,18 @@ export function validateArtisanProfile(values) {
   })
 }
 
+export function validateResidentProfile(values) {
+  return withoutEmpty({
+    fullName: requiredError(values.fullName),
+    email: emailError(values.email),
+    phone: phoneError(values.phone),
+    // واتساب اختياري، لكن إن كُتب يجب أن يكون رقمًا صحيحًا
+    whatsapp: values.whatsapp.trim() ? phoneError(values.whatsapp) : '',
+    building: requiredError(values.building),
+    apartment: requiredError(values.apartment),
+  })
+}
+
 export function validateCategoryName(name) {
   return requiredError(name)
 }
