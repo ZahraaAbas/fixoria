@@ -59,6 +59,7 @@ function mapAdminRequest(row) {
     description: row.description,
     status: row.status,
     images: row.images || [],
+    audio: row.audio || null,
   }
 }
 

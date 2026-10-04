@@ -9,6 +9,7 @@ from sqlmodel import Session, select
 from app.models import (
     Artisan,
     ArtisanServiceLink,
+    RequestAudio,
     RequestImage,
     Review,
     Service,
@@ -119,11 +120,13 @@ def request_to_read(req: ServiceRequest, session: Session) -> RequestRead:
     artisan_user = session.get(User, artisan.user_id) if artisan else None
     review = session.exec(select(Review).where(Review.request_id == req.id)).first()
     images = session.exec(select(RequestImage).where(RequestImage.request_id == req.id)).all()
+    audio = session.exec(select(RequestAudio).where(RequestAudio.request_id == req.id)).first()
 
     data.service_name = service.name if service else None
     data.customer_name = customer.name if customer else None
     data.artisan_name = artisan_user.name if artisan_user else None
     data.images = [image.url for image in images]  # صور الضرر: تظهر للحرفي والأدمن كما للساكن
+    data.audio = audio.url if audio else None
     data.review = (
         RequestReviewInfo(id=review.id, rating=review.rating, comment=review.comment,
                           is_hidden=review.is_hidden, created_at=review.created_at)

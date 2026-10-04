@@ -7,6 +7,7 @@ import { statusKey, statusTone } from '../utils/requestStatus'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
 import MediaGallery from '../components/ui/MediaGallery'
+import AudioNote from '../components/ui/AudioNote'
 import { RevealGroup, RevealItem } from '../components/ui/Reveal'
 import { spring } from '../components/ui/motion'
 import ActionError from '../components/ui/ActionError'
@@ -147,6 +148,7 @@ function ArtisanMyWork() {
                           {request.images.length > 0 && (
                             <MediaGallery images={request.images} label={translate('requestDetail.photos')} size="sm" />
                           )}
+                          <AudioNote src={request.audio} />
                         </div>
 
                         {status === 'accepted' && (

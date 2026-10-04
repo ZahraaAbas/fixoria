@@ -155,6 +155,17 @@ class RequestImage(SQLModel, table=True):
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+# ---------- RequestAudio (وصف صوتي للمشكلة) ----------
+# جدول مستقل بدل عمود جديد بـ ServiceRequest: create_all يسويه تلقائياً بدون migration
+# للقواعد الموجودة. صوت واحد لكل طلب.
+
+class RequestAudio(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    request_id: int = Field(foreign_key="servicerequest.id", index=True)
+    url: str
+    uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 # ---------- Review ----------
 
 class Review(SQLModel, table=True):

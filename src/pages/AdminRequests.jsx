@@ -8,6 +8,7 @@ import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
 import StatusBadge from '../components/ui/StatusBadge'
 import MediaGallery from '../components/ui/MediaGallery'
+import AudioNote from '../components/ui/AudioNote'
 import { spring } from '../components/ui/motion'
 import './AdminRequests.css'
 
@@ -181,6 +182,7 @@ function AdminRequests() {
               {request.images.length > 0 && (
                 <MediaGallery images={request.images} label={translate('requestDetail.photos')} size="sm" />
               )}
+              <AudioNote src={request.audio} />
             </motion.li>
           ))}
         </ul>
