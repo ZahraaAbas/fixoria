@@ -74,7 +74,9 @@ function Login({ role }) {
       setSubmitError(
         error.message === 'INVALID_CREDENTIALS'
           ? 'login.invalidCredentials'
-          : 'login.genericError',
+          : error.message === 'NETWORK_ERROR'
+            ? 'common.networkError'
+            : 'login.genericError',
       )
     } finally {
       setIsSubmitting(false)

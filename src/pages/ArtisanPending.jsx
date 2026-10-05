@@ -3,6 +3,7 @@ import { Hourglass, LogOut, XCircle } from 'lucide-react'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
 import BrandMark from '../components/ui/BrandMark'
+import Avatar from '../components/ui/Avatar'
 import { easeOut } from '../components/ui/motion'
 import './ArtisanPending.css'
 
@@ -40,9 +41,7 @@ function ArtisanPending() {
 
         {user?.fullName && (
           <p className="pending-user">
-            <span className="pending-avatar" aria-hidden="true">
-              {user.fullName.trim().charAt(0)}
-            </span>
+            <Avatar src={user.avatar} name={user.fullName} className="pending-avatar" />
             {user.fullName}
           </p>
         )}

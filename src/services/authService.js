@@ -23,6 +23,7 @@ async function withProfile(user) {
       status: profile.status,
       rating: profile.average_rating,
       reviewsCount: profile.reviews_count,
+      avatar: profile.image || null,
     }
   }
 
@@ -33,6 +34,7 @@ async function withProfile(user) {
       phone: profile.phone,
       building: profile.building,
       apartment: profile.apartment_number,
+      avatar: profile.avatar || null,
     }
   }
 

@@ -12,6 +12,8 @@ import { LoadingState, EmptyState } from '../components/StatusState'
 import PageHeader, { BackLink } from '../components/ui/PageHeader'
 import { Reveal } from '../components/ui/Reveal'
 import { easeOut } from '../components/ui/motion'
+import PhotoPicker from '../components/ui/PhotoPicker'
+import VoiceRecorder from '../components/ui/VoiceRecorder'
 import './RequestForm.css'
 
 const STEPS = [
@@ -36,6 +38,8 @@ function RequestForm() {
     apartment: user.apartment || '',
     preferredDate: '',
   })
+  const [images, setImages] = useState([])
+  const [voiceNote, setVoiceNote] = useState(null)
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -81,6 +85,8 @@ function RequestForm() {
         categoryId: category.id,
         contactName: user.fullName,
         ...formData,
+        images,
+        audio: voiceNote,
       })
       setIsSuccess(true)
     } catch {
@@ -184,6 +190,24 @@ function RequestForm() {
               <span className="fx-error-text">{translate(errors.description)}</span>
             )}
           </label>
+
+          <div className="fx-field">
+            <span className="fx-label" id="rf-photos-label">
+              {translate('request.photosLabel')}
+            </span>
+            <div role="group" aria-labelledby="rf-photos-label">
+              <PhotoPicker files={images} onChange={setImages} />
+            </div>
+          </div>
+
+          <div className="fx-field">
+            <span className="fx-label" id="rf-voice-label">
+              {translate('request.voiceLabel')}
+            </span>
+            <div role="group" aria-labelledby="rf-voice-label">
+              <VoiceRecorder onChange={setVoiceNote} />
+            </div>
+          </div>
 
           <div className="rf-row">
             <label className="fx-field">

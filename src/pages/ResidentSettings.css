@@ -1,0 +1,74 @@
+.rs {
+  max-width: 780px;
+  margin-inline: auto;
+}
+
+.rs-card {
+  display: grid;
+  gap: var(--space-6);
+  padding: clamp(20px, 4vw, 36px);
+}
+
+.rs-section {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-5) 0 0;
+  border: 0;
+  border-top: 1px solid var(--border-soft);
+}
+
+.rs-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  float: inline-start;
+  margin-bottom: var(--space-4);
+  padding: 0;
+  font-size: var(--text-base);
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.rs-section-title + * {
+  clear: both;
+}
+
+.rs-section-title svg {
+  color: var(--orange-500);
+}
+
+.rs-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.rs-grid > .fx-field {
+  grid-column: span 6;
+}
+
+.rs-grid > .rs-half {
+  grid-column: span 3;
+}
+
+.rs-grid > .rs-third {
+  grid-column: span 2;
+}
+
+.rs-submit {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-soft);
+}
+
+@media (max-width: 560px) {
+  .rs-grid > .rs-half,
+  .rs-grid > .rs-third {
+    grid-column: span 6;
+  }
+
+  .rs-submit .fx-btn {
+    width: 100%;
+  }
+}

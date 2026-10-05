@@ -3,11 +3,13 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { AlertCircle, Check, CheckCircle2, Phone } from 'lucide-react'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
-import { updateArtisanProfile } from '../services/profileService'
+import { updateArtisanProfile, uploadArtisanImage } from '../services/profileService'
 import { getCategories } from '../services/categoriesService'
 import { validateArtisanProfile } from '../utils/validators'
 import PageHeader from '../components/ui/PageHeader'
 import { Reveal } from '../components/ui/Reveal'
+import Avatar from '../components/ui/Avatar'
+import AvatarUploader from '../components/ui/AvatarUploader'
 import './ArtisanSettings.css'
 
 function ArtisanSettings() {
@@ -35,6 +37,11 @@ function ArtisanSettings() {
       isCancelled = true
     }
   }, [])
+
+  async function handleImageUpload(file) {
+    const profile = await uploadArtisanImage(file)
+    updateUser({ avatar: profile.avatar })
+  }
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -85,6 +92,8 @@ function ArtisanSettings() {
 
       <div className="as-layout">
         <Reveal as="form" className="as-form fx-card" onSubmit={handleSubmit} noValidate>
+          <AvatarUploader src={user.avatar} name={formData.fullName || user.fullName} onUpload={handleImageUpload} />
+
           <div className="as-row">
             <label className="fx-field">
               <span className="fx-label">{translate('artisanSettings.fullName')}</span>
@@ -181,9 +190,7 @@ function ArtisanSettings() {
           <p className="as-preview-label">{translate('artisanSettings.preview')}</p>
           <div className="as-preview-card fx-card fx-card--featured">
             <div className="as-preview-head">
-              <span className="as-preview-avatar" aria-hidden="true">
-                {formData.fullName.trim().charAt(0) || '?'}
-              </span>
+              <Avatar src={user.avatar} name={formData.fullName} className="as-preview-avatar" />
               <div className="as-preview-id">
                 <p className="as-preview-name">{formData.fullName || '—'}</p>
                 {formData.phone && (

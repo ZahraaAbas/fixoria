@@ -69,7 +69,9 @@ function ArtisanRegister() {
       setSubmitError(
         error.message === 'EMAIL_TAKEN'
           ? 'artisanRegister.emailTaken'
-          : 'artisanRegister.genericError',
+          : error.message === 'NETWORK_ERROR'
+            ? 'common.networkError'
+            : 'artisanRegister.genericError',
       )
     } finally {
       setIsSubmitting(false)

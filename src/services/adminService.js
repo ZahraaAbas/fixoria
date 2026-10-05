@@ -10,6 +10,7 @@ function mapAdminArtisan(row) {
     bio: row.description,
     categoryNames: row.service_names,
     status: row.status,
+    avatar: row.image || null,
   }
 }
 
@@ -57,6 +58,8 @@ function mapAdminRequest(row) {
     apartment: row.unit_number,
     description: row.description,
     status: row.status,
+    images: row.images || [],
+    audio: row.audio || null,
   }
 }
 

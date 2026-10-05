@@ -155,6 +155,8 @@ class RequestRead(BaseModel):
     artisan_name: Optional[str] = None
     completed_at: Optional[datetime] = None
     review: Optional[RequestReviewInfo] = None
+    images: List[str] = []  # روابط صور الضرر (/uploads/...) — نعبيها بالـ endpoint
+    audio: Optional[str] = None  # رابط الوصف الصوتي — نعبيه بالـ endpoint
 
     class Config:
         from_attributes = True
@@ -343,6 +345,7 @@ class ResidentRequestDetail(ResidentRequestRow):
     contact_name: Optional[str] = None
     unit_number: Optional[str] = None
     images: List[str] = []
+    audio: Optional[str] = None  # رابط الوصف الصوتي (/uploads/...)
     my_review_comment: Optional[str] = None
 
 

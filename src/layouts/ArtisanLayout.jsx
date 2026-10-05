@@ -5,6 +5,7 @@ import { Briefcase, Inbox, LayoutDashboard, LogOut, Star, UserCog } from 'lucide
 import { translate } from '../i18n'
 import PageLoader from '../components/ui/PageLoader'
 import BrandMark from '../components/ui/BrandMark'
+import Avatar from '../components/ui/Avatar'
 import { spring } from '../components/ui/motion'
 import { useAuth } from '../hooks/useAuth'
 import './ArtisanLayout.css'
@@ -60,9 +61,7 @@ function ArtisanLayout() {
           </nav>
 
           <div className="al-user">
-            <span className="al-avatar" aria-hidden="true">
-              {user.fullName?.trim().charAt(0)}
-            </span>
+            <Avatar src={user.avatar} name={user.fullName} className="al-avatar" />
             <span className="al-user-name">{user.fullName}</span>
             <button
               type="button"

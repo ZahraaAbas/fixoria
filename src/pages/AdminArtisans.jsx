@@ -5,6 +5,7 @@ import { translate } from '../i18n'
 import { getArtisanAccounts, approveArtisan, rejectArtisan } from '../services/adminService'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
+import Avatar from '../components/ui/Avatar'
 import { RevealGroup, RevealItem } from '../components/ui/Reveal'
 import { easeOut } from '../components/ui/motion'
 import ActionError from '../components/ui/ActionError'
@@ -120,9 +121,7 @@ function AdminArtisans() {
                         exit={reduceMotion ? undefined : { opacity: 0, scale: 0.94, transition: { duration: 0.25, ease: easeOut } }}
                       >
                         <div className="aa-pending-head">
-                          <span className="aa-avatar" aria-hidden="true">
-                            {account.fullName?.trim().charAt(0)}
-                          </span>
+                          <Avatar src={account.avatar} name={account.fullName} className="aa-avatar" />
                           <div className="aa-pending-id">
                             <p className="aa-name">{account.fullName}</p>
                             <p className="aa-contact">
@@ -193,9 +192,7 @@ function AdminArtisans() {
               <RevealGroup as="ul" className="aa-table fx-card" gap={0.03}>
                 {others.map((account) => (
                   <RevealItem as="li" key={account.id} className="aa-row">
-                    <span className="aa-avatar aa-avatar--sm" aria-hidden="true">
-                      {account.fullName?.trim().charAt(0)}
-                    </span>
+                    <Avatar src={account.avatar} name={account.fullName} className="aa-avatar aa-avatar--sm" />
                     <div className="aa-row-id">
                       <p className="aa-name">{account.fullName}</p>
                       <p className="aa-row-email" dir="ltr">

@@ -5,14 +5,11 @@ import { Home, Wrench, FileText, LogIn, LogOut, Menu, X } from 'lucide-react'
 import { translate } from '../i18n'
 import PageLoader from '../components/ui/PageLoader'
 import BrandMark from '../components/ui/BrandMark'
+import Avatar from '../components/ui/Avatar'
 import { spring } from '../components/ui/motion'
 import { useAuth } from '../hooks/useAuth'
 import Footer from '../Footer'
 import './PublicLayout.css'
-
-function getInitial(name) {
-  return (name || '').trim().charAt(0) || '?'
-}
 
 function PublicLayout() {
   const { user, isAuthenticated, signOut } = useAuth()
@@ -66,12 +63,22 @@ function PublicLayout() {
 
   const userSection = isAuthenticated ? (
     <>
-      <span className="pl-user">
-        <span className="pl-avatar" aria-hidden="true">
-          {getInitial(user.fullName)}
+      {user.role === 'resident' ? (
+        <Link
+          to="/profile"
+          className={`pl-user pl-user--link ${location.pathname === '/profile' ? 'is-active' : ''}`}
+          aria-current={location.pathname === '/profile' ? 'page' : undefined}
+          title={translate('nav.profile')}
+        >
+          <Avatar src={user.avatar} name={user.fullName} className="pl-avatar" />
+          <span className="pl-user-name">{user.fullName}</span>
+        </Link>
+      ) : (
+        <span className="pl-user">
+          <Avatar src={user.avatar} name={user.fullName} className="pl-avatar" />
+          <span className="pl-user-name">{user.fullName}</span>
         </span>
-        <span className="pl-user-name">{user.fullName}</span>
-      </span>
+      )}
       <button type="button" className="fx-btn fx-btn--ghost fx-btn--sm pl-logout" onClick={signOut}>
         <LogOut size={15} aria-hidden="true" />
         {translate('nav.logout')}

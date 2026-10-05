@@ -10,6 +10,8 @@ import {
 import { formatDate } from '../utils/formatDate'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
+import MediaGallery from '../components/ui/MediaGallery'
+import AudioNote from '../components/ui/AudioNote'
 import { easeOut } from '../components/ui/motion'
 import './ArtisanRequests.css'
 
@@ -152,6 +154,10 @@ function ArtisanRequests() {
 
                   <p className="ar-title">{request.title || request.categoryName}</p>
                   <p className="ar-description">{request.description}</p>
+                  {request.images.length > 0 && (
+                    <MediaGallery images={request.images} label={translate('requestDetail.photos')} size="sm" />
+                  )}
+                  <AudioNote src={request.audio} />
 
                   <dl className="ar-location">
                     <div>

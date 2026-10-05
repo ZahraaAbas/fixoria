@@ -12,6 +12,8 @@ export function createResidentRequest({
   apartment,
   preferredDate,
   contactName,
+  images = [],
+  audio = null,
 }) {
   const form = new FormData()
   form.append('service_id', categoryId)
@@ -21,6 +23,9 @@ export function createResidentRequest({
   if (apartment) form.append('unit_number', apartment)
   if (contactName) form.append('contact_name', contactName)
   if (preferredDate) form.append('scheduled_at', new Date(preferredDate).toISOString())
+  // صور المشكلة: نفس اسم الحقل مكرر لكل صورة (images) كما يتوقع الخادم
+  images.forEach((file) => form.append('images', file))
+  if (audio) form.append('audio', audio)
 
   return apiPost('/resident/requests', form)
 }
@@ -40,6 +45,8 @@ function mapResidentRequest(row) {
     canReview: row.can_review,
     myRating: row.my_rating,
     myReviewComment: row.my_review_comment,
+    images: row.images || [],
+    audio: row.audio || null,
   }
 }
 
@@ -99,6 +106,8 @@ function mapArtisanRequest(row) {
     progress: row.progress,
     customerName: row.customer_name,
     createdAt: row.created_at,
+    images: row.images || [],
+    audio: row.audio || null,
   }
 }
 

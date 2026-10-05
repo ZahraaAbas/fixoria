@@ -15,7 +15,7 @@ GET  /resident/service-categories             -> كل خدمة + عدد الحر
 GET  /resident/services/{service_id}/artisans -> "عرض المزيد": كل حرفيي الخدمة
 
 طلب خدمة جديدة (multipart/form-data):
-POST /resident/requests                       -> نوع الخدمة، صور الضرر، اسمك، رقم الوحدة، الوقت المناسب،
+POST /resident/requests                       -> نوع الخدمة، صور الضرر، وصف صوتي (audio)، اسمك، رقم الوحدة، الوقت المناسب،
                                                  الحرفي المفضل (للمشتركين فقط)
 POST /resident/requests/{id}/images           -> إضافة صور لطلب موجود
 POST /resident/requests/{id}/cancel           -> إلغاء طلب (بانتظار القبول أو مقبول فقط)
@@ -54,6 +54,7 @@ from app.models import (
     Complaint,
     Notification,
     NotificationType,
+    RequestAudio,
     RequestImage,
     RequestStatus,
     ResidentProfile,
@@ -81,7 +82,7 @@ from app.schemas import (
     ReviewDetailed,
     ServiceCategory,
 )
-from app.storage import save_image
+from app.storage import read_audio, save_audio_content, save_image
 
 router = APIRouter(prefix="/resident", tags=["Resident Dashboard"])
 
@@ -427,6 +428,7 @@ async def create_resident_request(
     preferred_artisan_id: Optional[int] = Form(None),
     building: Optional[str] = Form(None),
     images: Optional[List[UploadFile]] = File(None),
+    audio: Optional[UploadFile] = File(None),
     session: Session = Depends(get_session),
     user: User = Depends(resident_only),
 ):
@@ -437,6 +439,9 @@ async def create_resident_request(
     images = [f for f in (images or []) if f and f.filename]
     if len(images) > MAX_IMAGES_PER_REQUEST:
         raise HTTPException(status_code=400, detail=f"الحد الأقصى {MAX_IMAGES_PER_REQUEST} صور")
+
+    # الصوت يُتحقق منه قبل إنشاء الطلب، حتى لا يبقى طلب ناقص إذا كان الملف مرفوضاً
+    audio_file = await read_audio(audio) if audio and audio.filename else None
 
     if scheduled_at and scheduled_at.tzinfo is not None:
         # نخزن كل الأوقات naive UTC (نفس created_at)
@@ -481,6 +486,10 @@ async def create_resident_request(
     for f in images:
         url = await save_image(f, f"requests/{req.id}")
         session.add(RequestImage(request_id=req.id, url=url))
+
+    if audio_file:
+        content, ext = audio_file
+        session.add(RequestAudio(request_id=req.id, url=save_audio_content(content, ext, f"requests/{req.id}")))
 
     if artisan:
         artisan_user = session.get(User, artisan.user_id)
@@ -586,6 +595,7 @@ def get_request_detail(
     req = _get_my_request(request_id, session, user)
     my_reviews = _my_reviews_by_request(session, user)
     images = session.exec(select(RequestImage).where(RequestImage.request_id == req.id)).all()
+    audio = session.exec(select(RequestAudio).where(RequestAudio.request_id == req.id)).first()
     review = my_reviews.get(req.id)
     return _request_row(
         req, session, my_reviews, cls=ResidentRequestDetail,
@@ -593,6 +603,7 @@ def get_request_detail(
         location=req.location,
         contact_name=req.contact_name,
         images=[i.url for i in images],
+        audio=audio.url if audio else None,
         my_review_comment=review.comment if review else None,
     )
 

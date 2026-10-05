@@ -1,6 +1,12 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 const TOKEN_KEY = 'fixoria_token'
 
+// الخادم يرجع مسارات الملفات المرفوعة نسبية (/uploads/...)، فنكملها بعنوان الخادم
+export function mediaUrl(path) {
+  if (!path) return null
+  return /^(https?:|blob:|data:)/.test(path) ? path : `${API_BASE_URL}${path}`
+}
+
 export function getToken() {
   try {
     return localStorage.getItem(TOKEN_KEY)
@@ -21,6 +27,25 @@ export function setToken(token) {
   }
 }
 
+// حالة الاتصال بالخادم: تُبلَّغ بها الواجهة (شريط "تعذّر الاتصال") عند تغيّرها فقط
+const connectionListeners = new Set()
+let isServerReachable = true
+
+function setServerReachable(reachable) {
+  if (reachable === isServerReachable) return
+  isServerReachable = reachable
+  connectionListeners.forEach((listener) => listener(reachable))
+}
+
+export function isServerReachableNow() {
+  return isServerReachable
+}
+
+export function onConnectionChange(listener) {
+  connectionListeners.add(listener)
+  return () => connectionListeners.delete(listener)
+}
+
 async function request(path, { method = 'GET', body, auth = true } = {}) {
   const isFormData = body instanceof FormData
   const headers = isFormData ? {} : { 'Content-Type': 'application/json' }
@@ -29,11 +54,20 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
     if (token) headers.Authorization = `Bearer ${token}`
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers,
-    body: isFormData ? body : body ? JSON.stringify(body) : undefined,
-  })
+  let response
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method,
+      headers,
+      body: isFormData ? body : body ? JSON.stringify(body) : undefined,
+    })
+  } catch (cause) {
+    // fetch يفشل فقط عندما لا يصل الطلب للخادم (الخادم طافٍ أو لا يوجد إنترنت)
+    setServerReachable(false)
+    throw new Error('NETWORK_ERROR', { cause })
+  }
+
+  setServerReachable(true)
 
   if (!response.ok) {
     let detail = ''
