@@ -7,6 +7,7 @@ import { formatDate } from '../utils/formatDate'
 import { statusTone } from '../utils/requestStatus'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
+import AiAssistantButton from '../components/ui/AiAssistantButton'
 import StatusBadge from '../components/ui/StatusBadge'
 import { RevealGroup, RevealItem } from '../components/ui/Reveal'
 import './MyRequests.css'
@@ -55,10 +56,13 @@ function MyRequests() {
           ) : null
         }
         actions={
-          <Link to="/home" className="fx-btn fx-btn--primary">
-            <Plus size={17} aria-hidden="true" />
-            {translate('home.heroPrimary')}
-          </Link>
+          <>
+            <AiAssistantButton size={17} />
+            <Link to="/home" className="fx-btn fx-btn--primary">
+              <Plus size={17} aria-hidden="true" />
+              {translate('home.heroPrimary')}
+            </Link>
+          </>
         }
       />
 

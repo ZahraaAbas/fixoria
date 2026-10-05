@@ -31,6 +31,7 @@ import { Reveal, RevealGroup, RevealItem } from '../components/ui/Reveal'
 import TiltCard from '../components/ui/TiltCard'
 import Avatar from '../components/ui/Avatar'
 import CountUp from '../components/ui/CountUp'
+import AiAssistantButton from '../components/ui/AiAssistantButton'
 import { easeOut, fadeUp, spring, stagger } from '../components/ui/motion'
 import heroImage from '../assets/images/background.webp'
 import './Home.css'
@@ -184,6 +185,7 @@ function HeroSection({ categories, artisans, isReady }) {
             {translate('home.heroPrimary')}
             <ArrowLeft size={18} aria-hidden="true" className="icon-forward" />
           </a>
+          <AiAssistantButton className="fx-btn fx-btn--dark fx-btn--lg" />
           <Link to="/artisans" className="fx-btn fx-btn--secondary fx-btn--lg">
             <Users size={18} aria-hidden="true" />
             {translate('home.heroSecondary')}
