@@ -5,7 +5,7 @@ Schemas — شكل الـ input/output للـ API، منفصلة عن موديل
 
 from datetime import datetime
 from typing import Dict, List, Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 from app.models import UserRole
 
@@ -416,3 +416,36 @@ class ResidentDashboard(BaseModel):
     history: List[ResidentRequestRow]
     ratings_summary: RatingsSummary
     pending_review: Optional[PendingReview] = None
+
+
+# ---------- AI Service Assistant (المساعد الذكي لطلب الخدمة) ----------
+# منقولة كما هي من فرع BackendChatbot
+
+class AIChatTurn(BaseModel):
+    """رسالة سابقة من المحادثة (حتى يفهم المساعد الردود المكملة مثل: \"باجر الساعة 5\")."""
+
+    role: str = Field(pattern="^(user|assistant)$")
+    content: str = Field(max_length=1000)
+
+
+class AIServiceRequestInput(BaseModel):
+    message: str = Field(min_length=2, max_length=1000)
+    history: List[AIChatTurn] = Field(default_factory=list, max_length=10)
+
+
+class AIRequestDraft(BaseModel):
+    """مسودة الطلب بعد تحقق الباكند — ما تنحفظ بقاعدة البيانات، الساكن يراجعها ويؤكدها أول."""
+
+    service_id: int
+    service_name: str
+    problem: str
+    priority: str  # normal / urgent
+    preferred_time: Optional[str] = None  # ISO محلي (بغداد) مثل 2026-10-01T17:00
+    additional_details: List[str] = []
+    confidence: float
+
+
+class AIServiceRequestOutput(BaseModel):
+    status: str  # ready = المسودة جاهزة للتأكيد | needs_clarification = نحتاج توضيح من الساكن
+    assistant_message: str
+    request: Optional[AIRequestDraft] = None

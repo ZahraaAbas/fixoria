@@ -19,6 +19,7 @@ from app.routers import (
     admin_router,
     resident_router,
     notifications_router,
+    ai_router,
 )
 from app.storage import UPLOAD_DIR
 
@@ -52,6 +53,7 @@ app.include_router(reviews_router.router)
 app.include_router(admin_router.router)
 app.include_router(resident_router.router)
 app.include_router(notifications_router.router)
+app.include_router(ai_router.router)
 
 # صور الضرر وصور الملفات الشخصية: /uploads/...
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
