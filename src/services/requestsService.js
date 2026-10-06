@@ -1,10 +1,11 @@
 import { apiGet, apiPost, apiPut } from './apiClient'
+import { shrinkImage } from '../utils/files'
 
 const STORAGE_KEY = 'fixoria_requests'
 const MOCK_DELAY_MS = 600
 
 // تقديم طلب حقيقي عبر الباكند (POST /resident/requests). باقي هذا الملف لسا وهمي (Mock) لحين ننقله بخطوات لاحقة.
-export function createResidentRequest({
+export async function createResidentRequest({
   categoryId,
   title,
   description,
@@ -24,7 +25,8 @@ export function createResidentRequest({
   if (contactName) form.append('contact_name', contactName)
   if (preferredDate) form.append('scheduled_at', new Date(preferredDate).toISOString())
   // صور المشكلة: نفس اسم الحقل مكرر لكل صورة (images) كما يتوقع الخادم
-  images.forEach((file) => form.append('images', file))
+  const shrunk = await Promise.all(images.map(shrinkImage))
+  shrunk.forEach((file) => form.append('images', file))
   if (audio) form.append('audio', audio)
 
   return apiPost('/resident/requests', form)

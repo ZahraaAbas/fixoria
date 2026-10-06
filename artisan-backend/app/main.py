@@ -5,6 +5,8 @@
 بعدها Swagger docs على: http://127.0.0.1:8000/docs
 """
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -21,7 +23,7 @@ from app.routers import (
     notifications_router,
     ai_router,
 )
-from app.storage import UPLOAD_DIR
+from app.storage import UPLOAD_DIR, USE_BLOB
 
 app = FastAPI(title="Artisan Management API", version="0.2.0")
 
@@ -35,9 +37,23 @@ app.add_middleware(
 )
 
 
+def prepare_database():
+    create_db_and_tables()
+    # على السيرفر نعبي البيانات التجريبية مرة وحدة (seed ما يكرر إذا القاعدة بيها بيانات)
+    if os.getenv("SEED_DEMO_DATA") == "1":
+        from scripts.seed import seed
+
+        seed()
+
+
 @app.on_event("startup")
 def on_startup():
-    create_db_and_tables()
+    prepare_database()
+
+
+# Vercel يشغّل التطبيق كـ function وما نضمن يشغّل حدث startup، فنجهز القاعدة وقت التحميل
+if os.getenv("VERCEL"):
+    prepare_database()
 
 
 @app.get("/")
@@ -55,5 +71,6 @@ app.include_router(resident_router.router)
 app.include_router(notifications_router.router)
 app.include_router(ai_router.router)
 
-# صور الضرر وصور الملفات الشخصية: /uploads/...
-app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+# صور الضرر وصور الملفات الشخصية: /uploads/... (محلياً فقط، على Vercel تنخدم من Blob مباشرة)
+if not USE_BLOB:
+    app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")

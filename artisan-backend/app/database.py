@@ -1,6 +1,6 @@
 """
-اتصال قاعدة البيانات — SQLite عن طريق SQLModel.
-Day 1: بس نجهز الـ engine والـ session، الموديلز بملف models.py
+اتصال قاعدة البيانات عن طريق SQLModel.
+محلياً SQLite (artisan.db)، وعلى السيرفر PostgreSQL عن طريق DATABASE_URL.
 """
 
 import os
@@ -10,11 +10,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./artisan.db")
+# بعض الاستضافات تنطي الرابط بصيغة postgres:// القديمة، و SQLAlchemy يقبل بس postgresql://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
 
 # check_same_thread=False مطلوب بس مع SQLite عشان FastAPI يقدر يستخدم نفس
 # الاتصال من أكثر من thread (التطوير المحلي فقط، مو مشكلة بالـ deployment الحقيقي).
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(DATABASE_URL, echo=False, connect_args=connect_args)
+# pool_pre_ping: قواعد PostgreSQL المستضافة تسد الاتصالات الخاملة، فنتأكد من الاتصال قبل كل استخدام
+engine = create_engine(DATABASE_URL, echo=False, connect_args=connect_args, pool_pre_ping=True)
 
 
 def create_db_and_tables() -> None:

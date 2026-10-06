@@ -1,12 +1,18 @@
 """
-تخزين الملفات المرفوعة (صور الضرر + صورة الملف الشخصي) على القرص المحلي.
-تنخدم عبر /uploads/... (مسجلة بـ main.py كـ StaticFiles).
+تخزين الملفات المرفوعة (صور الضرر + صور الملفات الشخصية + الوصف الصوتي).
 
-للـ deployment الحقيقي الأفضل تنقلونها لـ S3 أو ما يشبهه — بس الواجهة (save_image)
-تبقى نفسها فالتغيير يصير بهذا الملف بس.
+- محلياً: على القرص بمجلد UPLOAD_DIR، وتنخدم عبر /uploads/... (مسجلة بـ main.py كـ StaticFiles).
+- على Vercel: القرص للقراءة فقط، فإذا BLOB_READ_WRITE_TOKEN موجود (يضيفه Vercel تلقائياً لما
+  نربط Blob store بالمشروع) الملفات تنرفع لـ Vercel Blob ونخزن رابطها الكامل (https://...).
+
+الواجهة تتعامل ويه الاثنين: mediaUrl() بالفرونت يكمل الروابط النسبية ويترك الكاملة مثل ما هي.
 """
 
+import json
 import os
+import urllib.error
+import urllib.parse
+import urllib.request
 import uuid
 
 from dotenv import load_dotenv
@@ -15,6 +21,12 @@ from fastapi import HTTPException, UploadFile
 load_dotenv()
 
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "./uploads")
+BLOB_TOKEN = os.getenv("BLOB_READ_WRITE_TOKEN")
+USE_BLOB = bool(BLOB_TOKEN)
+# نفس العنوان والإصدار اللي تستخدمها مكتبة Vercel الرسمية (@vercel/blob)
+BLOB_API_URL = os.getenv("VERCEL_BLOB_API_URL", "https://vercel.com/api/blob")
+BLOB_API_VERSION = "11"
+
 MAX_IMAGE_BYTES = 5 * 1024 * 1024  # 5MB لكل صورة
 ALLOWED_TYPES = {
     "image/jpeg": ".jpg",
@@ -23,7 +35,8 @@ ALLOWED_TYPES = {
     "image/heic": ".heic",
 }
 
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+if not USE_BLOB:
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024  # 10MB للوصف الصوتي (دقيقتان تقريباً تكفي بحجم أقل بكثير)
@@ -37,12 +50,41 @@ ALLOWED_AUDIO_TYPES = {
     "audio/wav": ".wav",
     "audio/x-wav": ".wav",
 }
+# الامتداد -> النوع، لملفات الصوت اللي ننطيها لـ Blob (أول نوع لكل امتداد)
+AUDIO_TYPE_BY_EXT = {}
+for _type, _ext in ALLOWED_AUDIO_TYPES.items():
+    AUDIO_TYPE_BY_EXT.setdefault(_ext, _type)
 
 
-def _write_file(content: bytes, ext: str, subfolder: str) -> str:
+def _put_blob(content: bytes, pathname: str, content_type: str) -> str:
+    """يرفع الملف لـ Vercel Blob (وصول عام) ويرجع رابطه الكامل."""
+    request = urllib.request.Request(
+        f"{BLOB_API_URL}/?{urllib.parse.urlencode({'pathname': pathname})}",
+        data=content,
+        method="PUT",
+        headers={
+            "authorization": f"Bearer {BLOB_TOKEN}",
+            "x-api-version": BLOB_API_VERSION,
+            "x-content-type": content_type,
+            "x-add-random-suffix": "0",  # الاسم أصلاً uuid
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            return json.loads(response.read())["url"]
+    except (urllib.error.URLError, KeyError, ValueError) as error:
+        print(f"[storage] Blob upload failed for {pathname}: {error}")
+        raise HTTPException(status_code=502, detail="تعذّر حفظ الملف، حاول مرة أخرى")
+
+
+def _write_file(content: bytes, ext: str, subfolder: str, content_type: str) -> str:
+    """يحفظ الملف ويرجع رابطه: /uploads/... محلياً، أو https://... على Blob."""
+    name = f"{uuid.uuid4().hex}{ext}"
+    if USE_BLOB:
+        return _put_blob(content, f"uploads/{subfolder}/{name}", content_type)
+
     folder = os.path.join(UPLOAD_DIR, subfolder)
     os.makedirs(folder, exist_ok=True)
-    name = f"{uuid.uuid4().hex}{ext}"
     with open(os.path.join(folder, name), "wb") as f:
         f.write(content)
     return f"/uploads/{subfolder}/{name}"
@@ -65,12 +107,12 @@ async def read_audio(file: UploadFile) -> tuple:
 
 
 def save_audio_content(content: bytes, ext: str, subfolder: str) -> str:
-    """يحفظ صوتاً سبق التحقق منه بـ read_audio ويرجع الرابط النسبي."""
-    return _write_file(content, ext, subfolder)
+    """يحفظ صوتاً سبق التحقق منه بـ read_audio ويرجع رابطه."""
+    return _write_file(content, ext, subfolder, AUDIO_TYPE_BY_EXT[ext])
 
 
 async def save_image(file: UploadFile, subfolder: str) -> str:
-    """يحفظ الصورة ويرجع الرابط النسبي (/uploads/<subfolder>/<name>)."""
+    """يحفظ الصورة ويرجع رابطها (/uploads/<subfolder>/<name> محلياً)."""
     ext = ALLOWED_TYPES.get(file.content_type or "")
     if not ext:
         raise HTTPException(status_code=400, detail="نوع الملف غير مدعوم — ارفع صورة (jpg/png/webp/heic)")
@@ -81,10 +123,4 @@ async def save_image(file: UploadFile, subfolder: str) -> str:
     if not content:
         raise HTTPException(status_code=400, detail="الملف فارغ")
 
-    folder = os.path.join(UPLOAD_DIR, subfolder)
-    os.makedirs(folder, exist_ok=True)
-    name = f"{uuid.uuid4().hex}{ext}"
-    with open(os.path.join(folder, name), "wb") as f:
-        f.write(content)
-
-    return f"/uploads/{subfolder}/{name}"
+    return _write_file(content, ext, subfolder, file.content_type)
