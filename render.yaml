@@ -5,7 +5,15 @@ services:
     plan: free
     rootDir: artisan-backend
     buildCommand: "pip install -r requirements.txt"
+    # seed ما يكرر البيانات: إذا القاعدة بيها مستخدمين يطلع بدون ما يغير شي
     startCommand: "python -m scripts.seed; uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      # رابط قاعدة PostgreSQL (من Neon)، ينكتب يدوياً بلوحة Render. بدونه البيانات تنمسح بكل إعادة تشغيل
+      - key: DATABASE_URL
+        sync: false
+      # مفتاح توقيع تسجيل الدخول، Render يولده تلقائياً
+      - key: SECRET_KEY
+        generateValue: true
