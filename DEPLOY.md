@@ -1,41 +1,49 @@
-# رفع "سبع صنايع" على الإنترنت
+# رفع "سبع صنايع" على Vercel
 
-الموقع جزئين:
+كل شي على Vercel، بمشروعين:
 
-| الجزء | المكان | الرابط |
+| الجزء | مشروع Vercel | الرابط |
 | --- | --- | --- |
-| الواجهة (React) | Vercel، مشروع `fixoria-vxo8` | https://fixoria-vxo8.vercel.app |
-| الخادم (FastAPI) | Render، خدمة `fixoria-backend` | يطلع بعد الخطوة 2 |
-| قاعدة البيانات (PostgreSQL) | Neon | رابط سري، ما ينحط بالكود |
+| الواجهة (React) | `fixoria-vxo8` | https://fixoria-vxo8.vercel.app |
+| الخادم (FastAPI، مجلد `artisan-backend`) | `fixoria` | https://fixoria-ten.vercel.app |
+| قاعدة البيانات (PostgreSQL) | Neon، مربوطة بمشروع `fixoria` | |
+| الصور والتسجيلات الصوتية | Vercel Blob، مربوط بمشروع `fixoria` | |
 
-> Vercel ما يصلح للخادم: الخادم يحفظ ملفات (قاعدة البيانات والصور) و Vercel ما يسمح بالكتابة على القرص.
+> على Vercel الخادم ما يگدر يكتب ملفات على القرص، لهذا قاعدة البيانات بـ Neon والملفات بـ Blob.
+> محلياً ما تغير شي: بدون هاي الإعدادات الخادم يستخدم `artisan.db` ومجلد `uploads` مثل قبل.
 
-## 1) قاعدة البيانات على Neon
+## 1) قاعدة البيانات (مرة وحدة)
 
-1. سجلي بـ https://neon.tech وسوي مشروع جديد. المنطقة الأقرب: **Frankfurt (eu-central-1)**.
-2. من **Connection string** انسخي الرابط (يبدي بـ `postgresql://`). هذا الرابط سري: لا ترفعيه على GitHub ولا تدزيه بمجموعات.
+مشروع `fixoria` → **Storage → Create Database → Neon (Postgres)**:
+- المنطقة: **US East (N. Virginia)** حتى تكون جنب الخادم (Vercel يشغّل الخادم بواشنطن افتراضياً).
+- اربطيها بالمشروع لبيئات **Production** و **Preview**. Vercel يضيف `DATABASE_URL` تلقائياً.
 
-## 2) الخادم على Render
+## 2) تخزين الملفات (مرة وحدة)
 
-1. سجلي بـ https://render.com بحساب GitHub.
-2. **New → Blueprint** واختاري المستودع `ZahraaAbas/fixoria`. Render يقرأ ملف `render.yaml` لحاله.
-3. يطلب `DATABASE_URL`: الصقي رابط Neon. (`SECRET_KEY` يتولد تلقائياً.)
-4. **Apply** وانتظري لحد ما تصير الحالة **Live**. أول تشغيل يعبي البيانات التجريبية تلقائياً.
-5. انسخي رابط الخدمة (مثل `https://fixoria-backend-xxxx.onrender.com`) وافتحيه: لازم يطلع رد JSON.
+مشروع `fixoria` → **Storage → Create → Blob**:
+- نوع الوصول: **Public** (حتى الصور تفتح بالموقع).
+- اربطيه بنفس المشروع. Vercel يضيف `BLOB_READ_WRITE_TOKEN` تلقائياً.
 
-## 3) ربط الواجهة بالخادم على Vercel
+## 3) متغيرات الخادم
 
-1. مشروع `fixoria-vxo8` → **Settings → Environment Variables**.
-2. أضيفي `VITE_API_BASE_URL` = رابط Render (بدون `/` بالنهاية) لبيئة **Production** و **Preview**.
-3. **Deployments** → آخر نشر → **Redeploy**. (المتغير ينقرأ وقت البناء، فلازم إعادة نشر.)
+مشروع `fixoria` → **Settings → Environment Variables**:
 
-## ملاحظات الخطة المجانية
+| المتغير | القيمة |
+| --- | --- |
+| `SECRET_KEY` | نص عشوائي طويل. ولّديه بـ `python -c "import secrets; print(secrets.token_urlsafe(48))"` |
+| `SEED_DEMO_DATA` | `1` (يعبي البيانات التجريبية أول مرة فقط، وما يكررها) |
+| `AI_PROVIDER` / `AI_API_KEY` / `AI_MODEL` | اختياري. بدونها المساعد الذكي يشتغل بالمحلل المحلي |
 
-- الخادم **ينام بعد 15 دقيقة** بدون استخدام. أول فتحة بعدها تاخذ حوالي دقيقة.
-- **الصور والتسجيلات الصوتية تنمسح** كل ما يعيد الخادم تشغيله أو ينرفع تحديث. البيانات (الحسابات والطلبات) تبقى لأنها بـ Neon. الحل الدائم: خدمة تخزين ملفات (مثل Cloudinary أو S3) وتحتاج تعديل بالخادم.
-- الحسابات التجريبية (`admin@demo.com` وغيرها) كلمة سرها معروفة بالكود. أي شخص يكدر يدخل كمشرف، فلا تستخدمونها لبيانات حقيقية.
+بعدها **Deployments → آخر نشر → Redeploy**. افتحي https://fixoria-ten.vercel.app ولازم يطلع `{"status":"ok", ...}`.
 
-## التشغيل المحلي (بدون تغيير)
+## 4) ربط الواجهة بالخادم
 
-بدون `DATABASE_URL` الخادم يستخدم ملف `artisan.db` (SQLite) مثل قبل، والواجهة تتصل بـ `http://127.0.0.1:8000`.
-بعد السحب نصبوا المكتبة الجديدة: `pip install -r requirements.txt` داخل `artisan-backend`.
+مشروع `fixoria-vxo8` → **Settings → Environment Variables**:
+- `VITE_API_BASE_URL` = `https://fixoria-ten.vercel.app` (بدون `/` بالنهاية) لـ **Production** و **Preview**.
+- **Redeploy** (المتغير ينقرأ وقت البناء، فلازم إعادة نشر).
+
+## ملاحظات
+
+- الصور تتصغر بالمتصفح قبل الرفع (1600px)، لأن Vercel يرفض أي طلب أكبر من 4.5MB.
+- الحسابات التجريبية (`admin@demo.com` وغيرها) كلمة سرها معروفة بالكود. أي شخص يگدر يدخل كمشرف، فلا تحطون بيانات حقيقية.
+- بعد سحب التحديث محلياً: `pip install -r requirements.txt` داخل `artisan-backend` (مكتبة PostgreSQL الجديدة).

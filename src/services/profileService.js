@@ -1,4 +1,5 @@
 import { apiGet, apiPost, apiPut } from './apiClient'
+import { shrinkImage } from '../utils/files'
 
 function mapArtisanProfile(row) {
   return {
@@ -27,7 +28,7 @@ export async function updateArtisanProfile({ fullName, phone, bio, categoryIds }
 // رفع صورة الحرفي (POST /artisans/me/image)
 export async function uploadArtisanImage(file) {
   const form = new FormData()
-  form.append('file', file)
+  form.append('file', await shrinkImage(file))
   const row = await apiPost('/artisans/me/image', form)
   return mapArtisanProfile(row)
 }
@@ -74,6 +75,6 @@ export async function updateResidentProfile(values) {
 // رفع صورة الساكن (POST /resident/me/avatar)
 export async function uploadResidentAvatar(file) {
   const form = new FormData()
-  form.append('file', file)
+  form.append('file', await shrinkImage(file))
   return mapResidentProfile(await apiPost('/resident/me/avatar', form))
 }
