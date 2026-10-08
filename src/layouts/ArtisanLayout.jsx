@@ -6,6 +6,7 @@ import { translate } from '../i18n'
 import PageLoader from '../components/ui/PageLoader'
 import BrandMark from '../components/ui/BrandMark'
 import Avatar from '../components/ui/Avatar'
+import NotificationBell from '../components/ui/NotificationBell'
 import { spring } from '../components/ui/motion'
 import { useAuth } from '../hooks/useAuth'
 import './ArtisanLayout.css'
@@ -61,6 +62,7 @@ function ArtisanLayout() {
           </nav>
 
           <div className="al-user">
+            <NotificationBell className="nb-button--dark" />
             <Avatar src={user.avatar} name={user.fullName} className="al-avatar" />
             <span className="al-user-name">{user.fullName}</span>
             <button

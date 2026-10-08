@@ -5,6 +5,7 @@ import { ClipboardList, LayoutDashboard, LayoutGrid, LogOut, Menu, Star, Users, 
 import { translate } from '../i18n'
 import PageLoader from '../components/ui/PageLoader'
 import BrandMark from '../components/ui/BrandMark'
+import NotificationBell from '../components/ui/NotificationBell'
 import { spring } from '../components/ui/motion'
 import { useAuth } from '../hooks/useAuth'
 import './AdminLayout.css'
@@ -58,16 +59,19 @@ function AdminLayout() {
         <Link to="/admin/dashboard" aria-label={translate('common.brand')}>
           <BrandMark tone="light" />
         </Link>
-        <button
-          type="button"
-          className="adm-icon-button"
-          aria-label={translate(isOpen ? 'nav.closeMenu' : 'nav.openMenu')}
-          aria-expanded={isOpen}
-          aria-controls="adm-sidebar"
-          onClick={() => setIsOpen((open) => !open)}
-        >
-          <Menu size={20} aria-hidden="true" />
-        </button>
+        <div className="adm-actions">
+          <NotificationBell className="adm-icon-button" />
+          <button
+            type="button"
+            className="adm-icon-button"
+            aria-label={translate(isOpen ? 'nav.closeMenu' : 'nav.openMenu')}
+            aria-expanded={isOpen}
+            aria-controls="adm-sidebar"
+            onClick={() => setIsOpen((open) => !open)}
+          >
+            <Menu size={20} aria-hidden="true" />
+          </button>
+        </div>
       </header>
 
       <AnimatePresence>
@@ -89,14 +93,17 @@ function AdminLayout() {
           <Link to="/admin/dashboard" className="adm-brand" aria-label={translate('common.brand')}>
             <BrandMark tone="light" />
           </Link>
-          <button
-            type="button"
-            className="adm-icon-button adm-close"
-            aria-label={translate('nav.closeMenu')}
-            onClick={() => setIsOpen(false)}
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
+          <div className="adm-actions">
+            <NotificationBell className="adm-icon-button adm-sidebar-bell" />
+            <button
+              type="button"
+              className="adm-icon-button adm-close"
+              aria-label={translate('nav.closeMenu')}
+              onClick={() => setIsOpen(false)}
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          </div>
         </div>
 
         <p className="adm-console">

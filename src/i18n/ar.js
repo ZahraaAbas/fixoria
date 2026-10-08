@@ -528,6 +528,27 @@ const ar = {
     viewInMyWork: 'عرض في أعمالي ←',
     activityTitle: 'نشاطي خلال آخر 6 أشهر',
   },
+  notifications: {
+    title: 'الإشعارات',
+    titleWithCount: 'الإشعارات ({count} غير مقروءة)',
+    markAllRead: 'تحديد الكل كمقروء',
+    unread: 'غير مقروء',
+    justNow: 'الآن',
+    empty: 'لا توجد إشعارات',
+    emptyHint: 'ستظهر هنا التحديثات الجديدة.',
+    loadError: 'تعذّر تحميل الإشعارات',
+    retry: 'إعادة المحاولة',
+    types: {
+      request_received: 'تم استلام طلبك رقم #{id}',
+      request_assigned: 'تم تحويل طلبك رقم #{id} لحرفي',
+      request_accepted: 'تم قبول طلبك رقم #{id}',
+      request_rejected: 'تم رفض طلبك رقم #{id}',
+      request_in_progress: 'طلبك رقم #{id} قيد التنفيذ',
+      request_completed: 'تم إكمال طلبك رقم #{id}',
+      request_cancelled: 'الساكن ألغى الطلب رقم #{id}',
+      new_request: 'طلب جديد رقم #{id}',
+    },
+  },
 }
 
 export default ar

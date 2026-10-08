@@ -180,6 +180,16 @@
   font-weight: 700;
 }
 
+.adm-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-icon-button .nb-badge {
+  border-color: var(--navy-900);
+}
+
 .adm-icon-button {
   flex: 0 0 auto;
   display: grid;
@@ -228,6 +238,11 @@
 }
 
 @media (max-width: 960px) {
+  /* بالجوال الجرس بالشريط العلوي، فنخفي نسخة السايدبار */
+  .adm-sidebar-bell {
+    display: none;
+  }
+
   .adm-topbar {
     position: sticky;
     top: 0;
