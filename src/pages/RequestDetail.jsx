@@ -5,7 +5,7 @@ import { AlertTriangle, Ban, Building2, CalendarDays, Check, DoorOpen, FileQuest
 import { translate } from '../i18n'
 import { getResidentRequestById, cancelResidentRequest } from '../services/requestsService'
 import { statusKey, CANCELLABLE_STATUSES } from '../utils/requestStatus'
-import { formatDate } from '../utils/formatDate'
+import { formatDateTime } from '../utils/formatDate'
 import PeekRating from '../components/PeekRating'
 import ReviewForm from './ReviewForm'
 import { ErrorState, EmptyState } from '../components/StatusState'
@@ -176,7 +176,7 @@ function RequestDetail() {
     { key: 'building', Icon: Building2, value: request.building },
     { key: 'apartment', Icon: DoorOpen, value: request.apartment },
     ...(request.preferredDate
-      ? [{ key: 'preferredDate', Icon: CalendarDays, value: formatDate(request.preferredDate) }]
+      ? [{ key: 'preferredDate', Icon: CalendarDays, value: formatDateTime(request.preferredDate) }]
       : []),
   ]
 

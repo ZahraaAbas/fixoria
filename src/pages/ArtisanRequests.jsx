@@ -7,7 +7,7 @@ import {
   acceptRequest,
   dismissRequestForArtisan,
 } from '../services/requestsService'
-import { formatDate } from '../utils/formatDate'
+import { formatDateTime } from '../utils/formatDate'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
 import MediaGallery from '../components/ui/MediaGallery'
@@ -147,7 +147,7 @@ function ArtisanRequests() {
                       <span className="ar-date">
                         <CalendarDays size={14} aria-hidden="true" />
                         <span className="sr-only">{translate('artisanRequests.preferredDate')}: </span>
-                        {formatDate(request.preferredDate)}
+                        {formatDateTime(request.preferredDate)}
                       </span>
                     )}
                   </div>

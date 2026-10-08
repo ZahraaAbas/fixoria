@@ -6,6 +6,13 @@ function requiredError(value) {
   return value.trim() ? '' : 'validation.required'
 }
 
+// الموعد (تاريخ + وقت) لازم يكون بعد الوقت الحالي
+function preferredTimeError(date, time) {
+  if (!time) return 'validation.required'
+  if (date && new Date(`${date}T${time}`) <= new Date()) return 'request.pastTime'
+  return ''
+}
+
 function emailError(value) {
   if (!value.trim()) return 'validation.required'
   return EMAIL_PATTERN.test(value.trim()) ? '' : 'validation.invalidEmail'
@@ -50,6 +57,7 @@ export function validateRequest(values) {
     building: requiredError(values.building),
     apartment: requiredError(values.apartment),
     preferredDate: requiredError(values.preferredDate),
+    preferredTime: preferredTimeError(values.preferredDate, values.preferredTime),
   })
 }
 export function validateArtisanRegister(values) {
