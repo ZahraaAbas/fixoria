@@ -6,6 +6,7 @@ import { translate } from '../i18n'
 import PageLoader from '../components/ui/PageLoader'
 import BrandMark from '../components/ui/BrandMark'
 import Avatar from '../components/ui/Avatar'
+import NotificationBell from '../components/ui/NotificationBell'
 import { spring } from '../components/ui/motion'
 import { useAuth } from '../hooks/useAuth'
 import Footer from '../Footer'
@@ -126,6 +127,8 @@ function PublicLayout() {
               )
             })}
           </nav>
+
+          {isAuthenticated && <NotificationBell className="fx-btn fx-btn--secondary fx-btn--icon pl-bell" />}
 
           <div className="pl-user-section">{userSection}</div>
 

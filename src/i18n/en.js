@@ -527,6 +527,27 @@ const en = {
     viewInMyWork: 'View in My Work ←',
     activityTitle: 'Activity — Last 6 Months',
   },
+  notifications: {
+    title: 'Notifications',
+    titleWithCount: 'Notifications ({count} unread)',
+    markAllRead: 'Mark all as read',
+    unread: 'Unread',
+    justNow: 'Just now',
+    empty: 'No notifications',
+    emptyHint: 'New updates will show up here.',
+    loadError: "Couldn't load notifications",
+    retry: 'Try again',
+    types: {
+      request_received: 'Request #{id} received',
+      request_assigned: 'Request #{id} assigned to an artisan',
+      request_accepted: 'Request #{id} accepted',
+      request_rejected: 'Request #{id} declined',
+      request_in_progress: 'Request #{id} is in progress',
+      request_completed: 'Request #{id} completed',
+      request_cancelled: 'The resident cancelled request #{id}',
+      new_request: 'New request #{id}',
+    },
+  },
 }
 
 export default en

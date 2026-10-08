@@ -187,6 +187,10 @@
   margin-inline-start: auto;
 }
 
+.pl-bell {
+  flex: 0 0 auto;
+}
+
 /* ===== Mobile drawer ===== */
 .pl-backdrop {
   position: fixed;
@@ -301,6 +305,15 @@
 
   .pl-menu-button {
     display: inline-flex;
+  }
+
+  /* الجرس يبقى ظاهر بالجوال جنب زر القائمة */
+  .pl-bell {
+    margin-inline-start: auto;
+  }
+
+  .pl-bell ~ .pl-menu-button {
+    margin-inline-start: 0;
   }
 
   .pl-header {
