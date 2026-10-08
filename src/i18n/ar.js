@@ -28,6 +28,8 @@ const ar = {
     categories: 'التصنيفات',
     reviews: 'التقييمات',
     console: 'مركز العمليات',
+    accountSection: 'الحساب',
+    account: 'حسابي',
   },
   artisanNav: {
     requests: 'الطلبات المتاحة',
@@ -548,6 +550,25 @@ const ar = {
       request_cancelled: 'الساكن ألغى الطلب رقم #{id}',
       new_request: 'طلب جديد رقم #{id}',
     },
+  },
+  changePassword: {
+    title: 'تغيير كلمة المرور',
+    hint: 'ستحتاج كلمة المرور الحالية للتأكيد.',
+    currentPassword: 'كلمة المرور الحالية',
+    newPassword: 'كلمة المرور الجديدة',
+    confirmPassword: 'تأكيد كلمة المرور الجديدة',
+    show: 'إظهار كلمات المرور',
+    save: 'تغيير كلمة المرور',
+    saving: 'جارٍ التغيير…',
+    done: 'تم تغيير كلمة المرور بنجاح.',
+    wrongCurrent: 'كلمة المرور الحالية غير صحيحة',
+    sameAsCurrent: 'اختر كلمة مرور مختلفة عن الحالية',
+    mismatch: 'كلمتا المرور غير متطابقتين',
+    invalidNew: 'كلمة المرور الجديدة غير مقبولة، اختر كلمة أخرى',
+    error: 'تعذّر تغيير كلمة المرور، حاول مرة أخرى',
+  },
+  adminAccount: {
+    title: 'حسابي',
   },
 }
 

@@ -41,6 +41,17 @@ async function withProfile(user) {
   return user
 }
 
+// تغيير كلمة السر (POST /auth/change-password): 400 = الحالية غلط، 422 = الجديدة مرفوضة
+export async function changePassword({ currentPassword, newPassword }) {
+  try {
+    await apiPost('/auth/change-password', { current_password: currentPassword, new_password: newPassword })
+  } catch (error) {
+    if (error.status === 400) throw new Error('WRONG_PASSWORD', { cause: error })
+    if (error.status === 422) throw new Error('INVALID_NEW_PASSWORD', { cause: error })
+    throw error
+  }
+}
+
 export async function login({ email, password }) {
   try {
     const token = await apiPost('/auth/login', { email, password }, { auth: false })

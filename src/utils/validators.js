@@ -92,6 +92,20 @@ export function validateResidentProfile(values) {
   })
 }
 
+export function validatePasswordChange({ currentPassword, newPassword, confirmPassword }) {
+  let newError = newPasswordError(newPassword)
+  if (!newError && newPassword === currentPassword) newError = 'changePassword.sameAsCurrent'
+  return withoutEmpty({
+    currentPassword: currentPassword ? '' : 'validation.required',
+    newPassword: newError,
+    confirmPassword: !confirmPassword
+      ? 'validation.required'
+      : confirmPassword === newPassword
+        ? ''
+        : 'changePassword.mismatch',
+  })
+}
+
 export function validateCategoryName(name) {
   return requiredError(name)
 }

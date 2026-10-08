@@ -8,6 +8,7 @@ import { validateResidentProfile } from '../utils/validators'
 import { ErrorState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
 import AvatarUploader from '../components/ui/AvatarUploader'
+import ChangePasswordCard from '../components/ui/ChangePasswordCard'
 import ActionError from '../components/ui/ActionError'
 import { Reveal } from '../components/ui/Reveal'
 import './ResidentSettings.css'
@@ -219,6 +220,12 @@ function ResidentSettings() {
               {translate(isSubmitting ? 'residentSettings.saving' : 'residentSettings.save')}
             </button>
           </div>
+        </Reveal>
+      )}
+
+      {!isLoading && !loadError && (
+        <Reveal delay={0.1}>
+          <ChangePasswordCard className="rs-password" />
         </Reveal>
       )}
     </section>

@@ -3,6 +3,7 @@ Auth endpoints:
 POST /auth/register
 POST /auth/login
 GET  /auth/me        -> بيانات المستخدم الحالي (الفرونت يناديها بعد الدخول حتى يعرف الاسم والدور)
+POST /auth/change-password -> تغيير كلمة السر لأي مستخدم مسجل (يتأكد من الحالية)
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -10,7 +11,7 @@ from sqlmodel import Session, select
 
 from app.database import get_session
 from app.models import ResidentProfile, User, UserRole
-from app.schemas import UserRegister, UserLogin, UserRead, Token
+from app.schemas import PasswordChange, UserRegister, UserLogin, UserRead, Token
 from app.auth import hash_password, verify_password, create_access_token, get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -62,3 +63,20 @@ def login(payload: UserLogin, session: Session = Depends(get_session)):
 @router.get("/me", response_model=UserRead)
 def me(user: User = Depends(get_current_user)):
     return user
+
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(
+    payload: PasswordChange,
+    session: Session = Depends(get_session),
+    user: User = Depends(get_current_user),
+):
+    # 400 = الحالية غلط، 422 = الجديدة مرفوضة (قصيرة أو نفس القديمة)
+    if not verify_password(payload.current_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="كلمة السر الحالية غير صحيحة")
+    if payload.new_password == payload.current_password:
+        raise HTTPException(status_code=422, detail="كلمة السر الجديدة لازم تختلف عن الحالية")
+
+    user.password_hash = hash_password(payload.new_password)
+    session.add(user)
+    session.commit()
