@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { CalendarDays, ChevronLeft, ClipboardList, LayoutGrid, Plus } from 'lucide-react'
 import { translate } from '../i18n'
 import { getMyResidentRequests } from '../services/requestsService'
-import { formatDate } from '../utils/formatDate'
+import { formatDateTime } from '../utils/formatDate'
 import { statusTone } from '../utils/requestStatus'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
@@ -115,7 +115,7 @@ function MyRequests() {
                       <span className="mr-card-date">
                         <CalendarDays size={14} aria-hidden="true" />
                         <span className="sr-only">{translate('myRequests.preferredDate')}: </span>
-                        {formatDate(request.preferredDate)}
+                        {formatDateTime(request.preferredDate)}
                       </span>
                     )}
                   </p>

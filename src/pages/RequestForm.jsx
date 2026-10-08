@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { motion, useReducedMotion } from 'motion/react'
-import { AlertCircle, CalendarDays, Check, FileText, Home, ListChecks, MessageSquareHeart, SearchX, Send } from 'lucide-react'
+import { AlertCircle, CalendarDays, Check, Clock, FileText, Home, ListChecks, MessageSquareHeart, SearchX, Send } from 'lucide-react'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
 import { getCategoryById } from '../services/categoriesService'
 import { createResidentRequest } from '../services/requestsService'
 import { validateRequest } from '../utils/validators'
+import { todayInputValue } from '../utils/formatDate'
 import { serviceVisuals, defaultServiceVisual } from '../config/serviceVisuals'
 import { LoadingState, EmptyState } from '../components/StatusState'
 import PageHeader, { BackLink } from '../components/ui/PageHeader'
@@ -37,6 +38,7 @@ function RequestForm() {
     building: user.building || '',
     apartment: user.apartment || '',
     preferredDate: '',
+    preferredTime: '',
   })
   const [images, setImages] = useState([])
   const [voiceNote, setVoiceNote] = useState(null)
@@ -81,10 +83,13 @@ function RequestForm() {
     setSubmitError(false)
 
     try {
+      const { preferredTime, ...fields } = formData
       await createResidentRequest({
         categoryId: category.id,
         contactName: user.fullName,
-        ...formData,
+        ...fields,
+        // وقت محلي (2026-10-08T10:30)، الخدمة تحوله لـ UTC قبل الإرسال
+        preferredDate: `${formData.preferredDate}T${preferredTime}`,
         images,
         audio: voiceNote,
       })
@@ -239,23 +244,44 @@ function RequestForm() {
             </label>
           </div>
 
-          <label className="fx-field">
-            <span className="fx-label">
-              <CalendarDays size={15} aria-hidden="true" className="rf-label-icon" />
-              {translate('request.preferredDate')}
-            </span>
-            <input
-              className="fx-input"
-              type="date"
-              name="preferredDate"
-              value={formData.preferredDate}
-              onChange={handleChange}
-              aria-invalid={Boolean(errors.preferredDate)}
-            />
-            {errors.preferredDate && (
-              <span className="fx-error-text">{translate(errors.preferredDate)}</span>
-            )}
-          </label>
+          <div className="rf-row">
+            <label className="fx-field">
+              <span className="fx-label">
+                <CalendarDays size={15} aria-hidden="true" className="rf-label-icon" />
+                {translate('request.preferredDate')}
+              </span>
+              <input
+                className="fx-input"
+                type="date"
+                name="preferredDate"
+                min={todayInputValue()}
+                value={formData.preferredDate}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.preferredDate)}
+              />
+              {errors.preferredDate && (
+                <span className="fx-error-text">{translate(errors.preferredDate)}</span>
+              )}
+            </label>
+
+            <label className="fx-field">
+              <span className="fx-label">
+                <Clock size={15} aria-hidden="true" className="rf-label-icon" />
+                {translate('request.preferredTime')}
+              </span>
+              <input
+                className="fx-input"
+                type="time"
+                name="preferredTime"
+                value={formData.preferredTime}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.preferredTime)}
+              />
+              {errors.preferredTime && (
+                <span className="fx-error-text">{translate(errors.preferredTime)}</span>
+              )}
+            </label>
+          </div>
 
           {submitError && (
             <p className="fx-notice fx-notice--danger" role="alert">
