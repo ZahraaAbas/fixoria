@@ -33,6 +33,7 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const AdminRequests = lazy(() => import('./pages/AdminRequests'))
 const AdminCategories = lazy(() => import('./pages/AdminCategories'))
 const AdminReviews = lazy(() => import('./pages/AdminReviews'))
+const AdminAccount = lazy(() => import('./pages/AdminAccount'))
 const About = lazy(() => import('./pages/About'))
 const Contact = lazy(() => import('./pages/Contact'))
 const ArtisanDashboard = lazy(() => import('./pages/ArtisanDashboard'))
@@ -131,6 +132,7 @@ function App() {
               <Route path="/admin/requests" element={<AdminRequests />} />
               <Route path="/admin/categories" element={<AdminCategories />} />
               <Route path="/admin/reviews" element={<AdminReviews />} />
+              <Route path="/admin/account" element={<AdminAccount />} />
             </Route>
 
             <Route

@@ -57,6 +57,10 @@
   grid-column: span 2;
 }
 
+.rs-password {
+  margin-top: var(--space-6);
+}
+
 .rs-submit {
   padding-top: var(--space-4);
   border-top: 1px solid var(--border-soft);

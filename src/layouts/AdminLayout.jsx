@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { ClipboardList, LayoutDashboard, LayoutGrid, LogOut, Menu, Star, Users, X } from 'lucide-react'
+import { ClipboardList, LayoutDashboard, LayoutGrid, LogOut, Menu, Star, UserCog, Users, X } from 'lucide-react'
 import { translate } from '../i18n'
 import PageLoader from '../components/ui/PageLoader'
 import BrandMark from '../components/ui/BrandMark'
@@ -20,6 +20,10 @@ const SECTIONS = [
       { value: '/admin/categories', labelKey: 'adminNav.categories', Icon: LayoutGrid },
       { value: '/admin/reviews', labelKey: 'adminNav.reviews', Icon: Star },
     ],
+  },
+  {
+    titleKey: 'adminNav.accountSection',
+    items: [{ value: '/admin/account', labelKey: 'adminNav.account', Icon: UserCog }],
   },
 ]
 

@@ -7,6 +7,7 @@ import { updateArtisanProfile, uploadArtisanImage } from '../services/profileSer
 import { getCategories } from '../services/categoriesService'
 import { validateArtisanProfile } from '../utils/validators'
 import PageHeader from '../components/ui/PageHeader'
+import ChangePasswordCard from '../components/ui/ChangePasswordCard'
 import { Reveal } from '../components/ui/Reveal'
 import Avatar from '../components/ui/Avatar'
 import AvatarUploader from '../components/ui/AvatarUploader'
@@ -214,6 +215,10 @@ function ArtisanSettings() {
           </div>
         </Reveal>
       </div>
+
+      <Reveal delay={0.15} className="as-password">
+        <ChangePasswordCard />
+      </Reveal>
     </section>
   )
 }

@@ -28,6 +28,8 @@ const en = {
     categories: 'Categories',
     reviews: 'Reviews',
     console: 'Operations center',
+    accountSection: 'Account',
+    account: 'My account',
   },
   artisanNav: {
     requests: 'Available Requests',
@@ -547,6 +549,25 @@ const en = {
       request_cancelled: 'The resident cancelled request #{id}',
       new_request: 'New request #{id}',
     },
+  },
+  changePassword: {
+    title: 'Change password',
+    hint: "You'll need your current password to confirm.",
+    currentPassword: 'Current password',
+    newPassword: 'New password',
+    confirmPassword: 'Confirm new password',
+    show: 'Show passwords',
+    save: 'Change password',
+    saving: 'Changing…',
+    done: 'Your password was changed.',
+    wrongCurrent: 'The current password is incorrect',
+    sameAsCurrent: 'Choose a password different from the current one',
+    mismatch: "The passwords don't match",
+    invalidNew: "The new password wasn't accepted, choose another",
+    error: "Couldn't change the password, try again",
+  },
+  adminAccount: {
+    title: 'My account',
   },
 }
 
