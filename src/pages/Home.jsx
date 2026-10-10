@@ -23,7 +23,8 @@ import {
 } from 'lucide-react'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
-import { getCategories } from '../services/categoriesService'
+import { getCategories, getResidentCategories } from '../services/categoriesService'
+import { isApprovedResident } from '../utils/roles'
 import { getArtisans } from '../services/artisansService'
 import { serviceVisuals, defaultServiceVisual } from '../config/serviceVisuals'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
@@ -562,7 +563,9 @@ function CtaSection() {
 /* ================= Page ================= */
 
 function Home() {
-  const services = useRemoteData(getCategories)
+  const { user } = useAuth()
+  // الساكن المقبول يشوف خدمات مجمعه بس؛ الزائر يشوف كل التصنيفات
+  const services = useRemoteData(isApprovedResident(user) ? getResidentCategories : getCategories)
   const artisans = useRemoteData(getArtisans)
 
   return (

@@ -41,6 +41,7 @@ export function validateLogin({ email, password }) {
 
 export function validateRegister(values) {
   return withoutEmpty({
+    compoundId: values.compoundId ? '' : 'register.compoundRequired',
     fullName: requiredError(values.fullName),
     phone: phoneError(values.phone),
     building: requiredError(values.building),

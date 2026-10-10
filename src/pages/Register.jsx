@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { AlertCircle, UserPlus } from 'lucide-react'
 import { translate } from '../i18n'
-import { registerResident } from '../services/authService'
+import { getCompoundOptions, registerResident } from '../services/authService'
 import { validateRegister } from '../utils/validators'
 import { useAuth } from '../hooks/useAuth'
 import AuthShell from '../components/ui/AuthShell'
@@ -17,7 +17,7 @@ const fields = [
   { name: 'password', type: 'password', autoComplete: 'new-password', ltr: true },
 ]
 
-const initialFormData = Object.fromEntries(fields.map((field) => [field.name, '']))
+const initialFormData = { compoundId: '', ...Object.fromEntries(fields.map((field) => [field.name, ''])) }
 
 function Register() {
   const navigate = useNavigate()
@@ -26,6 +26,25 @@ function Register() {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const [compounds, setCompounds] = useState(null)
+  const [compoundsFailed, setCompoundsFailed] = useState(false)
+
+  useEffect(() => {
+    let isCancelled = false
+    getCompoundOptions()
+      .then((data) => {
+        if (isCancelled) return
+        setCompounds(data)
+        // مجمع واحد بس: نختاره مباشرة
+        if (data.length === 1) setFormData((current) => ({ ...current, compoundId: String(data[0].id) }))
+      })
+      .catch(() => {
+        if (!isCancelled) setCompoundsFailed(true)
+      })
+    return () => {
+      isCancelled = true
+    }
+  }, [])
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -47,12 +66,15 @@ function Register() {
     try {
       const user = await registerResident(formData)
       signIn(user)
-      navigate('/home', { replace: true })
+      // الساكن الجديد ينتظر موافقة إدارة المجمع
+      navigate('/resident/pending', { replace: true })
     } catch (error) {
       setSubmitError(
         error.message === 'EMAIL_TAKEN'
           ? 'register.emailTaken'
-          : error.message === 'NETWORK_ERROR'
+          : error.message === 'COMPOUND_REQUIRED'
+            ? 'register.compoundRequired'
+            : error.message === 'NETWORK_ERROR'
             ? 'common.networkError'
             : 'register.genericError',
       )
@@ -65,6 +87,37 @@ function Register() {
     <AuthShell title={translate('register.title')} icon={UserPlus}>
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <div className="auth-grid">
+          <label className="fx-field fx-field--full">
+            <span className="fx-label">{translate('register.compound')}</span>
+            <select
+              className="fx-input"
+              name="compoundId"
+              value={formData.compoundId}
+              onChange={handleChange}
+              disabled={!compounds || compounds.length === 0}
+              aria-invalid={Boolean(errors.compoundId)}
+            >
+              <option value="">
+                {translate(
+                  compoundsFailed
+                    ? 'register.compoundsFailed'
+                    : !compounds
+                      ? 'common.loading'
+                      : compounds.length === 0
+                        ? 'register.noCompounds'
+                        : 'register.chooseCompound',
+                )}
+              </option>
+              {(compounds || []).map((compound) => (
+                <option key={compound.id} value={compound.id}>
+                  {compound.name}
+                </option>
+              ))}
+            </select>
+            <span className="auth-hint">{translate('register.compoundHint')}</span>
+            {errors.compoundId && <span className="fx-error-text">{translate(errors.compoundId)}</span>}
+          </label>
+
           {fields.map((field) => (
             <label key={field.name} className={field.half ? 'fx-field' : 'fx-field fx-field--full'}>
               <span className="fx-label">{translate(`register.${field.name}`)}</span>

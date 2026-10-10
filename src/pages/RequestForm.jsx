@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from 'motion/react'
 import { AlertCircle, CalendarDays, Check, Clock, FileText, Home, ListChecks, MessageSquareHeart, SearchX, Send } from 'lucide-react'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
-import { getCategoryById } from '../services/categoriesService'
+import { getResidentCategoryById } from '../services/categoriesService'
 import { createResidentRequest } from '../services/requestsService'
 import { validateRequest } from '../utils/validators'
 import { todayInputValue } from '../utils/formatDate'
@@ -50,7 +50,7 @@ function RequestForm() {
   useEffect(() => {
     let isCancelled = false
 
-    getCategoryById(categoryId)
+    getResidentCategoryById(categoryId)
       .then((data) => {
         if (!isCancelled) setCategory(data)
       })

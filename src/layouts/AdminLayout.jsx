@@ -6,11 +6,12 @@ import {
   ClipboardList,
   Handshake,
   LayoutDashboard,
-  LayoutGrid,
   LogOut,
   Menu,
   Star,
+  Tags,
   UserCog,
+  UserRoundCheck,
   Users,
   Wrench,
   X,
@@ -28,9 +29,9 @@ const ADMIN_SECTIONS = [
   {
     titleKey: 'adminNav.management',
     items: [
+      { value: '/admin/residents', labelKey: 'adminNav.residents', Icon: UserRoundCheck },
       { value: '/admin/artisans', labelKey: 'adminNav.artisans', Icon: Users },
       { value: '/admin/requests', labelKey: 'adminNav.requests', Icon: ClipboardList },
-      { value: '/admin/categories', labelKey: 'adminNav.categories', Icon: LayoutGrid },
       { value: '/admin/reviews', labelKey: 'adminNav.reviews', Icon: Star },
     ],
   },
@@ -49,6 +50,7 @@ const OWNER_SECTIONS = [
       { value: '/owner/compounds', labelKey: 'owner.nav.compounds', Icon: Building2 },
       { value: '/owner/companies', labelKey: 'owner.nav.companies', Icon: Wrench },
       { value: '/owner/agreements', labelKey: 'owner.nav.agreements', Icon: Handshake },
+      { value: '/owner/categories', labelKey: 'adminNav.categories', Icon: Tags },
     ],
   },
   {

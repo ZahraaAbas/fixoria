@@ -108,6 +108,11 @@
   padding: clamp(24px, 5vw, 64px) clamp(8px, 4vw, 48px);
 }
 
+.auth-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
 .auth-lang {
   position: absolute;
   top: 12px;

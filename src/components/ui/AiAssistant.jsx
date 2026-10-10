@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { CheckCircle2, Pencil, Send, Sparkles, X } from 'lucide-react'
 import { translate, getCurrentLanguage } from '../../i18n'
 import { analyzeServiceRequest, confirmDraft } from '../../services/aiService'
-import { getCategories } from '../../services/categoriesService'
+import { getResidentCategories } from '../../services/categoriesService'
 import ActionError from './ActionError'
 import { spring } from './motion'
 import './AiAssistant.css'
@@ -60,7 +60,7 @@ function AiAssistant({ contactName, onClose }) {
 
   useEffect(() => {
     let isCancelled = false
-    getCategories()
+    getResidentCategories()
       .then((data) => !isCancelled && setCategories(data))
       .catch(() => {})
     return () => {

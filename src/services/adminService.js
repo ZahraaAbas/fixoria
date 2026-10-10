@@ -14,6 +14,28 @@ function mapAdminArtisan(row) {
   }
 }
 
+function mapResident(row) {
+  return {
+    id: row.user_id,
+    name: row.name,
+    email: row.email,
+    phone: row.phone || '',
+    building: row.building || '',
+    floor: row.floor || '',
+    apartment: row.apartment_number || '',
+    membershipStatus: row.membership_status,
+  }
+}
+
+// سكان المجمع وحالة عضويتهم (GET /admin/residents)
+export async function getResidents() {
+  return (await apiGet('/admin/residents')).map(mapResident)
+}
+
+export async function setResidentMembership(userId, status) {
+  return mapResident(await apiPut(`/admin/residents/${userId}/membership`, { status }))
+}
+
 // حسابات الحرفيين الحقيقية (GET /admin/artisans)
 export async function getArtisanAccounts() {
   const rows = await apiGet('/admin/artisans')

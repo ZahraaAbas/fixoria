@@ -5,6 +5,7 @@ import { Sparkles } from 'lucide-react'
 import { translate } from '../../i18n'
 import { useAuth } from '../../hooks/useAuth'
 import AiAssistant from './AiAssistant'
+import { isApprovedResident } from '../../utils/roles'
 
 // زر يفتح المساعد الذكي. يظهر للساكن فقط (الخادم يسمح بالمساعد للسكان فقط)
 function AiAssistantButton({ className = 'fx-btn fx-btn--secondary', size = 18 }) {
@@ -12,7 +13,8 @@ function AiAssistantButton({ className = 'fx-btn fx-btn--secondary', size = 18 }
   const [isOpen, setIsOpen] = useState(false)
   const close = useCallback(() => setIsOpen(false), [])
 
-  if (!isAuthenticated || user.role !== 'resident') return null
+  // المساعد يرسل طلبات، فيظهر للساكن المقبول بمجمع فعّال بس
+  if (!isAuthenticated || !isApprovedResident(user)) return null
 
   return (
     <>

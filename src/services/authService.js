@@ -35,6 +35,9 @@ async function withProfile(user) {
       building: profile.building,
       apartment: profile.apartment_number,
       avatar: profile.avatar || null,
+      membershipStatus: profile.membership_status,
+      compoundName: profile.compound_name,
+      compoundActive: profile.compound_active,
     }
   }
 
@@ -68,10 +71,23 @@ export async function login({ email, password }) {
   return withProfile(user)
 }
 
+// المستخدم الحالي من جديد (مثلاً بعد ما مشرف المجمع يوافق على الساكن)
+export async function reloadCurrentUser() {
+  return withProfile(mapUserFromApi(await apiGet('/auth/me')))
+}
+
+// المجمعات المفعّلة لقائمة التسجيل
+export function getCompoundOptions() {
+  return apiGet('/compounds', { auth: false })
+}
+
 async function registerUser(payload) {
   try {
     await apiPost('/auth/register', payload, { auth: false })
   } catch (error) {
+    if (error.status === 400 && /مجمع/.test(error.message)) {
+      throw new Error('COMPOUND_REQUIRED', { cause: error })
+    }
     if (error.status === 400) {
       throw new Error('EMAIL_TAKEN', { cause: error })
     }
@@ -87,6 +103,7 @@ export function registerResident(data) {
     email: data.email,
     password: data.password,
     role: ROLE_TO_API.resident,
+    compound_id: Number(data.compoundId),
     phone: data.phone,
     building: data.building,
     apartment_number: data.apartment,

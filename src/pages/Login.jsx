@@ -6,6 +6,7 @@ import { login } from '../services/authService'
 import { validateLogin } from '../utils/validators'
 import { useAuth } from '../hooks/useAuth'
 import AuthShell from '../components/ui/AuthShell'
+import { isApprovedResident } from '../utils/roles'
 
 const REGISTER_PATH = {
   resident: '/register',
@@ -70,6 +71,11 @@ function Login({ role }) {
 
       if (user.role === 'artisan' && user.status !== 'approved') {
         navigate('/artisan/pending', { replace: true })
+        return
+      }
+
+      if (user.role === 'resident' && !isApprovedResident(user)) {
+        navigate('/resident/pending', { replace: true })
         return
       }
 

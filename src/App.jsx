@@ -37,6 +37,8 @@ const OwnerDashboard = lazy(() => import('./pages/OwnerDashboard'))
 const OwnerCompounds = lazy(() => import('./pages/OwnerCompounds'))
 const OwnerCompanies = lazy(() => import('./pages/OwnerCompanies'))
 const OwnerAgreements = lazy(() => import('./pages/OwnerAgreements'))
+const AdminResidents = lazy(() => import('./pages/AdminResidents'))
+const ResidentPending = lazy(() => import('./pages/ResidentPending'))
 const About = lazy(() => import('./pages/About'))
 const Contact = lazy(() => import('./pages/Contact'))
 const ArtisanDashboard = lazy(() => import('./pages/ArtisanDashboard'))
@@ -84,7 +86,7 @@ function App() {
               <Route
                 path="/requests/new/:categoryId"
                 element={
-                  <RequireAuth role="resident">
+                  <RequireAuth role="resident" requireApproved>
                     <RequestForm />
                   </RequireAuth>
                 }
@@ -92,7 +94,7 @@ function App() {
               <Route
                 path="/my-requests"
                 element={
-                  <RequireAuth role="resident">
+                  <RequireAuth role="resident" requireApproved>
                     <MyRequests />
                   </RequireAuth>
                 }
@@ -108,12 +110,21 @@ function App() {
               <Route
                 path="/my-requests/:id"
                 element={
-                  <RequireAuth role="resident">
+                  <RequireAuth role="resident" requireApproved>
                     <RequestDetail />
                   </RequireAuth>
                 }
               />
             </Route>
+
+            <Route
+              path="/resident/pending"
+              element={
+                <RequireAuth role="resident">
+                  <ResidentPending />
+                </RequireAuth>
+              }
+            />
 
             <Route
               path="/artisan/pending"
@@ -134,7 +145,7 @@ function App() {
               <Route path="/admin/artisans" element={<AdminArtisans />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/requests" element={<AdminRequests />} />
-              <Route path="/admin/categories" element={<AdminCategories />} />
+              <Route path="/admin/residents" element={<AdminResidents />} />
               <Route path="/admin/reviews" element={<AdminReviews />} />
               <Route path="/admin/account" element={<AdminAccount />} />
             </Route>
@@ -151,6 +162,7 @@ function App() {
               <Route path="/owner/compounds" element={<OwnerCompounds />} />
               <Route path="/owner/companies" element={<OwnerCompanies />} />
               <Route path="/owner/agreements" element={<OwnerAgreements />} />
+              <Route path="/owner/categories" element={<AdminCategories />} />
               <Route path="/owner/account" element={<AdminAccount />} />
             </Route>
 

@@ -9,6 +9,14 @@
 
 .pending-brand {
   display: inline-flex;
+  text-decoration: none;
+}
+
+.pending-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
 }
 
 .pending-card {
