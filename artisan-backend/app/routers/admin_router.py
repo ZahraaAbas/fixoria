@@ -1,7 +1,6 @@
 """
 Admin endpoints (مشرف المجمع — كل شي محدد بمجمعه، app/tenancy.py):
-GET /admin/artisans                  -> حرفيو الشركات المتفقة ويه المجمع (with pending filter)
-PUT /admin/artisans/{id}/verify      -> Verify (or reject) artisan
+GET /admin/artisans                  -> حرفيو الشركات المتفقة ويه المجمع (للاطلاع؛ الشركة تديرهم)
 
 سكان المجمع:
 GET /admin/residents                 -> سكان المجمع وحالة عضويتهم (?status_filter=pending)
@@ -88,11 +87,6 @@ def _get_compound_request(session: Session, admin: User, request_id: int) -> Ser
     return req
 
 
-def _get_compound_artisan(session: Session, admin: User, artisan_id: int) -> Artisan:
-    if artisan_id not in compound_artisan_ids(session, admin.compound_id):
-        raise HTTPException(status_code=404, detail="ما اكو حرفي بهذا المعرّف")
-    return session.get(Artisan, artisan_id)
-
 
 def _get_compound_resident(session: Session, admin: User, user_id: int) -> User:
     user = session.get(User, user_id)
@@ -111,28 +105,6 @@ def list_all_artisans(
     if verified is not None:
         artisans = [a for a in artisans if a.verified == verified]
     return [artisan_to_read(a, session) for a in sorted(artisans, key=lambda a: a.id, reverse=True)]
-
-
-@router.put("/artisans/{artisan_id}/verify", response_model=ArtisanRead)
-def verify_artisan(
-    artisan_id: int,
-    approve: bool = True,
-    session: Session = Depends(get_session),
-    admin: User = Depends(compound_admin),
-):
-    artisan = _get_compound_artisan(session, admin, artisan_id)
-
-    artisan.verified = approve
-    artisan.rejected = not approve
-    session.add(artisan)
-    notify(
-        session, artisan.user_id, NotificationType.general,
-        "تم توثيق حسابك كحرفي" if approve else "تم رفض طلب توثيق حسابك",
-        "صار بإمكانك استقبال الطلبات" if approve else "تواصل مع إدارة المجمع للتفاصيل",
-    )
-    session.commit()
-    session.refresh(artisan)
-    return artisan_to_read(artisan, session)
 
 
 # ---------- سكان المجمع ----------

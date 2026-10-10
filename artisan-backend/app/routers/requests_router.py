@@ -25,7 +25,7 @@ from app.models import (
 from app.helpers import artisan_service_ids, request_to_read
 from app.schemas import RequestCreate, RequestRead, RequestStatusUpdate
 from app.auth import get_current_user
-from app.tenancy import approved_resident, compound_artisan_ids
+from app.tenancy import approved_resident, company_coverage, compound_artisan_ids, request_in_coverage
 from app.progress import build_progress
 from app.notifications import notify
 
@@ -109,7 +109,7 @@ def list_available_requests(
 ):
     """
     طلبات الحرفي الجديدة:
-    - طلبات مفتوحة (بدون حرفي) بأي خدمة من خدماته
+    - طلبات مفتوحة (بدون حرفي) بأي خدمة من خدماته، من المجمعات المتفقة ويه شركته على هذي الخدمة
     - طلبات الساكن اختاره بيها بالاسم (مشترك) وبعدها بانتظار قبوله
     ناقص اللي تجاهلها.
     """
@@ -120,6 +120,7 @@ def list_available_requests(
         return []
 
     my_services = set(artisan_service_ids(session, artisan))
+    coverage = company_coverage(session, user.company_id)
     dismissed = {
         d.request_id
         for d in session.exec(
@@ -135,7 +136,9 @@ def list_available_requests(
     results = [
         r for r in pending
         if r.id not in dismissed
-        and (r.artisan_id == artisan.id or (r.artisan_id is None and r.service_id in my_services))
+        and (r.artisan_id == artisan.id or (
+            r.artisan_id is None and r.service_id in my_services and request_in_coverage(coverage, r)
+        ))
     ]
     return [_to_read(r, session) for r in results]
 
@@ -150,7 +153,8 @@ def dismiss_request(
         raise HTTPException(status_code=403, detail="بس الحرفي يكدر يتجاهل طلب")
     artisan = _my_artisan(session, user)
     req = session.get(ServiceRequest, request_id)
-    if not req:
+    if not req or (req.artisan_id != artisan.id
+                   and not request_in_coverage(company_coverage(session, user.company_id), req)):
         raise HTTPException(status_code=404, detail="الطلب غير موجود")
 
     if not session.get(RequestDismissal, (artisan.id, req.id)):
@@ -194,6 +198,10 @@ def update_status(
 
     if user.role == UserRole.customer:
         raise HTTPException(status_code=403, detail="الزبون ما يكدر يغير حالة الطلب")
+    if user.role == UserRole.admin and (user.compound_id is None or req.compound_id != user.compound_id):
+        raise HTTPException(status_code=404, detail="الطلب غير موجود")
+    if user.role not in (UserRole.artisan, UserRole.admin):
+        raise HTTPException(status_code=403, detail="ماكو صلاحية لهذا الإجراء")
 
     try:
         new_status = RequestStatus(payload.status)
@@ -213,6 +221,8 @@ def update_status(
                 raise HTTPException(status_code=409, detail="هذا الطلب ما عاد متاح")
             if req.service_id not in artisan_service_ids(session, artisan):
                 raise HTTPException(status_code=403, detail="هذا الطلب مو ضمن خدماتك")
+            if not request_in_coverage(company_coverage(session, user.company_id), req):
+                raise HTTPException(status_code=404, detail="الطلب غير موجود")
             if new_status != RequestStatus.accepted:
                 raise HTTPException(status_code=400, detail="الطلب المفتوح يا تقبله يا تتجاهله")
             req.artisan_id = artisan.id
@@ -283,6 +293,7 @@ def _check_can_view(req: ServiceRequest, user: User, session: Session) -> None:
             return
         # طلب مفتوح ضمن خدماته (يشوف تفاصيله قبل ما يقبله)
         if (artisan and req.artisan_id is None and req.status == RequestStatus.pending
-                and req.service_id in artisan_service_ids(session, artisan)):
+                and req.service_id in artisan_service_ids(session, artisan)
+                and request_in_coverage(company_coverage(session, user.company_id), req)):
             return
     raise HTTPException(status_code=403, detail="ما تكدرين تشوفين هذا الطلب")

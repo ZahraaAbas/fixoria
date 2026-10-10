@@ -25,6 +25,7 @@ from app.routers import (
     ai_router,
     owner_router,
     compounds_router,
+    company_router,
 )
 from app.storage import UPLOAD_DIR, USE_BLOB
 
@@ -77,6 +78,7 @@ app.include_router(notifications_router.router)
 app.include_router(ai_router.router)
 app.include_router(owner_router.router)
 app.include_router(compounds_router.router)
+app.include_router(company_router.router)
 
 # صور الضرر وصور الملفات الشخصية: /uploads/... (محلياً فقط، على Vercel تنخدم من Blob مباشرة)
 if not USE_BLOB:

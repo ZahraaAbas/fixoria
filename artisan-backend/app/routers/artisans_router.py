@@ -2,7 +2,6 @@
 Artisans endpoints:
 GET  /artisans          -> List/search (?specialty=, ?location=, ?service_id=, ?verified_only=)
 GET  /artisans/{id}     -> Details
-POST /artisans          -> Create profile (artisan role only, one profile per user) — يقبل service_ids
 PUT  /artisans/me       -> الحرفي يعدل ملفه (الاسم، الهاتف، النبذة، الخدمات)
 POST /artisans/me/image -> رفع صورة الحرفي (multipart: file)
 PUT  /artisans/{id}     -> Update profile (owner or admin)
@@ -149,34 +148,6 @@ def get_artisan(artisan_id: int, session: Session = Depends(get_session)):
     artisan = session.get(Artisan, artisan_id)
     if not artisan:
         raise HTTPException(status_code=404, detail="ما اكو حرفي بهذا المعرّف")
-    return _to_read(artisan, session)
-
-
-@router.post("", response_model=ArtisanRead, status_code=status.HTTP_201_CREATED)
-def create_artisan_profile(
-    payload: ArtisanCreate,
-    session: Session = Depends(get_session),
-    user: User = Depends(require_role(UserRole.artisan)),
-):
-    existing = session.exec(select(Artisan).where(Artisan.user_id == user.id)).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="عندك ملف حرفي مسجل مسبقاً")
-
-    data = payload.model_dump()
-    service_ids = data.pop("service_ids") or ([data["service_id"]] if data.get("service_id") else [])
-    if not service_ids:
-        raise HTTPException(status_code=400, detail="اختر خدمة وحدة على الأقل")
-    data["specialty"] = data.get("specialty") or ""
-
-    artisan = Artisan(user_id=user.id, **data)
-    session.add(artisan)
-    session.commit()
-    session.refresh(artisan)
-
-    if not set_artisan_services(session, artisan, service_ids):
-        raise HTTPException(status_code=400, detail="الخدمات المختارة غير موجودة")
-    session.commit()
-    session.refresh(artisan)
     return _to_read(artisan, session)
 
 

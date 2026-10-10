@@ -20,9 +20,9 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def register(payload: UserRegister, session: Session = Depends(get_session)):
-    # التسجيل العام للساكن والحرفي بس. المشرفين ومدراء الشركات يضيفهم مالك المنصة،
-    # والمالك من إعدادات الخادم — غيرها يعني أي واحد يكدر يسوي نفسه مالك.
-    if payload.role not in (UserRole.customer, UserRole.artisan):
+    # التسجيل العام للساكن بس. الحرفيين يضيفهم مدير شركتهم، والمشرفين ومدراء الشركات يضيفهم
+    # مالك المنصة، والمالك من إعدادات الخادم — غيرها يعني أي واحد يكدر يعطي نفسه صلاحيات.
+    if payload.role != UserRole.customer:
         raise HTTPException(status_code=403, detail="ما يمكن إنشاء هذا النوع من الحسابات من التسجيل")
 
     compound = None

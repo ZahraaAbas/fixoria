@@ -582,3 +582,40 @@ class CompoundOption(BaseModel):
     id: int
     name: str
 
+
+# ---------- لوحة مدير شركة الصيانة ----------
+
+class CompanyArtisanCreate(BaseModel):
+    name: str = Field(min_length=1)
+    email: EmailStr
+    password: str = Field(min_length=8)
+    phone: str = Field(min_length=1)
+    service_ids: List[int] = Field(min_length=1)
+    description: Optional[str] = None
+
+
+class CompanyArtisanUpdate(BaseModel):
+    phone: Optional[str] = None
+    description: Optional[str] = None
+    service_ids: Optional[List[int]] = Field(default=None, min_length=1)
+    is_active: Optional[bool] = None
+
+
+class CompanyCompoundRead(BaseModel):
+    compound_id: int
+    compound_name: str
+    compound_active: bool
+    service_ids: List[int]
+    service_names: List[str]
+
+
+class CompanyOverview(BaseModel):
+    company_name: str
+    company_active: bool
+    artisans: int
+    active_artisans: int
+    compounds: List[CompanyCompoundRead]
+    open_requests: int      # مفتوحة (بدون حرفي) بمجمعات الشركة
+    active_requests: int    # مقبولة أو قيد التنفيذ عند حرفيي الشركة
+    completed_requests: int
+

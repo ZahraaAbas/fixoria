@@ -5,9 +5,11 @@
 - حرفيو المجمع = حرفيو هذي الشركات.
 - مشرف المجمع يشوف بيانات مجمعه بس (compound_admin).
 - الساكن يستخدم خدمات المجمع بعد موافقة المشرف وإذا المجمع فعّال (approved_resident).
+- الحرفي يشوف ويقبل طلبات المجمعات المتفقة ويه شركته على نفس الخدمة (company_coverage).
+- مدير الشركة يدير حرفيي شركته بس (company_manager).
 """
 
-from typing import Iterable, List, Optional, Set
+from typing import Iterable, List, Optional, Set, Tuple
 
 from fastapi import Depends, HTTPException, status
 from sqlmodel import Session, select
@@ -58,6 +60,36 @@ def compound_artisan_ids(session: Session, compound_id: Optional[int], service_i
 
 def only_compound_artisans(artisans: Iterable[Artisan], allowed_ids: Set[int]) -> List[Artisan]:
     return [a for a in artisans if a.id in allowed_ids]
+
+
+def company_coverage(session: Session, company_id: Optional[int]) -> Set[Tuple[int, int]]:
+    """(المجمع، الخدمة) اللي تغطيها اتفاقيات الشركة الفعّالة ويه مجمعات فعّالة."""
+    if company_id is None:
+        return set()
+    rows = session.exec(
+        select(Agreement.compound_id, AgreementServiceLink.service_id)
+        .join(AgreementServiceLink, AgreementServiceLink.agreement_id == Agreement.id)
+        .join(Company, Company.id == Agreement.company_id)
+        .join(Compound, Compound.id == Agreement.compound_id)
+        .where(
+            Agreement.company_id == company_id, Agreement.is_active == True,  # noqa: E712
+            Company.is_active == True, Compound.is_active == True,  # noqa: E712
+        )
+    ).all()
+    return {(compound_id, service_id) for compound_id, service_id in rows}
+
+
+def request_in_coverage(coverage: Set[Tuple[int, int]], req) -> bool:
+    return (req.compound_id, req.service_id) in coverage
+
+
+def company_manager(user: User = Depends(get_current_user)) -> User:
+    """مدير شركة صيانة مربوط بشركة — كل استعلاماته تتحدد بـ user.company_id."""
+    if user.role != UserRole.company_manager:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="ماكو صلاحية لهذا الإجراء")
+    if user.company_id is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="حسابك غير مربوط بشركة")
+    return user
 
 
 def compound_admin(user: User = Depends(get_current_user)) -> User:
