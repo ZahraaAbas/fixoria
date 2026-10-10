@@ -173,6 +173,14 @@
   color: var(--text-strong);
 }
 
+.pl-lang {
+  color: var(--text-muted);
+}
+
+.pl-lang:hover {
+  color: var(--text-strong);
+}
+
 .pl-logout {
   color: var(--text-muted);
 }
@@ -297,6 +305,18 @@
 }
 
 /* ===== Responsive ===== */
+/* الشاشات المتوسطة: زر اللغة أيقونة بس واسم المستخدم يختفي (الصورة تبقى) حتى ما يطلع الهيدر برا الشاشة */
+@media (max-width: 1100px) {
+  .pl-user-section .pl-lang span,
+  .pl-user-section .pl-user-name {
+    display: none;
+  }
+
+  .pl-user-section .pl-lang {
+    padding-inline: 10px;
+  }
+}
+
 @media (max-width: 860px) {
   .pl-nav,
   .pl-user-section {

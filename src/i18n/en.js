@@ -48,7 +48,9 @@ const en = {
     residentLogin: 'Login as Resident',
     artisanLogin: 'Login as Artisan',
     adminLogin: 'Login as Admin',
-    guest: 'Continue as Guest (View Only)',
+  },
+  loginChooser: {
+    subtitle: 'Choose your account type',
   },
   home: {
     heroEyebrow: 'Al-Budoor Residential Compound',

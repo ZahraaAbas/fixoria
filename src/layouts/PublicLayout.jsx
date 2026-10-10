@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router'
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from 'motion/react'
 import { Home, Wrench, FileText, LogIn, LogOut, Menu, X } from 'lucide-react'
@@ -7,6 +7,8 @@ import PageLoader from '../components/ui/PageLoader'
 import BrandMark from '../components/ui/BrandMark'
 import Avatar from '../components/ui/Avatar'
 import NotificationBell from '../components/ui/NotificationBell'
+import LanguageToggle from '../components/ui/LanguageToggle'
+import LoginChooser from '../components/ui/LoginChooser'
 import { spring } from '../components/ui/motion'
 import { useAuth } from '../hooks/useAuth'
 import Footer from '../Footer'
@@ -19,6 +21,8 @@ function PublicLayout() {
   const { scrollY } = useScroll()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
+  const closeLogin = useCallback(() => setIsLoginOpen(false), [])
   const [menuPath, setMenuPath] = useState(location.pathname)
   const menuButtonRef = useRef(null)
   const drawerRef = useRef(null)
@@ -62,8 +66,11 @@ function PublicLayout() {
 
   const activeValue = navItems.find((item) => location.pathname.startsWith(item.value))?.value
 
+  const languageToggle = <LanguageToggle className="fx-btn fx-btn--ghost fx-btn--sm pl-lang" />
+
   const userSection = isAuthenticated ? (
     <>
+      {languageToggle}
       {user.role === 'resident' ? (
         <Link
           to="/profile"
@@ -86,10 +93,21 @@ function PublicLayout() {
       </button>
     </>
   ) : (
-    <Link to="/login" className="fx-btn fx-btn--dark fx-btn--sm">
-      <LogIn size={15} aria-hidden="true" />
-      {translate('nav.login')}
-    </Link>
+    <>
+      {languageToggle}
+      <button
+        type="button"
+        className="fx-btn fx-btn--dark fx-btn--sm"
+        aria-haspopup="dialog"
+        onClick={() => {
+          setIsMenuOpen(false)
+          setIsLoginOpen(true)
+        }}
+      >
+        <LogIn size={15} aria-hidden="true" />
+        {translate('nav.login')}
+      </button>
+    </>
   )
 
   return (
@@ -211,6 +229,8 @@ function PublicLayout() {
           </>
         )}
       </AnimatePresence>
+
+      <LoginChooser open={isLoginOpen} onClose={closeLogin} />
 
       <main id="main-content" className="public-content">
         <Suspense fallback={<PageLoader />}>

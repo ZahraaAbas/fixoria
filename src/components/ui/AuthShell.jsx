@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { motion, useReducedMotion } from 'motion/react'
 import { translate } from '../../i18n'
 import BrandMark from './BrandMark'
+import LanguageToggle from './LanguageToggle'
 import { fadeUp, stagger, easeOut } from './motion'
 import heroImage from '../../assets/images/background.webp'
 import './AuthShell.css'
@@ -22,7 +23,7 @@ function AuthShell({ title, icon: Icon, wide = false, children }) {
         <span className="auth-visual-shade" aria-hidden="true" />
         <span className="auth-visual-orb" aria-hidden="true" />
 
-        <Link to="/" className="auth-visual-brand">
+        <Link to="/home" className="auth-visual-brand">
           <BrandMark tone="light" />
         </Link>
 
@@ -45,6 +46,7 @@ function AuthShell({ title, icon: Icon, wide = false, children }) {
       </motion.aside>
 
       <section className="auth-panel">
+        <LanguageToggle className="fx-btn fx-btn--ghost fx-btn--sm auth-lang" />
         <motion.div
           className="auth-panel-inner"
           variants={stagger(0.1, 0.06)}

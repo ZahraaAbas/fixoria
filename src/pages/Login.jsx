@@ -141,7 +141,7 @@ function Login({ role }) {
               <Link to={REGISTER_PATH[role]}>{translate('login.createAccount')}</Link>
             </p>
           )}
-          <Link to="/" className="auth-back">
+          <Link to="/home" className="auth-back">
             {translate('login.backHome')}
           </Link>
         </div>

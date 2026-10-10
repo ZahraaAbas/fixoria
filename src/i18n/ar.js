@@ -48,7 +48,9 @@ const ar = {
     residentLogin: 'الدخول كساكن',
     artisanLogin: 'الدخول كحرفي',
     adminLogin: 'الدخول كمشرف',
-    guest: 'المتابعة كزائر (للمشاهدة فقط)',
+  },
+  loginChooser: {
+    subtitle: 'اختر نوع حسابك',
   },
   home: {
     title: 'تصفح الخدمات',

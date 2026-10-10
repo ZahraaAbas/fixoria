@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router'
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router'
 import AuthProvider from './context/AuthProvider'
 import PublicLayout from './layouts/PublicLayout'
 import AdminLayout from './layouts/AdminLayout'
@@ -10,9 +10,8 @@ import AmbientBackground from './components/ui/AmbientBackground'
 import PageLoader from './components/ui/PageLoader'
 import ScrollToTop from './components/ui/ScrollToTop'
 import ConnectionBanner from './components/ui/ConnectionBanner'
-import Landing from './pages/Landing'
 
-// كل الصفحات (عدا البوابة) تُحمَّل عند الحاجة فقط، فلا يحمّل الساكن مثلًا كود لوحة المشرف ورسومها البيانية
+// كل الصفحات تُحمَّل عند الحاجة فقط، فلا يحمّل الساكن مثلًا كود لوحة المشرف ورسومها البيانية
 const Home = lazy(() => import('./pages/Home'))
 const Artisans = lazy(() => import('./pages/Artisans'))
 const ArtisanProfile = lazy(() => import('./pages/ArtisanProfile'))
@@ -48,7 +47,8 @@ function App() {
         <ConnectionBanner />
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/" element={<Landing />} />
+            {/* الموقع يفتح كزائر على الرئيسية مباشرة؛ خيارات الدخول تطلع من زر "تسجيل الدخول" */}
+            <Route path="/" element={<Navigate to="/home" replace />} />
 
             <Route element={<PublicLayout />}>
               <Route

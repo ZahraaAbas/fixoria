@@ -102,9 +102,17 @@
 
 /* ===== لوحة النموذج ===== */
 .auth-panel {
+  position: relative;
   display: grid;
   place-items: center;
   padding: clamp(24px, 5vw, 64px) clamp(8px, 4vw, 48px);
+}
+
+.auth-lang {
+  position: absolute;
+  top: 12px;
+  inset-inline-end: 12px;
+  color: var(--text-muted);
 }
 
 .auth-panel-inner {

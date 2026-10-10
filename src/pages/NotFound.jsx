@@ -28,7 +28,7 @@ function NotFound() {
         transition={{ duration: 0.6, ease: easeOut, delay: 0.2 }}
       >
         <h1 className="not-found-title">{translate('notFound.title')}</h1>
-        <Link to="/" className="fx-btn fx-btn--primary fx-btn--lg">
+        <Link to="/home" className="fx-btn fx-btn--primary fx-btn--lg">
           <Home size={18} aria-hidden="true" />
           {translate('notFound.backHome')}
         </Link>

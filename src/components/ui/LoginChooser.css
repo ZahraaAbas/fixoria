@@ -1,0 +1,239 @@
+/* نفس شكل خيارات الدخول اللي چانت بالصفحة الأولى (زجاج داكن) */
+.lc-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(18 23 49 / 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.lc-panel {
+  width: min(440px, 100%);
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  color: var(--text-on-dark);
+  background: var(--gradient-depth);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: var(--radius-xl);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 30px 60px -20px rgb(0 0 0 / 0.5);
+}
+
+.lc-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 4px 0;
+}
+
+.lc-title {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: 800;
+}
+
+.lc-subtitle {
+  margin: 4px 0 0;
+  font-size: var(--text-sm);
+  color: rgb(253 243 238 / 0.7);
+}
+
+.lc-close {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: rgb(253 243 238 / 0.8);
+  background: rgb(255 255 255 / 0.08);
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.lc-close:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.16);
+}
+
+.lc-roles {
+  display: grid;
+  gap: 10px;
+}
+
+.lc-role {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 10px 14px;
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--text-on-dark);
+  text-decoration: none;
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: var(--radius-lg);
+  transition:
+    background var(--dur-base) ease,
+    border-color var(--dur-base) ease,
+    transform var(--dur-base) var(--ease-out);
+}
+
+.lc-role::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(270deg, rgb(241 144 53 / 0.22), transparent 70%);
+  opacity: 0;
+  transition: opacity var(--dur-base) ease;
+}
+
+[dir='ltr'] .lc-role::before {
+  background: linear-gradient(90deg, rgb(241 144 53 / 0.22), transparent 70%);
+}
+
+.lc-role:hover {
+  border-color: rgb(241 144 53 / 0.45);
+  transform: translateX(-4px);
+}
+
+[dir='ltr'] .lc-role:hover {
+  transform: translateX(4px);
+}
+
+.lc-role:hover::before {
+  opacity: 1;
+}
+
+.lc-role:active {
+  transform: scale(0.98);
+}
+
+.lc-role-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--peach-400);
+  background: rgb(241 144 53 / 0.14);
+  border: 1px solid rgb(241 144 53 / 0.25);
+  border-radius: 14px;
+  transition: transform var(--dur-slow) var(--ease-spring);
+}
+
+.lc-role:hover .lc-role-icon {
+  transform: rotate(-8deg) scale(1.06);
+}
+
+.lc-role-label {
+  flex: 1;
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+
+.lc-role-arrow {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: rgb(253 243 238 / 0.55);
+  border-radius: 50%;
+  transition:
+    color var(--dur-base) ease,
+    background var(--dur-base) ease,
+    transform var(--dur-base) var(--ease-out);
+}
+
+.lc-role:hover .lc-role-arrow {
+  color: var(--navy-900);
+  background: var(--orange-500);
+  transform: translateX(-3px);
+}
+
+[dir='ltr'] .lc-role:hover .lc-role-arrow {
+  transform: translateX(3px);
+}
+
+/* الساكن: الخيار الأساسي */
+.lc-role--primary {
+  min-height: 76px;
+  color: var(--navy-900);
+  background: var(--gradient-action);
+  border-color: transparent;
+  box-shadow: var(--shadow-inset-light), 0 14px 30px -12px rgb(241 144 53 / 0.7);
+}
+
+.lc-role--primary::before {
+  background: linear-gradient(270deg, rgb(255 255 255 / 0.3), transparent 70%);
+}
+
+.lc-role--primary:hover {
+  border-color: transparent;
+}
+
+.lc-role--primary .lc-role-icon {
+  color: var(--navy-900);
+  background: rgb(255 255 255 / 0.4);
+  border-color: rgb(255 255 255 / 0.5);
+}
+
+.lc-role--primary .lc-role-label {
+  font-size: var(--text-lg);
+  font-weight: 800;
+}
+
+.lc-role--primary .lc-role-arrow {
+  color: var(--navy-900);
+  background: rgb(255 255 255 / 0.45);
+}
+
+.lc-role--primary:hover .lc-role-arrow {
+  color: var(--text-on-dark);
+  background: var(--navy-800);
+}
+
+/* المشرف: أقل بروزًا */
+.lc-role--subtle {
+  min-height: 52px;
+  background: transparent;
+  border-style: dashed;
+  border-color: rgb(255 255 255 / 0.14);
+}
+
+.lc-role--subtle .lc-role-icon {
+  width: 36px;
+  height: 36px;
+  color: rgb(253 243 238 / 0.7);
+  background: rgb(255 255 255 / 0.06);
+  border-color: rgb(255 255 255 / 0.1);
+  border-radius: 11px;
+}
+
+.lc-role--subtle .lc-role-label {
+  font-size: var(--text-sm);
+  color: rgb(253 243 238 / 0.75);
+}
+
+@media (max-width: 520px) {
+  /* بالجوال النافذة تطلع من الأسفل */
+  .lc-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .lc-panel {
+    width: 100%;
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+}
