@@ -14,6 +14,7 @@ from app.models import Artisan, NotificationType, Review, ServiceRequest, Reques
 from app.notifications import notify
 from app.schemas import ReviewCreate, ReviewRead
 from app.auth import get_current_user
+from app.tenancy import approved_resident
 
 router = APIRouter(tags=["Reviews"])
 
@@ -22,11 +23,8 @@ router = APIRouter(tags=["Reviews"])
 def create_review(
     payload: ReviewCreate,
     session: Session = Depends(get_session),
-    user: User = Depends(get_current_user),
+    user: User = Depends(approved_resident),
 ):
-    if user.role != UserRole.customer:
-        raise HTTPException(status_code=403, detail="بس الزبون يكدر يكتب تقييم")
-
     if not (1 <= payload.rating <= 5):
         raise HTTPException(status_code=400, detail="التقييم لازم يكون بين 1 و 5")
 

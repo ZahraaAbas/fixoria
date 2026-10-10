@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlmodel import Session, select
 
 from app.database import get_session
+from app.tenancy import compound_artisan_ids
 from app.models import Artisan, Review, Service, ServiceRequest, User, UserRole
 from app.schemas import ArtisanCreate, ArtisanUpdate, ArtisanRead, ReviewDetailed
 from app.auth import get_current_user, require_role
@@ -247,7 +248,9 @@ def update_artisan_profile(
     if not artisan:
         raise HTTPException(status_code=404, detail="ما اكو حرفي بهذا المعرّف")
 
-    if artisan.user_id != user.id and user.role != UserRole.admin:
+    # المشرف يعدّل بس حرفيي الشركات المتفقة ويه مجمعه
+    is_compound_admin = user.role == UserRole.admin and artisan.id in compound_artisan_ids(session, user.compound_id)
+    if artisan.user_id != user.id and not is_compound_admin:
         raise HTTPException(status_code=403, detail="ما تكدرين تعدلين ملف حرفي ثاني")
 
     return _to_read(_apply_update(artisan, user, payload, session), session)

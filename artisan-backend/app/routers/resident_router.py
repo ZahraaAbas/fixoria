@@ -50,6 +50,7 @@ from sqlmodel import Session, select
 from app.auth import require_role
 from app.database import get_session
 from app.models import (
+    Compound,
     Artisan,
     Complaint,
     Notification,
@@ -67,6 +68,7 @@ from app.models import (
 from app.notifications import notify
 from app.progress import build_progress, status_label
 from app.helpers import all_artisan_ratings, artisan_service_ids, artisans_for_service
+from app.tenancy import approved_resident, compound_artisan_ids, compound_service_ids, resident_membership
 from app.schemas import (
     ArtisanCard,
     ComplaintCreate,
@@ -86,6 +88,7 @@ from app.storage import read_audio, save_audio_content, save_image
 
 router = APIRouter(prefix="/resident", tags=["Resident Dashboard"])
 
+# الملف الشخصي مفتوح لأي ساكن (حتى المنتظر موافقة المجمع)، وباقي الصفحات تحتاج approved_resident
 resident_only = require_role(UserRole.customer)
 
 CURRENT_STATUSES = [RequestStatus.pending, RequestStatus.accepted, RequestStatus.in_progress]
@@ -109,8 +112,9 @@ def _get_or_create_profile(session: Session, user: User) -> ResidentProfile:
     return profile
 
 
-def _profile_read(user: User, profile: ResidentProfile) -> ResidentProfileRead:
+def _profile_read(user: User, profile: ResidentProfile, session: Session) -> ResidentProfileRead:
     parts = [p for p in [profile.building, f"الطابق {profile.floor}" if profile.floor else None] if p]
+    compound = session.get(Compound, user.compound_id) if user.compound_id else None
     return ResidentProfileRead(
         user_id=user.id,
         name=user.name,
@@ -123,6 +127,10 @@ def _profile_read(user: User, profile: ResidentProfile) -> ResidentProfileRead:
         building_unit=" - ".join(parts) if parts else None,
         avatar=profile.avatar,
         is_subscriber=profile.is_subscriber,
+        membership_status=profile.membership_status.value,
+        compound_id=compound.id if compound else None,
+        compound_name=compound.name if compound else None,
+        compound_active=bool(compound and compound.is_active),
     )
 
 
@@ -143,8 +151,9 @@ def _artisan_card(a: Artisan, session: Session, ratings) -> ArtisanCard:
     )
 
 
-def _sorted_service_artisans(service_id: int, session: Session, ratings) -> List[Artisan]:
-    artisans = artisans_for_service(session, service_id, verified_only=True)
+def _sorted_service_artisans(service_id: int, session: Session, ratings, compound_id: Optional[int]) -> List[Artisan]:
+    allowed = compound_artisan_ids(session, compound_id, service_id)
+    artisans = [a for a in artisans_for_service(session, service_id, verified_only=True) if a.id in allowed]
     # الأعلى تقييماً أول؛ اللي ما عنده تقييم ينزل آخر القائمة
     return sorted(
         artisans,
@@ -153,11 +162,13 @@ def _sorted_service_artisans(service_id: int, session: Session, ratings) -> List
     )
 
 
-def _service_categories(session: Session) -> List[ServiceCategory]:
+def _service_categories(session: Session, compound_id: Optional[int]) -> List[ServiceCategory]:
+    """خدمات المجمع بس (اللي تغطيها اتفاقياته الفعّالة)، ويه حرفيي الشركات المتفقة."""
     ratings = _artisan_ratings(session)
+    available = compound_service_ids(session, compound_id)
     results = []
-    for s in session.exec(select(Service)).all():
-        artisans = _sorted_service_artisans(s.id, session, ratings)
+    for s in session.exec(select(Service).where(Service.id.in_(available))).all():
+        artisans = _sorted_service_artisans(s.id, session, ratings, compound_id)
         results.append(
             ServiceCategory(
                 service_id=s.id,
@@ -308,7 +319,7 @@ def get_dashboard(
     notifications_limit: int = Query(3, ge=1, le=20),
     requests_limit: int = Query(3, ge=1, le=20),
     session: Session = Depends(get_session),
-    user: User = Depends(resident_only),
+    user: User = Depends(approved_resident),
 ):
     profile = _get_or_create_profile(session, user)
     notifications = session.exec(
@@ -323,10 +334,10 @@ def get_dashboard(
 
     return ResidentDashboard(
         greeting_name=user.name,
-        profile=_profile_read(user, profile),
+        profile=_profile_read(user, profile, session),
         unread_notifications_count=unread,
         notifications=[NotificationRead.model_validate(n) for n in notifications],
-        service_categories=_service_categories(session),
+        service_categories=_service_categories(session, user.compound_id),
         current_requests=_current_requests(session, user, requests_limit),
         history=_history(session, user, requests_limit),
         ratings_summary=_ratings_summary(session, user),
@@ -340,7 +351,7 @@ def get_dashboard(
 
 @router.get("/me", response_model=ResidentProfileRead)
 def get_my_profile(session: Session = Depends(get_session), user: User = Depends(resident_only)):
-    return _profile_read(user, _get_or_create_profile(session, user))
+    return _profile_read(user, _get_or_create_profile(session, user), session)
 
 
 @router.put("/me", response_model=ResidentProfileRead)
@@ -374,7 +385,7 @@ def update_my_profile(
     session.commit()
     session.refresh(user)
     session.refresh(profile)
-    return _profile_read(user, profile)
+    return _profile_read(user, profile, session)
 
 
 @router.post("/me/avatar", response_model=ResidentProfileRead)
@@ -388,7 +399,7 @@ async def upload_my_avatar(
     session.add(profile)
     session.commit()
     session.refresh(profile)
-    return _profile_read(user, profile)
+    return _profile_read(user, profile, session)
 
 
 # =====================================================================
@@ -396,21 +407,21 @@ async def upload_my_avatar(
 # =====================================================================
 
 @router.get("/service-categories", response_model=List[ServiceCategory])
-def get_service_categories(session: Session = Depends(get_session), _: User = Depends(resident_only)):
-    return _service_categories(session)
+def get_service_categories(session: Session = Depends(get_session), user: User = Depends(approved_resident)):
+    return _service_categories(session, user.compound_id)
 
 
 @router.get("/services/{service_id}/artisans", response_model=List[ArtisanCard])
 def get_service_artisans(
     service_id: int,
     session: Session = Depends(get_session),
-    _: User = Depends(resident_only),
+    user: User = Depends(approved_resident),
 ):
-    if not session.get(Service, service_id):
+    if service_id not in compound_service_ids(session, user.compound_id):
         raise HTTPException(status_code=404, detail="الخدمة غير موجودة")
     ratings = _artisan_ratings(session)
     return [_artisan_card(a, session, ratings)
-            for a in _sorted_service_artisans(service_id, session, ratings)]
+            for a in _sorted_service_artisans(service_id, session, ratings, user.compound_id)]
 
 
 # =====================================================================
@@ -430,11 +441,14 @@ async def create_resident_request(
     images: Optional[List[UploadFile]] = File(None),
     audio: Optional[UploadFile] = File(None),
     session: Session = Depends(get_session),
-    user: User = Depends(resident_only),
+    user: User = Depends(approved_resident),
 ):
     service = session.get(Service, service_id)
     if not service:
         raise HTTPException(status_code=404, detail="نوع الخدمة غير موجود")
+    if service_id not in compound_service_ids(session, user.compound_id):
+        raise HTTPException(status_code=400, detail="هذه الخدمة غير متوفرة في مجمعك")
+    compound_artisans = compound_artisan_ids(session, user.compound_id, service_id)
 
     images = [f for f in (images or []) if f and f.filename]
     if len(images) > MAX_IMAGES_PER_REQUEST:
@@ -457,7 +471,7 @@ async def create_resident_request(
         if not profile.is_subscriber:
             raise HTTPException(status_code=403, detail="اختيار الحرفي متاح للمشتركين فقط")
         artisan = session.get(Artisan, preferred_artisan_id)
-        if not artisan or not artisan.verified:
+        if not artisan or not artisan.verified or artisan.id not in compound_artisans:
             raise HTTPException(status_code=404, detail="الحرفي غير موجود أو غير معتمد")
         if service_id not in artisan_service_ids(session, artisan):
             raise HTTPException(status_code=400, detail="هذا الحرفي ما يقدم نوع الخدمة المختار")
@@ -503,6 +517,8 @@ async def create_resident_request(
         notify(session, user.id, NotificationType.request_received,
                f"تم استلام طلبك رقم #{req.id}", "جاري البحث عن حرفي مناسب", req.id)
         for a in artisans_for_service(session, service_id, verified_only=True):
+            if a.id not in compound_artisans:
+                continue
             notify(session, a.user_id, NotificationType.new_request,
                    f"طلب جديد متاح #{req.id}", f"{service.name} — {req.location or ''}", req.id)
     session.commit()
@@ -514,7 +530,7 @@ async def create_resident_request(
 def cancel_request(
     request_id: int,
     session: Session = Depends(get_session),
-    user: User = Depends(resident_only),
+    user: User = Depends(approved_resident),
 ):
     req = _get_my_request(request_id, session, user)
     if req.status not in (RequestStatus.pending, RequestStatus.accepted):
@@ -536,7 +552,7 @@ async def add_request_images(
     request_id: int,
     images: List[UploadFile] = File(...),
     session: Session = Depends(get_session),
-    user: User = Depends(resident_only),
+    user: User = Depends(approved_resident),
 ):
     req = _get_my_request(request_id, session, user)
     if req.status in (RequestStatus.completed, RequestStatus.rejected, RequestStatus.cancelled):
@@ -558,7 +574,7 @@ async def add_request_images(
 # =====================================================================
 
 @router.get("/requests", response_model=List[ResidentRequestRow])
-def get_all_my_requests(session: Session = Depends(get_session), user: User = Depends(resident_only)):
+def get_all_my_requests(session: Session = Depends(get_session), user: User = Depends(approved_resident)):
     reqs = session.exec(
         select(ServiceRequest)
         .where(ServiceRequest.customer_id == user.id)
@@ -572,7 +588,7 @@ def get_all_my_requests(session: Session = Depends(get_session), user: User = De
 def get_current_requests(
     limit: Optional[int] = Query(None, ge=1, le=100),
     session: Session = Depends(get_session),
-    user: User = Depends(resident_only),
+    user: User = Depends(approved_resident),
 ):
     return _current_requests(session, user, limit)
 
@@ -582,7 +598,7 @@ def get_request_history(
     limit: Optional[int] = Query(None, ge=1, le=100),
     include_rejected: bool = False,
     session: Session = Depends(get_session),
-    user: User = Depends(resident_only),
+    user: User = Depends(approved_resident),
 ):
     return _history(session, user, limit, include_rejected)
 
@@ -591,7 +607,7 @@ def get_request_history(
 def get_request_detail(
     request_id: int,
     session: Session = Depends(get_session),
-    user: User = Depends(resident_only),
+    user: User = Depends(approved_resident),
 ):
     req = _get_my_request(request_id, session, user)
     my_reviews = _my_reviews_by_request(session, user)
@@ -613,7 +629,7 @@ def get_request_detail(
 def download_invoice(
     request_id: int,
     session: Session = Depends(get_session),
-    user: User = Depends(resident_only),
+    user: User = Depends(approved_resident),
 ):
     """فاتورة HTML (تنفتح بالمتصفح وتنطبع/تنحفظ PDF) — بدون مكتبات إضافية."""
     req = _get_my_request(request_id, session, user)
@@ -659,12 +675,12 @@ def download_invoice(
 # =====================================================================
 
 @router.get("/ratings/summary", response_model=RatingsSummary)
-def get_ratings_summary(session: Session = Depends(get_session), user: User = Depends(resident_only)):
+def get_ratings_summary(session: Session = Depends(get_session), user: User = Depends(approved_resident)):
     return _ratings_summary(session, user)
 
 
 @router.get("/reviews", response_model=List[ReviewDetailed])
-def get_my_reviews(session: Session = Depends(get_session), user: User = Depends(resident_only)):
+def get_my_reviews(session: Session = Depends(get_session), user: User = Depends(approved_resident)):
     reviews = session.exec(
         select(Review).where(Review.customer_id == user.id).order_by(Review.created_at.desc())
     ).all()
@@ -684,7 +700,7 @@ def get_my_reviews(session: Session = Depends(get_session), user: User = Depends
 
 
 @router.get("/pending-review", response_model=Optional[PendingReview])
-def get_pending_review(session: Session = Depends(get_session), user: User = Depends(resident_only)):
+def get_pending_review(session: Session = Depends(get_session), user: User = Depends(approved_resident)):
     """يرجع null إذا ماكو طلب يحتاج تقييم — الفرونت يخفي النافذة."""
     return _pending_review(session, user)
 
@@ -697,7 +713,7 @@ def get_pending_review(session: Session = Depends(get_session), user: User = Dep
 def create_complaint(
     payload: ComplaintCreate,
     session: Session = Depends(get_session),
-    user: User = Depends(resident_only),
+    user: User = Depends(approved_resident),
 ):
     if not payload.subject.strip() or not payload.message.strip():
         raise HTTPException(status_code=400, detail="العنوان ونص الشكوى مطلوبين")
@@ -714,7 +730,9 @@ def create_complaint(
     session.commit()
     session.refresh(complaint)
 
-    for admin in session.exec(select(User).where(User.role == UserRole.admin)).all():
+    for admin in session.exec(
+        select(User).where(User.role == UserRole.admin, User.compound_id == user.compound_id)
+    ).all():
         notify(session, admin.id, NotificationType.general,
                f"شكوى جديدة #{complaint.id} من {user.name}", complaint.subject)
     session.commit()
@@ -722,7 +740,7 @@ def create_complaint(
 
 
 @router.get("/complaints", response_model=List[ComplaintRead])
-def get_my_complaints(session: Session = Depends(get_session), user: User = Depends(resident_only)):
+def get_my_complaints(session: Session = Depends(get_session), user: User = Depends(approved_resident)):
     complaints = session.exec(
         select(Complaint).where(Complaint.customer_id == user.id).order_by(Complaint.created_at.desc())
     ).all()

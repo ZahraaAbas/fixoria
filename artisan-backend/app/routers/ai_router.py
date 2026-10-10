@@ -14,9 +14,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
 from app.ai_service import AIServiceError, AIUnavailableError, analyze_request
-from app.auth import require_role
 from app.database import get_session
-from app.models import Service, User, UserRole
+from app.models import Service, User
+from app.tenancy import approved_resident, compound_service_ids
 from app.schemas import AIServiceRequestInput, AIServiceRequestOutput
 
 router = APIRouter(prefix="/ai", tags=["AI Assistant"])
@@ -41,10 +41,12 @@ def _check_rate_limit(user_id: int) -> None:
 def ai_service_request(
     payload: AIServiceRequestInput,
     session: Session = Depends(get_session),
-    user: User = Depends(require_role(UserRole.customer)),
+    user: User = Depends(approved_resident),
 ):
     _check_rate_limit(user.id)
-    services = session.exec(select(Service)).all()
+    # المساعد يختار من خدمات مجمع الساكن بس، حتى المسودة تنقبل لمن يأكدها
+    available = compound_service_ids(session, user.compound_id)
+    services = session.exec(select(Service).where(Service.id.in_(available))).all()
     try:
         return analyze_request(
             payload.message.strip(),

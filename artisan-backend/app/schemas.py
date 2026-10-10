@@ -17,6 +17,7 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str
     role: UserRole = UserRole.customer
+    compound_id: Optional[int] = None  # مطلوب للساكن: المجمع اللي يسكن بيه (مشرفه يوافق)
     # حقول اختيارية للساكن — تنحفظ بـ ResidentProfile مباشرة وقت التسجيل
     phone: Optional[str] = None
     building: Optional[str] = None
@@ -283,6 +284,10 @@ class ResidentProfileRead(BaseModel):
     building_unit: Optional[str] = None  # جاهز للعرض: "البناية B - الطابق 2"
     avatar: Optional[str] = None
     is_subscriber: bool = False
+    membership_status: str = "pending"   # pending / approved / rejected (موافقة مشرف المجمع)
+    compound_id: Optional[int] = None
+    compound_name: Optional[str] = None
+    compound_active: bool = False
 
 
 class ResidentProfileUpdate(BaseModel):
@@ -553,4 +558,27 @@ class OwnerOverview(BaseModel):
     artisans: int
     requests: int
     open_requests: int
+
+
+# ---------- سكان المجمع (موافقة مشرف المجمع) ----------
+
+class ResidentMembershipRead(BaseModel):
+    user_id: int
+    name: str
+    email: str
+    phone: Optional[str] = None
+    building: Optional[str] = None
+    floor: Optional[str] = None
+    apartment_number: Optional[str] = None
+    membership_status: str  # pending / approved / rejected
+
+
+class MembershipUpdate(BaseModel):
+    status: str = Field(pattern="^(approved|rejected)$")
+
+
+class CompoundOption(BaseModel):
+    """المجمعات المفعّلة بقائمة التسجيل (عامة)."""
+    id: int
+    name: str
 

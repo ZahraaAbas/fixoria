@@ -25,6 +25,7 @@ from app.models import (
 from app.helpers import artisan_service_ids, request_to_read
 from app.schemas import RequestCreate, RequestRead, RequestStatusUpdate
 from app.auth import get_current_user
+from app.tenancy import approved_resident, compound_artisan_ids
 from app.progress import build_progress
 from app.notifications import notify
 
@@ -56,13 +57,10 @@ def _my_artisan(session: Session, user: User) -> Artisan:
 def create_request(
     payload: RequestCreate,
     session: Session = Depends(get_session),
-    user: User = Depends(get_current_user),
+    user: User = Depends(approved_resident),
 ):
-    if user.role != UserRole.customer:
-        raise HTTPException(status_code=403, detail="بس الزبون يكدر يفتح طلب خدمة")
-
     artisan = session.get(Artisan, payload.artisan_id)
-    if not artisan:
+    if not artisan or artisan.id not in compound_artisan_ids(session, user.compound_id, payload.service_id):
         raise HTTPException(status_code=404, detail="ما اكو حرفي بهذا المعرّف")
 
     req = ServiceRequest(customer_id=user.id, compound_id=user.compound_id, **payload.model_dump())
@@ -84,7 +82,8 @@ def list_requests(
     user: User = Depends(get_current_user),
 ):
     if user.role == UserRole.admin:
-        reqs = session.exec(select(ServiceRequest)).all()
+        # مشرف المجمع يشوف طلبات مجمعه بس
+        reqs = session.exec(select(ServiceRequest).where(ServiceRequest.compound_id == user.compound_id)).all()
     elif user.role == UserRole.customer:
         reqs = session.exec(
             select(ServiceRequest).where(ServiceRequest.customer_id == user.id)
@@ -274,7 +273,7 @@ def _notify_customer_of_status(req: ServiceRequest, session: Session) -> None:
 
 
 def _check_can_view(req: ServiceRequest, user: User, session: Session) -> None:
-    if user.role == UserRole.admin:
+    if user.role == UserRole.admin and user.compound_id is not None and req.compound_id == user.compound_id:
         return
     if user.role == UserRole.customer and req.customer_id == user.id:
         return

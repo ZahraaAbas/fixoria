@@ -10,7 +10,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from app.database import get_session
-from app.models import ResidentProfile, User, UserRole
+from app.models import Compound, NotificationType, ResidentProfile, User, UserRole
+from app.notifications import notify
 from app.schemas import PasswordChange, UserRegister, UserLogin, UserRead, Token
 from app.auth import hash_password, verify_password, create_access_token, get_current_user
 
@@ -19,9 +20,16 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def register(payload: UserRegister, session: Session = Depends(get_session)):
-    if payload.role == UserRole.admin:
-        # حساب الأدمن ما ينسوى من التسجيل العام — بس من الـ seed أو مباشرة بالقاعدة
-        raise HTTPException(status_code=403, detail="ما يمكن إنشاء حساب مشرف من التسجيل")
+    # التسجيل العام للساكن والحرفي بس. المشرفين ومدراء الشركات يضيفهم مالك المنصة،
+    # والمالك من إعدادات الخادم — غيرها يعني أي واحد يكدر يسوي نفسه مالك.
+    if payload.role not in (UserRole.customer, UserRole.artisan):
+        raise HTTPException(status_code=403, detail="ما يمكن إنشاء هذا النوع من الحسابات من التسجيل")
+
+    compound = None
+    if payload.role == UserRole.customer:
+        compound = session.get(Compound, payload.compound_id) if payload.compound_id else None
+        if not compound or not compound.is_active:
+            raise HTTPException(status_code=400, detail="اختر مجمعك من القائمة")
 
     existing = session.exec(select(User).where(User.email == payload.email)).first()
     if existing:
@@ -32,6 +40,7 @@ def register(payload: UserRegister, session: Session = Depends(get_session)):
         email=payload.email,
         password_hash=hash_password(payload.password),
         role=payload.role,
+        compound_id=compound.id if compound else None,
     )
     session.add(user)
     session.commit()
@@ -46,6 +55,12 @@ def register(payload: UserRegister, session: Session = Depends(get_session)):
             apartment_number=payload.apartment_number,
             floor=payload.floor,
         ))
+        # طلب الانضمام يوصل لمشرفي المجمع حتى يوافقون عليه
+        for admin in session.exec(
+            select(User).where(User.role == UserRole.admin, User.compound_id == compound.id)
+        ).all():
+            notify(session, admin.id, NotificationType.general,
+                   f"طلب انضمام جديد من {user.name}", "راجع صفحة السكان للموافقة أو الرفض")
         session.commit()
     return user
 

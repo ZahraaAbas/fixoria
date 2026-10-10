@@ -1,9 +1,9 @@
 """
 Services endpoints ("التصنيفات" بالفرونت):
 GET    /services        -> List services (عام)
-POST   /services        -> Create service (Admin only)
-PUT    /services/{id}   -> Rename/edit service (Admin only)
-DELETE /services/{id}   -> Delete service (Admin only) — ممنوع إذا عليها طلبات
+POST   /services        -> Create service (Owner only)
+PUT    /services/{id}   -> Rename/edit service (Owner only)
+DELETE /services/{id}   -> Delete service (Owner only) — ممنوع إذا عليها طلبات
 """
 
 from typing import List
@@ -18,8 +18,8 @@ from app.schemas import ServiceCreate, ServiceRead
 
 router = APIRouter(prefix="/services", tags=["Services"])
 
-# التصنيفات عامة لكل المجمعات: مالك المنصة يديرها (ومشرف المجمع لحد ما ننقلها للمالك بالخطوة ٣)
-admin_only = require_role(UserRole.admin, UserRole.owner)
+# التصنيفات عامة لكل المجمعات، فيديرها مالك المنصة بس
+admin_only = require_role(UserRole.owner)
 
 
 def _check_name(session: Session, name: str, exclude_id: int = None) -> str:
