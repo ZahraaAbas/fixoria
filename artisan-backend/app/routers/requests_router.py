@@ -65,7 +65,7 @@ def create_request(
     if not artisan:
         raise HTTPException(status_code=404, detail="ما اكو حرفي بهذا المعرّف")
 
-    req = ServiceRequest(customer_id=user.id, **payload.model_dump())
+    req = ServiceRequest(customer_id=user.id, compound_id=user.compound_id, **payload.model_dump())
     session.add(req)
     session.commit()
     session.refresh(req)

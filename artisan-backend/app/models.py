@@ -8,21 +8,37 @@ Notification (الإشعارات), Complaint (الشكاوى للإدارة)
 
 إضافات ربط الفرونت الجديد:
 ArtisanServiceLink (الحرفي يقدّم أكثر من خدمة), RequestDismissal (حرفي تجاهل طلب مفتوح)
+
+تعدد المجمعات (صنعة):
+Compound (المجمع), Company (شركة الصيانة), Agreement + AgreementServiceLink (اتفاقية مجمع ↔ شركة
+والخدمات اللي تغطيها). الساكن ومشرف المجمع والطلب يتبعون مجمع، والحرفي ومدير الشركة يتبعون شركة.
+
+أي تغيير هنا يحتاج migration جديد (alembic revision --autogenerate) — create_all ما يحدّث الجداول الموجودة.
 """
 
 from datetime import datetime
 from enum import Enum
 from typing import Optional, List
 
+from sqlalchemy import UniqueConstraint
 from sqlmodel import SQLModel, Field, Relationship
 
 
 # ---------- Enums ----------
 
 class UserRole(str, Enum):
-    customer = "customer"
+    customer = "customer"                # الساكن
     artisan = "artisan"
-    admin = "admin"
+    admin = "admin"                      # مشرف المجمع (إدارة المجمع)
+    owner = "owner"                      # مالك المنصة: يدير كل المجمعات والشركات
+    company_manager = "company_manager"  # مدير شركة الصيانة: يضيف حرفيي شركته
+
+
+class MembershipStatus(str, Enum):
+    """عضوية الساكن بمجمعه: يختار المجمع بالتسجيل ومشرف المجمع يوافق."""
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
 
 
 class RequestStatus(str, Enum):
@@ -53,6 +69,42 @@ class ComplaintStatus(str, Enum):
     resolved = "resolved"
 
 
+# ---------- Compound / Company / Agreement ----------
+
+class Compound(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+    address: Optional[str] = None
+    phone: Optional[str] = None             # رقم إدارة المجمع
+    is_active: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class Company(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+    phone: Optional[str] = None
+    is_active: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class Agreement(SQLModel, table=True):
+    """اتفاقية بين مجمع وشركة صيانة: طلبات المجمع تروح لحرفيي الشركة بالخدمات المشمولة."""
+
+    __table_args__ = (UniqueConstraint("compound_id", "company_id"),)
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    compound_id: int = Field(foreign_key="compound.id", index=True)
+    company_id: int = Field(foreign_key="company.id", index=True)
+    is_active: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class AgreementServiceLink(SQLModel, table=True):
+    agreement_id: int = Field(foreign_key="agreement.id", primary_key=True)
+    service_id: int = Field(foreign_key="service.id", primary_key=True)
+
+
 # ---------- User ----------
 
 class User(SQLModel, table=True):
@@ -61,6 +113,9 @@ class User(SQLModel, table=True):
     email: str = Field(index=True, unique=True)
     password_hash: str
     role: UserRole
+    # الساكن ومشرف المجمع يتبعون مجمع، والحرفي ومدير الشركة يتبعون شركة. مالك المنصة بدونهم.
+    compound_id: Optional[int] = Field(default=None, foreign_key="compound.id", index=True)
+    company_id: Optional[int] = Field(default=None, foreign_key="company.id", index=True)
 
     artisan_profile: Optional["Artisan"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"uselist": False}
@@ -81,6 +136,7 @@ class ResidentProfile(SQLModel, table=True):
     floor: Optional[str] = None             # الطابق
     avatar: Optional[str] = None            # رابط الصورة (/uploads/...)
     is_subscriber: bool = Field(default=False)  # المشتركين يكدرون يختارون الحرفي
+    membership_status: MembershipStatus = Field(default=MembershipStatus.pending)
 
 
 # ---------- Artisan ----------
@@ -124,6 +180,7 @@ class Service(SQLModel, table=True):
 class ServiceRequest(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     customer_id: int = Field(foreign_key="user.id")
+    compound_id: Optional[int] = Field(default=None, foreign_key="compound.id", index=True)
     # صار اختياري: الطلب ممكن ينفتح قبل ما يتعين حرفي ("جاري البحث عن حرفي مناسب")
     artisan_id: Optional[int] = Field(default=None, foreign_key="artisan.id")
     service_id: int = Field(foreign_key="service.id")
@@ -156,8 +213,7 @@ class RequestImage(SQLModel, table=True):
 
 
 # ---------- RequestAudio (وصف صوتي للمشكلة) ----------
-# جدول مستقل بدل عمود جديد بـ ServiceRequest: create_all يسويه تلقائياً بدون migration
-# للقواعد الموجودة. صوت واحد لكل طلب.
+# جدول مستقل (انضاف قبل Alembic، لأن create_all چان يسوي الجداول الجديدة بس). صوت واحد لكل طلب.
 
 class RequestAudio(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

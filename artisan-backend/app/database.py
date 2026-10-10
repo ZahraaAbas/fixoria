@@ -4,7 +4,10 @@
 """
 
 import os
-from sqlmodel import SQLModel, Session, create_engine
+from pathlib import Path
+
+from sqlalchemy import inspect, text
+from sqlmodel import Session, create_engine
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,9 +24,49 @@ connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite")
 engine = create_engine(DATABASE_URL, echo=False, connect_args=connect_args, pool_pre_ping=True)
 
 
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+BASELINE_REVISION = "0001"
+# رقم ثابت لقفل التحديث بـ PostgreSQL: على Vercel ممكن تشتغل أكثر من نسخة من الخادم بنفس الوقت،
+# فالقفل يخلي وحدة بس تحدّث القاعدة والباقي ينتظرون
+MIGRATION_LOCK_ID = 727_274
+
+
+def run_migrations() -> None:
+    """يحدّث القاعدة لآخر نسخة (alembic upgrade head).
+
+    القواعد اللي انبنت بـ create_all قبل Alembic (بيها جداول بدون alembic_version)
+    تنعلّم أول شي إنها بنسخة الأساس 0001، وبعدها تنطبق عليها التحديثات الجديدة.
+    """
+    from alembic import command
+    from alembic.config import Config
+
+    config = Config(str(BACKEND_DIR / "alembic.ini"))
+    config.set_main_option("script_location", str(BACKEND_DIR / "migrations"))
+    is_postgres = engine.dialect.name == "postgresql"
+
+    with engine.connect() as connection:
+        if is_postgres:
+            connection.execute(text(f"SELECT pg_advisory_lock({MIGRATION_LOCK_ID})"))
+            connection.commit()
+        try:
+            config.attributes["connection"] = connection
+            inspector = inspect(connection)
+            created_before_alembic = inspector.has_table("user") and not inspector.has_table("alembic_version")
+            connection.commit()
+            if created_before_alembic:
+                command.stamp(config, BASELINE_REVISION)
+                connection.commit()
+            command.upgrade(config, "head")
+            connection.commit()
+        finally:
+            if is_postgres:
+                connection.execute(text(f"SELECT pg_advisory_unlock({MIGRATION_LOCK_ID})"))
+                connection.commit()
+
+
 def create_db_and_tables() -> None:
-    """يسوي كل الجداول حسب الموديلز المسجلة بـ SQLModel.metadata."""
-    SQLModel.metadata.create_all(engine)
+    """تجهيز القاعدة عند تشغيل الخادم أو seed: صار عن طريق Alembic بدل create_all."""
+    run_migrations()
 
 
 def get_session():

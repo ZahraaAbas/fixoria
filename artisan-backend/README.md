@@ -80,10 +80,10 @@ scripts/
 
 ## لوحة الساكن (Resident Dashboard) — جديد
 
-> ⚠️ **لازم تحذفين `artisan.db` وتعيدين `python -m scripts.seed`**: انضافت جداول
-> (`residentprofile`, `requestimage`, `notification`, `complaint`) وأعمدة جديدة
-> (`artisan.service_id`, `service.icon`, و `servicerequest.scheduled_at/price/...`)، و `artisan_id`
-> بالطلب صار اختياري. `create_all` ما يعدل جداول موجودة.
+> ℹ️ **تحديث قاعدة البيانات صار تلقائي (Alembic)**: الخادم يحدّث الجداول لحاله لمن يشتغل،
+> فما تحتاجين تحذفين `artisan.db` بعد أي تغيير. القاعدة القديمة (قبل Alembic) تتحدّث بدون ما تضيع بياناتها.
+> إذا غيّرتي الموديلات (`app/models.py`) سوي ملف تحديث جديد من داخل `artisan-backend`:
+> `alembic revision --autogenerate -m "وصف التغيير"` وراجعيه قبل الحفظ (الملفات بـ `migrations/versions`).
 
 كل endpoints `/resident/*` محمية بدور `customer`. سجلي دخول بـ `customer@demo.com`.
 

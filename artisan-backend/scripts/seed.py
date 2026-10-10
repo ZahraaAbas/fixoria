@@ -34,6 +34,7 @@ from app.database import engine, create_db_and_tables
 from app.models import (
     User, Artisan, Service, ServiceRequest, Review, RequestStatus, UserRole,
     ResidentProfile, Notification, NotificationType, Complaint, ArtisanServiceLink,
+    Compound, Company, Agreement, AgreementServiceLink, MembershipStatus,
 )
 from app.auth import hash_password
 
@@ -234,6 +235,7 @@ def seed() -> None:
         )
 
         finalize_for_frontend(session)
+        assign_default_compound(session)
 
         print("تم إنشاء بيانات تجريبية:")
         print(f"  Admin:    admin@demo.com / {DEMO_PASSWORD}")
@@ -435,6 +437,43 @@ EXTRA_SERVICES = [
     ("دهان وديكور", "دهان جدران وديكورات داخلية", "paintbrush"),
     ("تنظيف", "تنظيف شقق وخزانات وسجاد", "sparkles"),
 ]
+
+
+# نفس أسماء migration 0002 (اللي ينقل القواعد القديمة)، حتى القاعدة الجديدة والمنقولة يطلعون متشابهين
+DEFAULT_COMPOUND = "مجمع البدور السكني"
+DEFAULT_COMPANY = "شركة الصيانة الحالية"
+
+
+def assign_default_compound(session) -> None:
+    """تعدد المجمعات: كل البيانات التجريبية تتبع مجمع البدور، والحرفيين لشركة واحدة متفقة وياه على كل الخدمات."""
+    compound = Compound(name=DEFAULT_COMPOUND)
+    company = Company(name=DEFAULT_COMPANY)
+    session.add(compound)
+    session.add(company)
+    session.commit()
+    session.refresh(compound)
+    session.refresh(company)
+
+    agreement = Agreement(compound_id=compound.id, company_id=company.id)
+    session.add(agreement)
+    session.commit()
+    session.refresh(agreement)
+    for service in session.exec(select(Service)).all():
+        session.add(AgreementServiceLink(agreement_id=agreement.id, service_id=service.id))
+
+    for user in session.exec(select(User)).all():
+        if user.role in (UserRole.customer, UserRole.admin):
+            user.compound_id = compound.id
+        elif user.role == UserRole.artisan:
+            user.company_id = company.id
+        session.add(user)
+    for profile in session.exec(select(ResidentProfile)).all():
+        profile.membership_status = MembershipStatus.approved
+        session.add(profile)
+    for req in session.exec(select(ServiceRequest)).all():
+        req.compound_id = compound.id
+        session.add(req)
+    session.commit()
 
 
 def finalize_for_frontend(session):

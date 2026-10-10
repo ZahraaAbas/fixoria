@@ -468,6 +468,7 @@ async def create_resident_request(
     location_parts = [building_value, unit]
     req = ServiceRequest(
         customer_id=user.id,
+        compound_id=user.compound_id,
         artisan_id=artisan.id if artisan else None,
         service_id=service_id,
         title=(title or "").strip() or service.name,
