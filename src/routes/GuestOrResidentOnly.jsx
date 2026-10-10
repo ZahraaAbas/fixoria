@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 const REDIRECT_BY_ROLE = {
   artisan: '/artisan/dashboard',
   admin: '/admin/dashboard',
+  owner: '/owner/dashboard',
 }
 
 function GuestOrResidentOnly({ children }) {

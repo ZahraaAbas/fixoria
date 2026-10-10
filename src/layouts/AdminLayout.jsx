@@ -1,7 +1,20 @@
 import { Suspense, useEffect, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { ClipboardList, LayoutDashboard, LayoutGrid, LogOut, Menu, Star, UserCog, Users, X } from 'lucide-react'
+import {
+  Building2,
+  ClipboardList,
+  Handshake,
+  LayoutDashboard,
+  LayoutGrid,
+  LogOut,
+  Menu,
+  Star,
+  UserCog,
+  Users,
+  Wrench,
+  X,
+} from 'lucide-react'
 import { translate } from '../i18n'
 import PageLoader from '../components/ui/PageLoader'
 import BrandMark from '../components/ui/BrandMark'
@@ -10,7 +23,7 @@ import { spring } from '../components/ui/motion'
 import { useAuth } from '../hooks/useAuth'
 import './AdminLayout.css'
 
-const SECTIONS = [
+const ADMIN_SECTIONS = [
   { items: [{ value: '/admin/dashboard', labelKey: 'adminNav.dashboard', Icon: LayoutDashboard }] },
   {
     titleKey: 'adminNav.management',
@@ -24,6 +37,23 @@ const SECTIONS = [
   {
     titleKey: 'adminNav.accountSection',
     items: [{ value: '/admin/account', labelKey: 'adminNav.account', Icon: UserCog }],
+  },
+]
+
+// مالك المنصة يشوف المجمعات والشركات والاتفاقيات بدل صفحات المجمع الواحد
+const OWNER_SECTIONS = [
+  { items: [{ value: '/owner/dashboard', labelKey: 'owner.nav.overview', Icon: LayoutDashboard }] },
+  {
+    titleKey: 'owner.nav.platform',
+    items: [
+      { value: '/owner/compounds', labelKey: 'owner.nav.compounds', Icon: Building2 },
+      { value: '/owner/companies', labelKey: 'owner.nav.companies', Icon: Wrench },
+      { value: '/owner/agreements', labelKey: 'owner.nav.agreements', Icon: Handshake },
+    ],
+  },
+  {
+    titleKey: 'adminNav.accountSection',
+    items: [{ value: '/owner/account', labelKey: 'adminNav.account', Icon: UserCog }],
   },
 ]
 
@@ -49,8 +79,11 @@ function AdminLayout() {
     return () => window.removeEventListener('keydown', handleKey)
   }, [isOpen])
 
+  const isOwner = user.role === 'owner'
+  const SECTIONS = isOwner ? OWNER_SECTIONS : ADMIN_SECTIONS
+  const homePath = SECTIONS[0].items[0].value
   const allValues = SECTIONS.flatMap((section) => section.items.map((item) => item.value))
-  const activeValue = allValues.find((value) => location.pathname.startsWith(value)) ?? '/admin/dashboard'
+  const activeValue = allValues.find((value) => location.pathname.startsWith(value)) ?? homePath
 
   return (
     <div className="admin-layout">
@@ -60,7 +93,7 @@ function AdminLayout() {
 
       {/* شريط علوي للجوال فقط */}
       <header className="adm-topbar">
-        <Link to="/admin/dashboard" aria-label={translate('common.brand')}>
+        <Link to={homePath} aria-label={translate('common.brand')}>
           <BrandMark tone="light" />
         </Link>
         <div className="adm-actions">
@@ -94,7 +127,7 @@ function AdminLayout() {
         <span className="adm-sidebar-glow" aria-hidden="true" />
 
         <div className="adm-sidebar-head">
-          <Link to="/admin/dashboard" className="adm-brand" aria-label={translate('common.brand')}>
+          <Link to={homePath} className="adm-brand" aria-label={translate('common.brand')}>
             <BrandMark tone="light" />
           </Link>
           <div className="adm-actions">
@@ -112,10 +145,10 @@ function AdminLayout() {
 
         <p className="adm-console">
           <span className="adm-console-dot" aria-hidden="true" />
-          {translate('adminNav.console')}
+          {translate(isOwner ? 'owner.nav.console' : 'adminNav.console')}
         </p>
 
-        <nav className="adm-nav" aria-label={translate('adminNav.console')}>
+        <nav className="adm-nav" aria-label={translate(isOwner ? 'owner.nav.console' : 'adminNav.console')}>
           {SECTIONS.map((section, sectionIndex) => (
             <div key={section.titleKey ?? sectionIndex} className="adm-nav-section">
               {section.titleKey && <p className="adm-nav-title">{translate(section.titleKey)}</p>}

@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.database import create_db_and_tables
+from app.owner_bootstrap import ensure_owner
 from app.routers import (
     auth_router,
     artisans_router,
@@ -22,6 +23,7 @@ from app.routers import (
     resident_router,
     notifications_router,
     ai_router,
+    owner_router,
 )
 from app.storage import UPLOAD_DIR, USE_BLOB
 
@@ -44,6 +46,8 @@ def prepare_database():
         from scripts.seed import seed
 
         seed()
+    # حساب مالك المنصة من OWNER_EMAIL و OWNER_PASSWORD (مرة وحدة، إذا ما موجود)
+    ensure_owner()
 
 
 @app.on_event("startup")
@@ -70,6 +74,7 @@ app.include_router(admin_router.router)
 app.include_router(resident_router.router)
 app.include_router(notifications_router.router)
 app.include_router(ai_router.router)
+app.include_router(owner_router.router)
 
 # صور الضرر وصور الملفات الشخصية: /uploads/... (محلياً فقط، على Vercel تنخدم من Blob مباشرة)
 if not USE_BLOB:

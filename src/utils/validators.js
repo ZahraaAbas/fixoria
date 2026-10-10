@@ -106,6 +106,14 @@ export function validatePasswordChange({ currentPassword, newPassword, confirmPa
   })
 }
 
+export function validateStaff({ name, email, password }) {
+  return withoutEmpty({
+    name: requiredError(name),
+    email: emailError(email),
+    password: newPasswordError(password),
+  })
+}
+
 export function validateCategoryName(name) {
   return requiredError(name)
 }

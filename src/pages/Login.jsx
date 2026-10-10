@@ -22,6 +22,14 @@ const DEFAULT_REDIRECT = {
   resident: '/home',
   artisan: '/artisan/dashboard',
   admin: '/admin/dashboard',
+  owner: '/owner/dashboard',
+}
+
+// الأدوار المقبولة بكل صفحة دخول: مالك المنصة يدخل من صفحة المشرف
+const ACCEPTED_ROLES = {
+  resident: ['resident'],
+  artisan: ['artisan'],
+  admin: ['admin', 'owner'],
 }
 
 function Login({ role }) {
@@ -53,7 +61,7 @@ function Login({ role }) {
     try {
       const user = await login(formData)
 
-      if (user.role !== role) {
+      if (!ACCEPTED_ROLES[role].includes(user.role)) {
         setSubmitError('login.wrongRole')
         return
       }
@@ -68,7 +76,7 @@ function Login({ role }) {
       const from = location.state?.from
       const redirectTo = from
         ? `${from.pathname}${from.search || ''}`
-        : DEFAULT_REDIRECT[role]
+        : DEFAULT_REDIRECT[user.role]
       navigate(redirectTo, { replace: true })
     } catch (error) {
       setSubmitError(

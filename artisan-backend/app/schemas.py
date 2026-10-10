@@ -454,3 +454,103 @@ class AIServiceRequestOutput(BaseModel):
     status: str  # ready = المسودة جاهزة للتأكيد | needs_clarification = نحتاج توضيح من الساكن
     assistant_message: str
     request: Optional[AIRequestDraft] = None
+
+
+# ---------- لوحة مالك المنصة (تعدد المجمعات) ----------
+
+class StaffCreate(BaseModel):
+    """حساب مشرف مجمع أو مدير شركة — المالك يحدد كلمة سر أولية، وصاحبها يغيرها من "حسابي"."""
+
+    name: str = Field(min_length=1)
+    email: EmailStr
+    password: str = Field(min_length=8)
+
+
+class StaffRead(BaseModel):
+    id: int
+    name: str
+    email: str
+
+
+class CompoundCreate(BaseModel):
+    name: str = Field(min_length=1)
+    address: Optional[str] = None
+    phone: Optional[str] = None
+
+
+class CompoundUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=1)
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    is_active: Optional[bool] = None
+
+
+class CompoundRead(BaseModel):
+    id: int
+    name: str
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    is_active: bool
+    created_at: datetime
+    residents: int = 0
+    pending_residents: int = 0
+    requests: int = 0
+    admins: List[StaffRead] = []
+    companies: List[str] = []   # أسماء الشركات المتفق وياها (اتفاقيات فعالة)
+
+
+class CompanyCreate(BaseModel):
+    name: str = Field(min_length=1)
+    phone: Optional[str] = None
+
+
+class CompanyUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=1)
+    phone: Optional[str] = None
+    is_active: Optional[bool] = None
+
+
+class CompanyRead(BaseModel):
+    id: int
+    name: str
+    phone: Optional[str] = None
+    is_active: bool
+    created_at: datetime
+    artisans: int = 0
+    managers: List[StaffRead] = []
+    compounds: List[str] = []   # أسماء المجمعات المتفق وياها (اتفاقيات فعالة)
+
+
+class AgreementCreate(BaseModel):
+    compound_id: int
+    company_id: int
+    service_ids: List[int] = Field(min_length=1)
+
+
+class AgreementUpdate(BaseModel):
+    service_ids: Optional[List[int]] = Field(default=None, min_length=1)
+    is_active: Optional[bool] = None
+
+
+class AgreementRead(BaseModel):
+    id: int
+    compound_id: int
+    compound_name: str
+    company_id: int
+    company_name: str
+    service_ids: List[int]
+    is_active: bool
+    created_at: datetime
+
+
+class OwnerOverview(BaseModel):
+    compounds: int
+    active_compounds: int
+    companies: int
+    active_agreements: int
+    residents: int
+    pending_residents: int
+    artisans: int
+    requests: int
+    open_requests: int
+

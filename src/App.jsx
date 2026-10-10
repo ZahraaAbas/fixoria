@@ -33,6 +33,10 @@ const AdminRequests = lazy(() => import('./pages/AdminRequests'))
 const AdminCategories = lazy(() => import('./pages/AdminCategories'))
 const AdminReviews = lazy(() => import('./pages/AdminReviews'))
 const AdminAccount = lazy(() => import('./pages/AdminAccount'))
+const OwnerDashboard = lazy(() => import('./pages/OwnerDashboard'))
+const OwnerCompounds = lazy(() => import('./pages/OwnerCompounds'))
+const OwnerCompanies = lazy(() => import('./pages/OwnerCompanies'))
+const OwnerAgreements = lazy(() => import('./pages/OwnerAgreements'))
 const About = lazy(() => import('./pages/About'))
 const Contact = lazy(() => import('./pages/Contact'))
 const ArtisanDashboard = lazy(() => import('./pages/ArtisanDashboard'))
@@ -133,6 +137,21 @@ function App() {
               <Route path="/admin/categories" element={<AdminCategories />} />
               <Route path="/admin/reviews" element={<AdminReviews />} />
               <Route path="/admin/account" element={<AdminAccount />} />
+            </Route>
+
+            {/* مالك المنصة: نفس إطار لوحة المشرف بقائمة مختلفة */}
+            <Route
+              element={
+                <RequireAuth role="owner">
+                  <AdminLayout />
+                </RequireAuth>
+              }
+            >
+              <Route path="/owner/dashboard" element={<OwnerDashboard />} />
+              <Route path="/owner/compounds" element={<OwnerCompounds />} />
+              <Route path="/owner/companies" element={<OwnerCompanies />} />
+              <Route path="/owner/agreements" element={<OwnerAgreements />} />
+              <Route path="/owner/account" element={<AdminAccount />} />
             </Route>
 
             <Route
