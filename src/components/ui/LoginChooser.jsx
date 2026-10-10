@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { ArrowLeft, Shield, UserCheck, Wrench, X } from 'lucide-react'
+import { ArrowLeft, Building2, Shield, UserCheck, Wrench, X } from 'lucide-react'
 import { translate } from '../../i18n'
 import { fadeUp, stagger } from './motion'
 import './LoginChooser.css'
@@ -10,6 +10,7 @@ import './LoginChooser.css'
 const ROLES = [
   { to: '/login', labelKey: 'landing.residentLogin', Icon: UserCheck, tone: 'primary' },
   { to: '/artisan/login', labelKey: 'landing.artisanLogin', Icon: Wrench, tone: 'default' },
+  { to: '/company/login', labelKey: 'landing.companyLogin', Icon: Building2, tone: 'subtle' },
   { to: '/admin/login', labelKey: 'landing.adminLogin', Icon: Shield, tone: 'subtle' },
 ]
 

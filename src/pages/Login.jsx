@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
-import { AlertCircle, ArrowLeft, Shield, UserCheck, Wrench } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Building2, Shield, UserCheck, Wrench } from 'lucide-react'
 import { translate } from '../i18n'
 import { login } from '../services/authService'
 import { validateLogin } from '../utils/validators'
@@ -8,15 +8,16 @@ import { useAuth } from '../hooks/useAuth'
 import AuthShell from '../components/ui/AuthShell'
 import { isApprovedResident } from '../utils/roles'
 
+// الحرفيين ما يسجلون بنفسهم: شركاتهم تضيفهم (يطلع تنبيه بدل رابط التسجيل)
 const REGISTER_PATH = {
   resident: '/register',
-  artisan: '/artisan/register',
 }
 
 const ROLE_ICON = {
   resident: UserCheck,
   artisan: Wrench,
   admin: Shield,
+  company: Building2,
 }
 
 const DEFAULT_REDIRECT = {
@@ -24,6 +25,7 @@ const DEFAULT_REDIRECT = {
   artisan: '/artisan/dashboard',
   admin: '/admin/dashboard',
   owner: '/owner/dashboard',
+  company_manager: '/company/dashboard',
 }
 
 // الأدوار المقبولة بكل صفحة دخول: مالك المنصة يدخل من صفحة المشرف
@@ -31,6 +33,7 @@ const ACCEPTED_ROLES = {
   resident: ['resident'],
   artisan: ['artisan'],
   admin: ['admin', 'owner'],
+  company: ['company_manager'],
 }
 
 function Login({ role }) {
@@ -155,6 +158,7 @@ function Login({ role }) {
               <Link to={REGISTER_PATH[role]}>{translate('login.createAccount')}</Link>
             </p>
           )}
+          {role === 'artisan' && <p>{translate('login.artisanHint')}</p>}
           <Link to="/home" className="auth-back">
             {translate('login.backHome')}
           </Link>

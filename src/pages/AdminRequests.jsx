@@ -14,7 +14,8 @@ import './AdminRequests.css'
 
 const STATUS_FILTERS = ['all', 'pending', 'accepted', 'rejected', 'in_progress', 'completed', 'cancelled']
 
-function AdminRequests() {
+// المشرف يشوف طلبات مجمعه، ومدير الشركة يشوف طلبات حرفيي شركته (loader و titleKey)
+function AdminRequests({ loader = getRequestsOverview, titleKey = 'adminRequests.title' }) {
   const reduceMotion = useReducedMotion()
   const [requests, setRequests] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -26,7 +27,7 @@ function AdminRequests() {
   useEffect(() => {
     let isCancelled = false
 
-    getRequestsOverview()
+    loader()
       .then((data) => {
         if (!isCancelled) setRequests(data)
       })
@@ -40,7 +41,7 @@ function AdminRequests() {
     return () => {
       isCancelled = true
     }
-  }, [attempt])
+  }, [attempt, loader])
 
   function handleRetry() {
     setIsLoading(true)
@@ -71,7 +72,7 @@ function AdminRequests() {
 
   return (
     <section>
-      <PageHeader title={translate('adminRequests.title')} />
+      <PageHeader title={translate(titleKey)} />
 
       <div className="arq-toolbar fx-card">
         <label className="arq-search">

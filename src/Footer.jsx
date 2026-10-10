@@ -20,7 +20,6 @@ function Footer() {
         { to: '/login', label: translate('footer.residentLogin') },
         { to: '/register', label: translate('footer.residentRegister') },
         { to: '/artisan/login', label: translate('footer.artisanLogin') },
-        { to: '/artisan/register', label: translate('footer.artisanRegister') },
       ],
     },
   ]

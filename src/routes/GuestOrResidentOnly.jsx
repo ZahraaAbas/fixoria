@@ -5,6 +5,7 @@ const REDIRECT_BY_ROLE = {
   artisan: '/artisan/dashboard',
   admin: '/admin/dashboard',
   owner: '/owner/dashboard',
+  company_manager: '/company/dashboard',
 }
 
 function GuestOrResidentOnly({ children }) {

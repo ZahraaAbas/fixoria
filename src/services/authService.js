@@ -109,21 +109,3 @@ export function registerResident(data) {
     apartment_number: data.apartment,
   })
 }
-
-export async function registerArtisan(data) {
-  const user = await registerUser({
-    name: data.fullName,
-    email: data.email,
-    password: data.password,
-    role: ROLE_TO_API.artisan,
-    phone: data.phone,
-  })
-
-  await apiPost('/artisans', {
-    phone: data.phone,
-    service_ids: data.categoryIds,
-    description: data.bio,
-  })
-
-  return withProfile(user)
-}

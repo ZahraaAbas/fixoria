@@ -43,17 +43,6 @@ export async function getArtisanAccounts() {
 }
 
 // اعتماد/رفض حرفي حقيقي (PUT /admin/artisans/:id/verify)
-export async function approveArtisan(id) {
-  const row = await apiPut(`/admin/artisans/${id}/verify?approve=true`)
-  return mapAdminArtisan(row)
-}
-
-export async function rejectArtisan(id) {
-  const row = await apiPut(`/admin/artisans/${id}/verify?approve=false`)
-  return mapAdminArtisan(row)
-}
-
-// إحصائيات لوحة التحكم الحقيقية (GET /admin/stats)
 export async function getDashboardStats() {
   const row = await apiGet('/admin/stats')
   return {
@@ -69,7 +58,7 @@ export async function getDashboardStats() {
   }
 }
 
-function mapAdminRequest(row) {
+export function mapAdminRequest(row) {
   return {
     id: row.id,
     title: row.title,

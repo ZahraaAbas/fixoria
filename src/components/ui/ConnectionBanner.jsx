@@ -8,7 +8,7 @@ import { spring } from './motion'
 import './ConnectionBanner.css'
 
 // صفحات الدخول والتسجيل تعرض رسالة الاتصال داخل النموذج نفسه، فلا نكررها في الشريط
-const FORM_PAGES = ['/login', '/register', '/artisan/login', '/artisan/register', '/admin/login']
+const FORM_PAGES = ['/login', '/register', '/artisan/login', '/admin/login', '/company/login']
 
 // يظهر عندما يفشل أي طلب في الوصول للخادم، ويختفي تلقائيًا عند نجاح طلب لاحق
 function ConnectionBanner() {

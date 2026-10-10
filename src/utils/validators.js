@@ -61,17 +61,6 @@ export function validateRequest(values) {
     preferredTime: preferredTimeError(values.preferredDate, values.preferredTime),
   })
 }
-export function validateArtisanRegister(values) {
-  return withoutEmpty({
-    fullName: requiredError(values.fullName),
-    phone: phoneError(values.phone),
-    email: emailError(values.email),
-    password: newPasswordError(values.password),
-    bio: requiredError(values.bio),
-    categoryIds: values.categoryIds.length > 0 ? '' : 'validation.selectAtLeastOne',
-  })
-}
-
 export function validateArtisanProfile(values) {
   return withoutEmpty({
     fullName: requiredError(values.fullName),
@@ -112,6 +101,16 @@ export function validateStaff({ name, email, password }) {
     name: requiredError(name),
     email: emailError(email),
     password: newPasswordError(password),
+  })
+}
+
+export function validateCompanyArtisan(values) {
+  return withoutEmpty({
+    fullName: requiredError(values.fullName),
+    phone: phoneError(values.phone),
+    email: emailError(values.email),
+    password: newPasswordError(values.password),
+    categoryIds: values.categoryIds.length > 0 ? '' : 'validation.selectAtLeastOne',
   })
 }
 

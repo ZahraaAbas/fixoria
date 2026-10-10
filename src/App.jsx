@@ -20,7 +20,6 @@ const MyRequests = lazy(() => import('./pages/MyRequests'))
 const RequestDetail = lazy(() => import('./pages/RequestDetail'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
-const ArtisanRegister = lazy(() => import('./pages/ArtisanRegister'))
 const ArtisanPending = lazy(() => import('./pages/ArtisanPending'))
 const ArtisanRequests = lazy(() => import('./pages/ArtisanRequests'))
 const ArtisanMyWork = lazy(() => import('./pages/ArtisanMyWork'))
@@ -39,6 +38,9 @@ const OwnerCompanies = lazy(() => import('./pages/OwnerCompanies'))
 const OwnerAgreements = lazy(() => import('./pages/OwnerAgreements'))
 const AdminResidents = lazy(() => import('./pages/AdminResidents'))
 const ResidentPending = lazy(() => import('./pages/ResidentPending'))
+const CompanyDashboard = lazy(() => import('./pages/CompanyDashboard'))
+const CompanyArtisans = lazy(() => import('./pages/CompanyArtisans'))
+const CompanyRequests = lazy(() => import('./pages/CompanyRequests'))
 const About = lazy(() => import('./pages/About'))
 const Contact = lazy(() => import('./pages/Contact'))
 const ArtisanDashboard = lazy(() => import('./pages/ArtisanDashboard'))
@@ -166,6 +168,20 @@ function App() {
               <Route path="/owner/account" element={<AdminAccount />} />
             </Route>
 
+            {/* مدير شركة الصيانة: نفس الإطار بقائمة الشركة */}
+            <Route
+              element={
+                <RequireAuth role="company_manager">
+                  <AdminLayout />
+                </RequireAuth>
+              }
+            >
+              <Route path="/company/dashboard" element={<CompanyDashboard />} />
+              <Route path="/company/artisans" element={<CompanyArtisans />} />
+              <Route path="/company/requests" element={<CompanyRequests />} />
+              <Route path="/company/account" element={<AdminAccount />} />
+            </Route>
+
             <Route
               element={
                 <RequireAuth role="artisan" requireApproved>
@@ -184,7 +200,7 @@ function App() {
             <Route path="/artisan/login" element={<Login role="artisan" />} />
             <Route path="/admin/login" element={<Login role="admin" />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/artisan/register" element={<ArtisanRegister />} />
+            <Route path="/company/login" element={<Login role="company" />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

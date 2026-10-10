@@ -5,6 +5,8 @@ import {
   Building2,
   ClipboardList,
   Handshake,
+  HardHat,
+  Inbox,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -59,6 +61,25 @@ const OWNER_SECTIONS = [
   },
 ]
 
+// مدير الشركة: حرفيو شركته وطلباتهم
+const COMPANY_SECTIONS = [
+  { items: [{ value: '/company/dashboard', labelKey: 'company.nav.overview', Icon: LayoutDashboard }] },
+  {
+    titleKey: 'company.nav.company',
+    items: [
+      { value: '/company/artisans', labelKey: 'company.nav.artisans', Icon: HardHat },
+      { value: '/company/requests', labelKey: 'company.nav.requests', Icon: Inbox },
+    ],
+  },
+  {
+    titleKey: 'adminNav.accountSection',
+    items: [{ value: '/company/account', labelKey: 'adminNav.account', Icon: UserCog }],
+  },
+]
+
+const SECTIONS_BY_ROLE = { owner: OWNER_SECTIONS, company_manager: COMPANY_SECTIONS }
+const CONSOLE_BY_ROLE = { owner: 'owner.nav.console', company_manager: 'company.nav.console' }
+
 function AdminLayout() {
   const { user, signOut } = useAuth()
   const location = useLocation()
@@ -81,8 +102,8 @@ function AdminLayout() {
     return () => window.removeEventListener('keydown', handleKey)
   }, [isOpen])
 
-  const isOwner = user.role === 'owner'
-  const SECTIONS = isOwner ? OWNER_SECTIONS : ADMIN_SECTIONS
+  const SECTIONS = SECTIONS_BY_ROLE[user.role] || ADMIN_SECTIONS
+  const consoleKey = CONSOLE_BY_ROLE[user.role] || 'adminNav.console'
   const homePath = SECTIONS[0].items[0].value
   const allValues = SECTIONS.flatMap((section) => section.items.map((item) => item.value))
   const activeValue = allValues.find((value) => location.pathname.startsWith(value)) ?? homePath
@@ -147,10 +168,10 @@ function AdminLayout() {
 
         <p className="adm-console">
           <span className="adm-console-dot" aria-hidden="true" />
-          {translate(isOwner ? 'owner.nav.console' : 'adminNav.console')}
+          {translate(consoleKey)}
         </p>
 
-        <nav className="adm-nav" aria-label={translate(isOwner ? 'owner.nav.console' : 'adminNav.console')}>
+        <nav className="adm-nav" aria-label={translate(consoleKey)}>
           {SECTIONS.map((section, sectionIndex) => (
             <div key={section.titleKey ?? sectionIndex} className="adm-nav-section">
               {section.titleKey && <p className="adm-nav-title">{translate(section.titleKey)}</p>}
