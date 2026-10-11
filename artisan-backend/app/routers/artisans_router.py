@@ -1,7 +1,8 @@
 """
 Artisans endpoints:
-GET  /artisans          -> List/search (?specialty=, ?location=, ?service_id=, ?verified_only=)
-GET  /artisans/{id}     -> Details
+GET  /artisans          -> List/search (?specialty=, ?location=, ?service_id=, ?verified_only=) — يحتاج دخول
+GET  /artisans/{id}     -> Details — يحتاج دخول
+(كل دور يشوف حرفيي نطاقه بس: الساكن مجمعه، المشرف مجمعه، مدير الشركة شركته، المالك الكل — app/tenancy.py)
 PUT  /artisans/me       -> الحرفي يعدل ملفه (الاسم، الهاتف، النبذة، الخدمات)
 POST /artisans/me/image -> رفع صورة الحرفي (multipart: file)
 PUT  /artisans/{id}     -> Update profile (owner or admin)
@@ -14,7 +15,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlmodel import Session, select
 
 from app.database import get_session
-from app.tenancy import compound_artisan_ids
+from app.tenancy import compound_artisan_ids, visible_artisan_ids
 from app.models import Artisan, Review, Service, ServiceRequest, User, UserRole
 from app.schemas import ArtisanCreate, ArtisanUpdate, ArtisanRead, ReviewDetailed
 from app.auth import get_current_user, require_role
@@ -38,12 +39,16 @@ def list_artisans(
     verified_only: bool = False,
     service_id: Optional[int] = None,
     session: Session = Depends(get_session),
+    user: User = Depends(get_current_user),
 ):
     """
     ?service_id= يرجع حرفيي خدمة معيّنة (صفحة "تصفح الخدمات" بالفرونت)،
     مرتبين من الأعلى تقييماً — اللي ما عنده تقييم ينزل آخر القائمة.
     """
     query = select(Artisan)
+    allowed = visible_artisan_ids(session, user)
+    if allowed is not None:
+        query = query.where(Artisan.id.in_(allowed or [-1]))
     if service_id is not None:
         ids = [a.id for a in artisans_for_service(session, service_id, verified_only=False)]
         query = query.where(Artisan.id.in_(ids))
@@ -144,9 +149,10 @@ def get_my_monthly_building_stats(
 
 
 @router.get("/{artisan_id}", response_model=ArtisanRead)
-def get_artisan(artisan_id: int, session: Session = Depends(get_session)):
+def get_artisan(artisan_id: int, session: Session = Depends(get_session), user: User = Depends(get_current_user)):
     artisan = session.get(Artisan, artisan_id)
-    if not artisan:
+    allowed = visible_artisan_ids(session, user)
+    if not artisan or (allowed is not None and artisan.id not in allowed):
         raise HTTPException(status_code=404, detail="ما اكو حرفي بهذا المعرّف")
     return _to_read(artisan, session)
 

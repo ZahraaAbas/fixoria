@@ -14,7 +14,7 @@ from app.models import Artisan, NotificationType, Review, ServiceRequest, Reques
 from app.notifications import notify
 from app.schemas import ReviewCreate, ReviewRead
 from app.auth import get_current_user
-from app.tenancy import approved_resident
+from app.tenancy import approved_resident, visible_artisan_ids
 
 router = APIRouter(tags=["Reviews"])
 
@@ -60,7 +60,11 @@ def create_review(
 
 
 @router.get("/artisans/{artisan_id}/reviews", response_model=List[ReviewRead])
-def get_artisan_reviews(artisan_id: int, session: Session = Depends(get_session)):
+def get_artisan_reviews(artisan_id: int, session: Session = Depends(get_session),
+                        user: User = Depends(get_current_user)):
+    allowed = visible_artisan_ids(session, user)
+    if allowed is not None and artisan_id not in allowed:
+        raise HTTPException(status_code=404, detail="ما اكو حرفي بهذا المعرّف")
     # التقييمات المخفية من الإدارة ما تظهر للعامة
     return session.exec(
         select(Review).where(Review.artisan_id == artisan_id, Review.is_hidden == False)  # noqa: E712

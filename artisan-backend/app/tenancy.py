@@ -92,6 +92,25 @@ def company_manager(user: User = Depends(get_current_user)) -> User:
     return user
 
 
+def visible_artisan_ids(session: Session, user: User) -> Optional[Set[int]]:
+    """الحرفيين اللي يكدر يشوفهم المستخدم (قوائم وملفات وتقييمات). None = الكل (مالك المنصة)."""
+    if user.role == UserRole.owner:
+        return None
+    if user.role == UserRole.company_manager:
+        return set(session.exec(
+            select(Artisan.id).join(User, User.id == Artisan.user_id).where(User.company_id == user.company_id)
+        ).all()) if user.company_id is not None else set()
+    if user.role == UserRole.admin:
+        return compound_artisan_ids(session, user.compound_id)
+    if user.role == UserRole.customer:
+        compound = session.get(Compound, user.compound_id) if user.compound_id else None
+        if not compound or not compound.is_active or resident_membership(session, user) != MembershipStatus.approved:
+            return set()
+        return compound_artisan_ids(session, user.compound_id)
+    own = session.exec(select(Artisan.id).where(Artisan.user_id == user.id)).first()
+    return {own} if own else set()
+
+
 def compound_admin(user: User = Depends(get_current_user)) -> User:
     """مشرف مجمع مربوط بمجمع — كل استعلاماته تتحدد بـ user.compound_id."""
     if user.role != UserRole.admin:
