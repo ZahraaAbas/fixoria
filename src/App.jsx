@@ -67,20 +67,21 @@ function App() {
                   </GuestOrResidentOnly>
                 }
               />
+              {/* قائمة الحرفيين للساكن المقبول بس (حرفيو مجمعه)؛ الزائر يشوف تعريف المنصة */}
               <Route
                 path="/artisans"
                 element={
-                  <GuestOrResidentOnly>
+                  <RequireAuth role="resident" requireApproved>
                     <Artisans />
-                  </GuestOrResidentOnly>
+                  </RequireAuth>
                 }
               />
               <Route
                 path="/artisans/:id"
                 element={
-                  <GuestOrResidentOnly>
+                  <RequireAuth role="resident" requireApproved>
                     <ArtisanProfile />
-                  </GuestOrResidentOnly>
+                  </RequireAuth>
                 }
               />
               <Route path="/about" element={<About />} />

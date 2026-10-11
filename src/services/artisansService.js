@@ -13,14 +13,14 @@ function mapArtisan(artisan) {
 }
 
 export function getArtisans() {
-  return apiGet('/artisans?verified_only=true', { auth: false }).then((data) =>
+  return apiGet('/artisans?verified_only=true').then((data) =>
     data.map(mapArtisan),
   )
 }
 
 export async function getArtisanById(id) {
   try {
-    const artisan = await apiGet(`/artisans/${id}`, { auth: false })
+    const artisan = await apiGet(`/artisans/${id}`)
     return mapArtisan(artisan)
   } catch (error) {
     if (error.status === 404) {

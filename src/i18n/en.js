@@ -55,7 +55,7 @@ const en = {
     subtitle: 'Choose your account type',
   },
   home: {
-    heroEyebrow: 'Al-Budoor Residential Compound',
+    heroEyebrow: 'For residential compounds',
     heroTitleStart: 'Home maintenance',
     heroTitleHighlight: 'by trusted local hands',
     heroLead:
@@ -84,8 +84,8 @@ const en = {
     ctaRegister: 'Create a resident account',
     ctaLogin: 'Sign in',
     ctaMyRequests: 'Track my requests',
-    trust1Title: 'Admin-approved artisans',
-    trust1Text: 'No artisan appears on the platform before the admin reviews their account.',
+    trust1Title: 'Artisans from contracted companies',
+    trust1Text: "Every artisan belongs to a maintenance company with an agreement with your compound's management.",
     trust2Title: 'Reviews from residents',
     trust2Text: 'Reviews are written by residents after their requests are completed.',
     trust3Title: 'Always-clear status',
@@ -510,7 +510,7 @@ const en = {
   },
     footer: {
     description:
-      'صنعة connects Al-Budoor residents with trusted local artisans and service providers, quickly and reliably.',
+      "صنعة connects residents of residential compounds with trusted maintenance companies contracted by each compound's management.",
     linksTitle: 'Quick Links',
     home: 'Home',
     artisans: 'Browse Artisans',
@@ -518,12 +518,12 @@ const en = {
     residentLogin: 'Resident Login',
     residentRegister: 'Create Resident Account',
     artisanLogin: 'Artisan Login',
-    compound: 'Al-Budoor Residential Compound',
+    compound: 'Maintenance for residential compounds',
     rights: 'All rights reserved',
   },
     about: {
     title: 'About Us',
-    lead: 'صنعة connects Al-Budoor residents with verified local artisans and maintenance providers, in just a few taps.',
+    lead: "صنعة connects residents of residential compounds with artisans from trusted maintenance companies contracted by their compound's management, in just a few taps.",
     missionTitle: 'Our Mission',
     missionText:
       'We make everyday life easier by connecting residents with trusted local artisans, and providing a smooth, safe way to request and track maintenance services.',

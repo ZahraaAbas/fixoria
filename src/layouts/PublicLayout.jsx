@@ -11,6 +11,7 @@ import LanguageToggle from '../components/ui/LanguageToggle'
 import LoginChooser from '../components/ui/LoginChooser'
 import { spring } from '../components/ui/motion'
 import { useAuth } from '../hooks/useAuth'
+import { isApprovedResident } from '../utils/roles'
 import Footer from '../Footer'
 import './PublicLayout.css'
 
@@ -55,10 +56,12 @@ function PublicLayout() {
     }
   }, [isMenuOpen])
 
-  const navItems = [
-    { value: '/home', label: translate('nav.home'), Icon: Home },
-    { value: '/artisans', label: translate('nav.artisans'), Icon: Wrench },
-  ]
+  const navItems = [{ value: '/home', label: translate('nav.home'), Icon: Home }]
+
+  // الحرفيين وطلباتي للساكن المقبول بس (الزائر يشوف تعريف المنصة)
+  if (isApprovedResident(user)) {
+    navItems.push({ value: '/artisans', label: translate('nav.artisans'), Icon: Wrench })
+  }
 
   if (isAuthenticated && user.role === 'resident') {
     navItems.push({ value: '/my-requests', label: translate('nav.myRequests'), Icon: FileText })

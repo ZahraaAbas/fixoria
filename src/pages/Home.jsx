@@ -136,7 +136,7 @@ function HeroPreview({ category }) {
   )
 }
 
-function HeroSection({ categories, artisans, isReady }) {
+function HeroSection({ categories, artisans, isReady, showArtisans, eyebrow }) {
   const heroRef = useRef(null)
   const reduceMotion = useReducedMotion()
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
@@ -152,10 +152,13 @@ function HeroSection({ categories, artisans, isReady }) {
     : 0
   const topArtisan = [...rated].sort((a, b) => b.rating - a.rating)[0]
 
+  // أرقام الحرفيين والتقييم تخص مجمع الساكن، فما تطلع للزائر
   const stats = [
     { value: categories.length, label: translate('home.statServices'), Icon: LayoutGrid },
-    { value: artisans.length, label: translate('home.statArtisans'), Icon: BadgeCheck },
-    ...(averageRating ? [{ value: averageRating, decimals: 1, label: translate('home.statRating'), Icon: Star }] : []),
+    ...(showArtisans ? [{ value: artisans.length, label: translate('home.statArtisans'), Icon: BadgeCheck }] : []),
+    ...(showArtisans && averageRating
+      ? [{ value: averageRating, decimals: 1, label: translate('home.statRating'), Icon: Star }]
+      : []),
   ]
 
   const parallax = (value) => (reduceMotion ? undefined : value)
@@ -169,7 +172,7 @@ function HeroSection({ categories, artisans, isReady }) {
         animate="visible"
       >
         <motion.span variants={fadeUp} className="fx-eyebrow">
-          {translate('home.heroEyebrow')}
+          {eyebrow}
         </motion.span>
         <motion.h1 variants={fadeUp} className="fx-display home-hero-title">
           {translate('home.heroTitleStart')}
@@ -187,10 +190,12 @@ function HeroSection({ categories, artisans, isReady }) {
             <ArrowLeft size={18} aria-hidden="true" className="icon-forward" />
           </a>
           <AiAssistantButton className="fx-btn fx-btn--dark fx-btn--lg" />
-          <Link to="/artisans" className="fx-btn fx-btn--secondary fx-btn--lg">
-            <Users size={18} aria-hidden="true" />
-            {translate('home.heroSecondary')}
-          </Link>
+          {showArtisans && (
+            <Link to="/artisans" className="fx-btn fx-btn--secondary fx-btn--lg">
+              <Users size={18} aria-hidden="true" />
+              {translate('home.heroSecondary')}
+            </Link>
+          )}
         </motion.div>
 
         <motion.dl variants={fadeUp} className="home-hero-stats" aria-live="polite">
@@ -562,11 +567,15 @@ function CtaSection() {
 
 /* ================= Page ================= */
 
+const NO_ARTISANS = () => Promise.resolve([])
+
 function Home() {
   const { user } = useAuth()
+  // الساكن المقبول يشوف حرفيي مجمعه؛ الزائر وغيره يشوفون تعريف المنصة بدون حرفيين
+  const canSeeArtisans = isApprovedResident(user)
   // الساكن المقبول يشوف خدمات مجمعه بس؛ الزائر يشوف كل التصنيفات
   const services = useRemoteData(isApprovedResident(user) ? getResidentCategories : getCategories)
-  const artisans = useRemoteData(getArtisans)
+  const artisans = useRemoteData(canSeeArtisans ? getArtisans : NO_ARTISANS)
 
   return (
     <div className="home">
@@ -574,6 +583,8 @@ function Home() {
         categories={services.data}
         artisans={artisans.data}
         isReady={!services.isLoading && !artisans.isLoading}
+        showArtisans={canSeeArtisans}
+        eyebrow={canSeeArtisans && user.compoundName ? user.compoundName : translate('home.heroEyebrow')}
       />
       <ServicesSection
         categories={services.data}
@@ -582,12 +593,14 @@ function Home() {
         onRetry={services.retry}
       />
       <HowSection />
-      <FeaturedSection
-        artisans={artisans.data}
-        isLoading={artisans.isLoading}
-        error={artisans.error}
-        onRetry={artisans.retry}
-      />
+      {canSeeArtisans && (
+        <FeaturedSection
+          artisans={artisans.data}
+          isLoading={artisans.isLoading}
+          error={artisans.error}
+          onRetry={artisans.retry}
+        />
+      )}
       <CtaSection />
     </div>
   )
