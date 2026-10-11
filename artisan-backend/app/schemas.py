@@ -152,6 +152,9 @@ class RequestRead(BaseModel):
     unit_number: Optional[str] = None
     scheduled_at: Optional[datetime] = None
     price: Optional[int] = None
+    payment_method: Optional[str] = None   # cash / card_demo (تجريبي)
+    payment_status: str = "unpaid"         # unpaid / paid
+    paid_at: Optional[datetime] = None
     rejection_reason: Optional[str] = None
     status: str
     created_at: datetime
@@ -340,6 +343,9 @@ class ResidentRequestRow(BaseModel):
     status_label: str
     price: Optional[int] = None
     currency: str = "IQD"
+    payment_method: Optional[str] = None
+    payment_status: str = "unpaid"
+    paid_at: Optional[datetime] = None
     my_rating: Optional[int] = None
     can_review: bool = False
     rejection_reason: Optional[str] = None
@@ -575,6 +581,22 @@ class ResidentMembershipRead(BaseModel):
 
 class MembershipUpdate(BaseModel):
     status: str = Field(pattern="^(approved|rejected)$")
+
+
+class PaymentChoice(BaseModel):
+    method: str = Field(pattern="^(cash|card_demo)$")
+
+
+class PaymentsSummary(BaseModel):
+    """ملخص شهري بالدينار (الطلبات المكتملة بالشهر)."""
+    month: str                 # YYYY-MM
+    completed: int = 0
+    total: int = 0
+    paid: int = 0
+    unpaid: int = 0
+    cash: int = 0
+    card_demo: int = 0
+    unpriced: int = 0          # مكتملة بدون سعر
 
 
 class CompoundOption(BaseModel):

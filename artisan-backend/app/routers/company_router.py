@@ -20,7 +20,9 @@ from app.models import (
     Agreement, AgreementServiceLink, Artisan, Company, Compound, RequestStatus, Service, ServiceRequest,
     User, UserRole,
 )
+from app.payments import summarize
 from app.schemas import (
+    PaymentsSummary,
     ArtisanRead, CompanyArtisanCreate, CompanyArtisanUpdate, CompanyCompoundRead, CompanyOverview, RequestRead,
 )
 from app.tenancy import company_coverage, company_manager, request_in_coverage
@@ -164,6 +166,15 @@ def update_artisan(artisan_id: int, payload: CompanyArtisanUpdate, session: Sess
     session.commit()
     session.refresh(artisan)
     return artisan_to_read(artisan, session)
+
+
+@router.get("/payments/summary", response_model=PaymentsSummary)
+def payments_summary(month: Optional[str] = None, session: Session = Depends(get_session),
+                     manager: User = Depends(company_manager)):
+    """ملخص الشهر لطلبات حرفيي الشركة المكتملة (تجريبي)."""
+    artisan_ids = [a.id for a in _company_artisans(session, manager)]
+    rows = session.exec(select(ServiceRequest).where(ServiceRequest.artisan_id.in_(artisan_ids or [-1]))).all()
+    return summarize(rows, month)
 
 
 @router.get("/requests", response_model=List[RequestRead])

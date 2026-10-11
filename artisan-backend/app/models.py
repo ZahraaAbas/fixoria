@@ -60,7 +60,20 @@ class NotificationType(str, Enum):
     request_cancelled = "request_cancelled"
     new_request = "new_request"              # للحرفي: وصلك طلب جديد
     complaint_update = "complaint_update"    # رد الإدارة على شكوى
+    payment_update = "payment_update"      # اختيار طريقة الدفع / تأكيد الاستلام
     general = "general"
+
+
+class PaymentMethod(str, Enum):
+    cash = "cash"
+    # تجريبي: يسجل الطلب مدفوع بدون بوابة دفع حقيقية ولا بيانات بطاقة.
+    # لمن نربط شركة دفع ينضاف هنا نوع حقيقي (مثل card) ويتبدل التنفيذ بـ resident_router.
+    card_demo = "card_demo"
+
+
+class PaymentStatus(str, Enum):
+    unpaid = "unpaid"
+    paid = "paid"
 
 
 class ComplaintStatus(str, Enum):
@@ -192,6 +205,9 @@ class ServiceRequest(SQLModel, table=True):
     unit_number: Optional[str] = None       # "رقم الوحدة" بفورم الطلب
     scheduled_at: Optional[datetime] = None  # "الوقت المناسب" = الموعد
     price: Optional[int] = None             # السعر بالدينار العراقي، يحدده الحرفي عند الإكمال
+    payment_method: Optional[PaymentMethod] = None
+    payment_status: PaymentStatus = Field(default=PaymentStatus.unpaid)
+    paid_at: Optional[datetime] = None
     rejection_reason: Optional[str] = None
     status: RequestStatus = Field(default=RequestStatus.pending)
     created_at: datetime = Field(default_factory=datetime.utcnow)

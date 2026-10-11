@@ -20,6 +20,7 @@ from sqlmodel import Session, select
 
 from app.database import get_session
 from app.models import (
+    PaymentMethod, PaymentStatus,
     Artisan, RequestDismissal, ServiceRequest, RequestStatus, User, UserRole, NotificationType,
 )
 from app.helpers import artisan_service_ids, request_to_read
@@ -169,6 +170,37 @@ def dismiss_request(
                "الحرفي اللي اخترته غير متاح — جاري البحث عن حرفي مناسب", req.id)
     session.commit()
     return None
+
+
+@router.post("/{request_id}/cash-received", response_model=RequestRead)
+def confirm_cash_received(
+    request_id: int,
+    session: Session = Depends(get_session),
+    user: User = Depends(get_current_user),
+):
+    """الحرفي يأكد إنه استلم المبلغ كاش (تجريبي) — حتى لو الساكن ما اختار الطريقة بعد."""
+    if user.role != UserRole.artisan:
+        raise HTTPException(status_code=403, detail="بس الحرفي يأكد الاستلام")
+    artisan = _my_artisan(session, user)
+    req = session.get(ServiceRequest, request_id)
+    if not req or req.artisan_id != artisan.id:
+        raise HTTPException(status_code=404, detail="الطلب غير موجود")
+    if req.status != RequestStatus.completed:
+        raise HTTPException(status_code=400, detail="الطلب ما اكتمل بعد")
+    if req.price is None:
+        raise HTTPException(status_code=400, detail="حدد السعر أول")
+    if req.payment_status == PaymentStatus.paid:
+        raise HTTPException(status_code=409, detail="هذا الطلب مدفوع مسبقاً")
+
+    req.payment_method = PaymentMethod.cash
+    req.payment_status = PaymentStatus.paid
+    req.paid_at = datetime.utcnow()
+    session.add(req)
+    notify(session, req.customer_id, NotificationType.payment_update,
+           f"تم تأكيد دفع طلبك رقم #{req.id}", f"{req.price:,} د.ع — كاش", req.id)
+    session.commit()
+    session.refresh(req)
+    return _to_read(req, session)
 
 
 @router.get("/{request_id}", response_model=RequestRead)

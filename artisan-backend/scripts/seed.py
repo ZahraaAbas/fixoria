@@ -34,7 +34,7 @@ from app.database import engine, create_db_and_tables
 from app.models import (
     User, Artisan, Service, ServiceRequest, Review, RequestStatus, UserRole,
     ResidentProfile, Notification, NotificationType, Complaint, ArtisanServiceLink,
-    Compound, Company, Agreement, AgreementServiceLink, MembershipStatus,
+    Compound, Company, Agreement, AgreementServiceLink, MembershipStatus, PaymentStatus,
 )
 from app.auth import hash_password
 
@@ -472,6 +472,10 @@ def assign_default_compound(session) -> None:
         session.add(profile)
     for req in session.exec(select(ServiceRequest)).all():
         req.compound_id = compound.id
+        # مثل migration 0003: الطلبات المكتملة القديمة تنحسب مدفوعة (قبل تسجيل الدفع بالمنصة)
+        if req.status == RequestStatus.completed:
+            req.payment_status = PaymentStatus.paid
+            req.paid_at = req.completed_at
         session.add(req)
     session.commit()
 

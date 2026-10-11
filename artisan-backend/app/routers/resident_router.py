@@ -51,6 +51,8 @@ from app.auth import require_role
 from app.database import get_session
 from app.models import (
     Compound,
+    PaymentMethod,
+    PaymentStatus,
     Artisan,
     Complaint,
     Notification,
@@ -71,6 +73,7 @@ from app.helpers import all_artisan_ratings, artisan_service_ids, artisans_for_s
 from app.tenancy import approved_resident, compound_artisan_ids, compound_service_ids, resident_membership
 from app.schemas import (
     ArtisanCard,
+    PaymentChoice,
     ComplaintCreate,
     ComplaintRead,
     NotificationRead,
@@ -210,6 +213,9 @@ def _request_row(req: ServiceRequest, session: Session, my_reviews: Dict[int, Re
         status=req.status,
         status_label=status_label(req.status),
         price=req.price,
+        payment_method=req.payment_method.value if req.payment_method else None,
+        payment_status=req.payment_status.value,
+        paid_at=req.paid_at,
         my_rating=review.rating if review else None,
         can_review=req.status == RequestStatus.completed and review is None,
         rejection_reason=req.rejection_reason,
@@ -547,6 +553,38 @@ def cancel_request(
     return get_request_detail(req.id, session, user)
 
 
+@router.post("/requests/{request_id}/payment", response_model=ResidentRequestDetail)
+def choose_payment(
+    request_id: int,
+    payload: PaymentChoice,
+    session: Session = Depends(get_session),
+    user: User = Depends(approved_resident),
+):
+    """الدفع (تجريبي): كاش = بانتظار تأكيد الحرفي، بطاقة تجريبية = مدفوع مباشرة بدون بوابة دفع."""
+    req = _get_my_request(request_id, session, user)
+    if req.status != RequestStatus.completed:
+        raise HTTPException(status_code=400, detail="الدفع متاح بس للطلبات المكتملة")
+    if req.price is None:
+        raise HTTPException(status_code=400, detail="الحرفي ما حدد السعر بعد")
+    if req.payment_status == PaymentStatus.paid:
+        raise HTTPException(status_code=409, detail="هذا الطلب مدفوع مسبقاً")
+
+    req.payment_method = PaymentMethod(payload.method)
+    artisan = session.get(Artisan, req.artisan_id) if req.artisan_id else None
+    if req.payment_method == PaymentMethod.card_demo:
+        req.payment_status = PaymentStatus.paid
+        req.paid_at = datetime.utcnow()
+        if artisan:
+            notify(session, artisan.user_id, NotificationType.payment_update,
+                   f"تم دفع الطلب رقم #{req.id}", f"{req.price:,} د.ع — بطاقة (تجريبي)", req.id)
+    elif artisan:
+        notify(session, artisan.user_id, NotificationType.payment_update,
+               f"الساكن سيدفع كاش للطلب رقم #{req.id}", f"أكّد الاستلام بعد ما تستلم {req.price:,} د.ع", req.id)
+    session.add(req)
+    session.commit()
+    return get_request_detail(req.id, session, user)
+
+
 @router.post("/requests/{request_id}/images", response_model=ResidentRequestDetail)
 async def add_request_images(
     request_id: int,
@@ -640,6 +678,11 @@ def download_invoice(
     profile = _get_or_create_profile(session, user)
     price = f"{req.price:,} د.ع" if req.price is not None else "—"
     date = (row.date or req.created_at).strftime("%d/%m/%Y")
+    method = {PaymentMethod.cash: "كاش", PaymentMethod.card_demo: "بطاقة (تجريبي)"}.get(req.payment_method)
+    if req.payment_status == PaymentStatus.paid:
+        payment = f"مدفوع{' — ' + method if method else ''}"
+    else:
+        payment = f"غير مدفوع{' — ' + method + ' (بانتظار تأكيد الاستلام)' if method else ''}"
 
     def e(v):
         return escape(str(v)) if v is not None else "—"
@@ -662,6 +705,7 @@ def download_invoice(
  <tr><td>الحالة</td><td>{e(row.status_label)}</td></tr>
  <tr><td>التقييم</td><td>{e(row.my_rating)}</td></tr>
  <tr><td>السعر</td><td class="total">{price}</td></tr>
+ <tr><td>الدفع</td><td>{e(payment)}</td></tr>
 </table></body></html>"""
 
     return HTMLResponse(

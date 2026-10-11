@@ -29,7 +29,9 @@ from app.models import (
     Service, ServiceRequest, RequestStatus, User, UserRole,
 )
 from app.notifications import notify
+from app.payments import summarize
 from app.schemas import (
+    PaymentsSummary,
     ArtisanRead,
     ArtisanCountStats,
     RequestCountStats,
@@ -392,6 +394,18 @@ def assign_request_to_artisan(
            f"وصلك طلب جديد رقم #{req.id}", req.location, req.id)
     session.commit()
     return {"id": req.id, "artisan_id": req.artisan_id, "status": req.status}
+
+
+# ---------- المدفوعات (تجريبي) ----------
+
+@router.get("/payments/summary", response_model=PaymentsSummary)
+def payments_summary(
+    month: Optional[str] = None,
+    session: Session = Depends(get_session),
+    admin: User = Depends(compound_admin),
+):
+    """ملخص الشهر (?month=YYYY-MM، بدونه الشهر الحالي) لطلبات المجمع المكتملة."""
+    return summarize(session.exec(_compound_requests_query(admin)).all(), month)
 
 
 # ---------- الشكاوى من السكان ----------
