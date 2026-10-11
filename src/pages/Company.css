@@ -102,3 +102,83 @@
   color: var(--orange-700);
   text-decoration: underline;
 }
+
+/* ===== لوحة المالك: تغطية الخدمات وجدول المجمعات ===== */
+.owc-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.owc-item {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+}
+
+.owc-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-strong);
+}
+
+.owc-missing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.owc-ok {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--success);
+}
+
+.owc-gap {
+  font-weight: 700;
+  color: var(--danger);
+}
+
+.owc-pending {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--orange-700);
+}
+
+.owc-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+}
+
+.owc-note > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--orange-500);
+}
+
+.owc-note h2 {
+  margin: 0 0 4px;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.owc-note p {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: 1.8;
+  color: var(--text-muted);
+}
