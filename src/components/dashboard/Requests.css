@@ -526,3 +526,67 @@
   height: 38px;
   border-radius: var(--radius-sm);
 }
+
+/* ---------- سجل الحالات ---------- */
+.rq-history {
+  position: relative;
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rq-history-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+/* خط يربط النقاط */
+.rq-history-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  inset-block: 22px -6px;
+  inset-inline-start: 5px;
+  width: 2px;
+  background: var(--sand-200);
+}
+
+.rq-history-dot {
+  width: 12px;
+  height: 12px;
+  margin-top: 3px;
+  background: var(--sand-300);
+  border-radius: 50%;
+}
+
+.rq-history-item--accepted .rq-history-dot,
+.rq-history-item--assigned .rq-history-dot { background: var(--navy-600); }
+.rq-history-item--started .rq-history-dot { background: var(--orange-500); }
+.rq-history-item--completed .rq-history-dot { background: var(--success); }
+.rq-history-item--cancelled .rq-history-dot,
+.rq-history-item--rejected .rq-history-dot { background: var(--danger); }
+
+.rq-history-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+}
+
+.rq-history-role {
+  font-size: var(--text-xs);
+  color: var(--text-subtle);
+}
+
+.rq-history-time {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+}

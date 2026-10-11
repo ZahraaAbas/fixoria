@@ -23,12 +23,13 @@ from sqlmodel import Session, select
 from app.auth import hash_password, require_role
 from app.database import get_session
 from app.models import (
-    Agreement, AgreementServiceLink, Company, Compound, MembershipStatus, RequestStatus,
-    ResidentProfile, Service, ServiceRequest, User, UserRole,
+    Agreement, AgreementServiceLink, Artisan, Company, Compound, MembershipStatus, RequestStatus,
+    ResidentProfile, Review, Service, ServiceRequest, User, UserRole,
 )
 from app.schemas import (
     AgreementCreate, AgreementRead, AgreementUpdate, CompanyCreate, CompanyRead, CompanyUpdate,
-    CompoundCreate, CompoundRead, CompoundUpdate, OwnerOverview, StaffCreate, StaffRead,
+    CompoundCreate, CompoundRead, CompoundUpdate, OwnerOverview, OwnerRequestStat, SignupStat,
+    StaffCreate, StaffRead,
 )
 
 router = APIRouter(prefix="/owner", tags=["Owner"])
@@ -128,6 +129,40 @@ def overview(session: Session = Depends(get_session), _: User = Depends(owner_on
             select(func.count()).select_from(ServiceRequest).where(ServiceRequest.status.in_(OPEN_STATUSES))
         ),
     )
+
+
+# ---------- تحليلات المنصة (قراءة بس) ----------
+
+@router.get("/requests", response_model=List[OwnerRequestStat])
+def platform_requests(session: Session = Depends(get_session), _: User = Depends(owner_only)):
+    """كل طلبات المنصة بشكل مختصر للتحليلات: المجمع والخدمة والحالة والأوقات والتقييم الظاهر."""
+    compounds = {c.id: c.name for c in session.exec(select(Compound)).all()}
+    services = {s.id: s.name for s in session.exec(select(Service)).all()}
+    # شركة كل حرفي = شركة حسابه
+    artisan_company = dict(session.exec(select(Artisan.id, User.company_id).join(User, User.id == Artisan.user_id)).all())
+    ratings = dict(session.exec(select(Review.request_id, Review.rating).where(Review.is_hidden == False)).all())  # noqa: E712
+    rows = session.exec(select(ServiceRequest).order_by(ServiceRequest.created_at.desc())).all()
+    return [
+        OwnerRequestStat(
+            id=r.id, compound_id=r.compound_id, compound_name=compounds.get(r.compound_id),
+            service_id=r.service_id, service_name=services.get(r.service_id),
+            company_id=artisan_company.get(r.artisan_id) if r.artisan_id else None,
+            status=r.status.value, created_at=r.created_at, accepted_at=r.accepted_at,
+            started_at=r.started_at, completed_at=r.completed_at, rating=ratings.get(r.id),
+        )
+        for r in rows
+    ]
+
+
+@router.get("/signups", response_model=List[SignupStat])
+def platform_signups(session: Session = Depends(get_session), _: User = Depends(owner_only)):
+    """تواريخ التسجيل المعروفة (من التحديث 0004)، بدون أسماء."""
+    rows = session.exec(
+        select(User.role, User.compound_id, User.created_at)
+        .where(User.created_at.is_not(None), User.role != UserRole.owner)
+        .order_by(User.created_at)
+    ).all()
+    return [SignupStat(role=role.value, compound_id=compound_id, created_at=created_at) for role, compound_id, created_at in rows]
 
 
 # ---------- المجمعات ----------

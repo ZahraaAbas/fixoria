@@ -135,3 +135,26 @@ export async function updateAgreement(id, changes) {
   if ('isActive' in changes) body.is_active = changes.isActive
   return mapAgreement(await withErrors(apiPut(`/owner/agreements/${id}`, body)))
 }
+
+// طلبات كل المنصة بشكل مختصر للتحليلات (بدون أسماء) — نفس شكل طلبات المشرف حتى نستخدم نفس الحسابات
+export async function getPlatformRequests() {
+  return (await apiGet('/owner/requests')).map((r) => ({
+    id: r.id,
+    compoundId: r.compound_id,
+    compoundName: r.compound_name,
+    serviceId: r.service_id,
+    categoryName: r.service_name,
+    companyId: r.company_id,
+    status: r.status,
+    createdAt: r.created_at,
+    acceptedAt: r.accepted_at,
+    startedAt: r.started_at,
+    completedAt: r.completed_at,
+    review: r.rating != null ? { rating: r.rating, isHidden: false } : null,
+  }))
+}
+
+// تواريخ التسجيل المعروفة (من بدء تسجيلها) — الدور والمجمع بس
+export async function getSignups() {
+  return (await apiGet('/owner/signups')).map((s) => ({ role: s.role, compoundId: s.compound_id, createdAt: s.created_at }))
+}

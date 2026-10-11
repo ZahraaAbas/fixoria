@@ -63,6 +63,11 @@ export async function getDashboardStats() {
   }
 }
 
+// سجل الحالات من الخادم (recorded=false: وقت معروف من الطلب نفسه، قبل بدء التسجيل)
+export function mapHistory(rows = []) {
+  return rows.map((h) => ({ kind: h.kind, at: h.at, actorRole: h.actor_role, recorded: h.recorded }))
+}
+
 export function mapAdminRequest(row) {
   return {
     id: row.id,
@@ -82,7 +87,10 @@ export function mapAdminRequest(row) {
     compoundId: row.compound_id ?? null,
     compoundName: row.compound_name ?? null,
     createdAt: row.created_at,
+    acceptedAt: row.accepted_at ?? null,
+    startedAt: row.started_at ?? null,
     completedAt: row.completed_at,
+    history: mapHistory(row.history),
     scheduledAt: row.scheduled_at,
     price: row.price,
     paymentStatus: row.payment_status,

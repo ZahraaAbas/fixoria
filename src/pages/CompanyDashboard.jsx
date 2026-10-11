@@ -16,7 +16,8 @@ import { translate } from '../i18n'
 import { getCompanyOverview, getCompanyPaymentsSummary, getCompanyRequests } from '../services/companyService'
 import { useLoader } from '../hooks/useLoader'
 import { requestsLink, useRange } from '../analytics/useRange'
-import { periodStats } from '../analytics/requests'
+import { periodStats, speedStats } from '../analytics/requests'
+import SpeedKpis from '../components/dashboard/SpeedKpis'
 import PaymentsSummaryCard from '../components/payments/PaymentsSummaryCard'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
@@ -37,7 +38,10 @@ function CompanyDashboard() {
   const overview = useLoader(getCompanyOverview)
   const requests = useLoader(getCompanyRequests)
 
-  const stats = useMemo(() => (requests.data ? periodStats(requests.data, range) : null), [requests.data, range])
+  const stats = useMemo(
+    () => (requests.data ? { ...periodStats(requests.data, range), speed: speedStats(requests.data, range) } : null),
+    [requests.data, range],
+  )
 
   const isLoading = overview.isLoading || requests.isLoading
   const loadError = overview.error || requests.error
@@ -132,6 +136,11 @@ function CompanyDashboard() {
                 }
               />
             </li>
+          </ul>
+
+          <h2 className="cd-section-title">{translate('speed.section')}</h2>
+          <ul className="kpi-grid">
+            <SpeedKpis speed={stats.speed} />
           </ul>
 
           <h2 className="cd-section-title">{translate('analytics.nowSection')}</h2>

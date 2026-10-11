@@ -129,6 +129,8 @@ class User(SQLModel, table=True):
     # الساكن ومشرف المجمع يتبعون مجمع، والحرفي ومدير الشركة يتبعون شركة. مالك المنصة بدونهم.
     compound_id: Optional[int] = Field(default=None, foreign_key="compound.id", index=True)
     company_id: Optional[int] = Field(default=None, foreign_key="company.id", index=True)
+    # تاريخ التسجيل — الحسابات الي قبل التحديث 0004 تبقى بدونه (ما نعرفه)
+    created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
 
     artisan_profile: Optional["Artisan"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"uselist": False}
@@ -211,6 +213,8 @@ class ServiceRequest(SQLModel, table=True):
     rejection_reason: Optional[str] = None
     status: RequestStatus = Field(default=RequestStatus.pending)
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    accepted_at: Optional[datetime] = None   # أول قبول من حرفي (من التحديث 0004)
+    started_at: Optional[datetime] = None    # بدء التنفيذ (من التحديث 0004)
     completed_at: Optional[datetime] = None
 
     artisan: Optional[Artisan] = Relationship(back_populates="requests")
@@ -255,6 +259,19 @@ class Review(SQLModel, table=True):
 
 
 # ---------- RequestDismissal (تجاهل طلب مفتوح) ----------
+
+class RequestEvent(SQLModel, table=True):
+    """سجل حالات الطلب: كل تغيير (إنشاء، تعيين، قبول، بدء، إكمال، رفض، إلغاء) ووقته ومنو سواه."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    request_id: int = Field(foreign_key="servicerequest.id", index=True)
+    kind: str  # created / assigned / accepted / started / completed / rejected / cancelled
+    actor_user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    actor_role: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+# ---------- RequestDismissal ----------
 
 class RequestDismissal(SQLModel, table=True):
     artisan_id: int = Field(foreign_key="artisan.id", primary_key=True)

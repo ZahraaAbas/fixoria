@@ -21,6 +21,7 @@ import PageHeader from '../components/ui/PageHeader'
 import KpiCard from '../components/dashboard/KpiCard'
 import ChartCard from '../components/dashboard/ChartCard'
 import RankedBars from '../components/dashboard/RankedBars'
+import PlatformAnalytics from '../components/owner/PlatformAnalytics'
 import './Owner.css'
 import './Company.css'
 
@@ -56,6 +57,7 @@ function OwnerDashboard() {
     return {
       stats,
       compounds,
+      companies,
       services,
       noAdmin: activeCompounds.filter((c) => c.admins.length === 0),
       noCompany: activeCompounds.filter((c) => c.companies.length === 0),
@@ -168,6 +170,8 @@ function OwnerDashboard() {
               />
             </li>
           </ul>
+
+          <PlatformAnalytics companies={view.companies} />
 
           <div className="cd-grid">
             <ChartCard

@@ -279,3 +279,43 @@ export function periodStats(all, range) {
     artisans: artisanPerformance(current),
   }
 }
+
+// ---------- سرعة الخدمة (من سجل الحالات، التحديث 0004) ----------
+
+const HOUR = 60 * 60 * 1000
+
+function median(values) {
+  if (values.length === 0) return null
+  const sorted = [...values].sort((a, b) => a - b)
+  const mid = Math.floor(sorted.length / 2)
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
+}
+
+function hoursBetween(from, to) {
+  if (!from || !to) return null
+  return (parseApiDate(to) - parseApiDate(from)) / HOUR
+}
+
+// الوسيط (مو المعدل) حتى طلب واحد شاذ ما يخرب الرقم؛ وبس إذا العينة MIN_SAMPLE أو أكثر
+export function speedStats(all, range) {
+  const acceptedIn = all.filter((r) => r.acceptedAt && inWindowDate(r.acceptedAt, range.start, range.end))
+  const completedIn = all.filter((r) => r.completedAt && r.acceptedAt && inWindowDate(r.completedAt, range.start, range.end))
+  const acceptHours = acceptedIn.map((r) => hoursBetween(r.createdAt, r.acceptedAt)).filter((h) => h != null && h >= 0)
+  const workHours = completedIn.map((r) => hoursBetween(r.acceptedAt, r.completedAt)).filter((h) => h != null && h >= 0)
+  return {
+    acceptMedian: acceptHours.length >= MIN_SAMPLE ? median(acceptHours) : null,
+    acceptSample: acceptHours.length,
+    workMedian: workHours.length >= MIN_SAMPLE ? median(workHours) : null,
+    workSample: workHours.length,
+  }
+}
+
+function inWindowDate(value, start, end) {
+  const date = parseApiDate(value)
+  return date >= start && date < end
+}
+
+// طلبات مقبولة وما بدأ تنفيذها من أكثر من hours ساعة (تحتاج وقت القبول المسجل)
+export function stuckAccepted(all, now, hours = 48) {
+  return all.filter((r) => r.status === 'accepted' && r.acceptedAt && now - parseApiDate(r.acceptedAt).getTime() > hours * HOUR)
+}

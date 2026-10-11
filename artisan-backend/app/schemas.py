@@ -160,6 +160,10 @@ class RequestRead(BaseModel):
     rejection_reason: Optional[str] = None
     status: str
     created_at: datetime
+    accepted_at: Optional[datetime] = None
+    started_at: Optional[datetime] = None
+    # سجل الحالات: [{kind, at, actor_role, recorded}] — recorded=False يعني من أوقات الطلب نفسه (قبل التحديث 0004)
+    history: list = []
     progress: list = []  # ProgressStep list — نعبيها بالـ endpoint (تفادياً لدورة استيراد)
     service_name: Optional[str] = None
     customer_name: Optional[str] = None
@@ -553,6 +557,31 @@ class AgreementRead(BaseModel):
     company_name: str
     service_ids: List[int]
     is_active: bool
+    created_at: datetime
+
+
+class OwnerRequestStat(BaseModel):
+    """طلب للتحليلات على مستوى المنصة — بدون أسماء أو وصف أو معلومات تواصل."""
+
+    id: int
+    compound_id: Optional[int] = None
+    compound_name: Optional[str] = None
+    service_id: int
+    service_name: Optional[str] = None
+    company_id: Optional[int] = None
+    status: str
+    created_at: datetime
+    accepted_at: Optional[datetime] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    rating: Optional[int] = None  # التقييم الظاهر بس
+
+
+class SignupStat(BaseModel):
+    """تسجيل حساب (الدور والمجمع والتاريخ) — الحسابات القديمة بدون تاريخ ما تنرجع."""
+
+    role: str
+    compound_id: Optional[int] = None
     created_at: datetime
 
 

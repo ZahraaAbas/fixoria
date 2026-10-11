@@ -40,6 +40,32 @@ function Stages({ status }) {
   )
 }
 
+// سجل الحالات بأوقاتها ومنو سواها (دور بس، بدون أسماء)
+function History({ history }) {
+  if (!history?.length) return null
+  const partial = history.some((h) => !h.recorded)
+  return (
+    <section>
+      <h3 className="rq-section-title">{translate('requestsTable.history')}</h3>
+      <ol className="rq-history">
+        {history.map((h, index) => (
+          <li key={`${h.kind}-${index}`} className={`rq-history-item rq-history-item--${h.kind}`}>
+            <span className="rq-history-dot" aria-hidden="true" />
+            <span className="rq-history-text">
+              <strong>{translate(`requestsTable.events.${h.kind}`)}</strong>
+              {h.actorRole && <span className="rq-history-role">{translate(`requestsTable.roles.${h.actorRole}`)}</span>}
+            </span>
+            <time className="rq-history-time" dateTime={h.at}>
+              {formatDateTime(h.at)}
+            </time>
+          </li>
+        ))}
+      </ol>
+      {partial && <p className="rq-note">{translate('requestsTable.historyPartial')}</p>}
+    </section>
+  )
+}
+
 function Row({ Icon, label, children }) {
   return (
     <div className="rq-row">
@@ -105,6 +131,8 @@ function RequestDrawer({ request, onClose, actions }) {
             <h3 className="rq-section-title">{translate('requestsTable.stages')}</h3>
             <Stages status={request.status} />
           </section>
+
+          <History history={request.history} />
 
           <section>
             <h3 className="rq-section-title">{translate('requestsTable.details')}</h3>
@@ -176,7 +204,6 @@ function RequestDrawer({ request, onClose, actions }) {
             </section>
           )}
 
-          <p className="rq-note">{translate('requestsTable.historyNote')}</p>
         </div>
       </motion.aside>
     </div>,

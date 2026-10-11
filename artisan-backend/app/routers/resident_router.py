@@ -68,6 +68,7 @@ from app.models import (
     UserRole,
 )
 from app.notifications import notify
+from app.history import record_event, record_status_change
 from app.progress import build_progress, status_label
 from app.helpers import all_artisan_ratings, artisan_service_ids, artisans_for_service
 from app.tenancy import approved_resident, compound_artisan_ids, compound_service_ids, resident_membership
@@ -503,6 +504,7 @@ async def create_resident_request(
     session.add(req)
     session.commit()
     session.refresh(req)
+    record_event(session, req, "created", user)
 
     for f in images:
         url = await save_image(f, f"requests/{req.id}")
@@ -544,6 +546,7 @@ def cancel_request(
 
     req.status = RequestStatus.cancelled
     session.add(req)
+    record_status_change(session, req, user)
     if req.artisan_id:
         artisan = session.get(Artisan, req.artisan_id)
         if artisan:

@@ -144,7 +144,10 @@ function mapArtisanRequest(row) {
     compoundId: row.compound_id ?? null,
     compoundName: row.compound_name ?? null,
     scheduledAt: row.scheduled_at,
+    acceptedAt: row.accepted_at ?? null,
+    startedAt: row.started_at ?? null,
     completedAt: row.completed_at,
+    history: (row.history || []).map((h) => ({ kind: h.kind, at: h.at, actorRole: h.actor_role, recorded: h.recorded })),
     paidAt: row.paid_at,
     review: row.review
       ? { rating: row.review.rating, comment: row.review.comment, isHidden: row.review.is_hidden, createdAt: row.review.created_at }

@@ -18,7 +18,8 @@ import { useLoader } from '../hooks/useLoader'
 import { getArtisanAccounts, getDashboardStats, getPaymentsSummary, getRequestsOverview, getResidents } from '../services/adminService'
 import { getComplaints } from '../services/complaintsService'
 import { requestsLink, useRange } from '../analytics/useRange'
-import { periodStats } from '../analytics/requests'
+import { periodStats, speedStats, stuckAccepted } from '../analytics/requests'
+import SpeedKpis from '../components/dashboard/SpeedKpis'
 import { parseApiDate } from '../utils/formatDate'
 import PaymentsSummaryCard from '../components/payments/PaymentsSummaryCard'
 import { ErrorState, SkeletonList } from '../components/StatusState'
@@ -72,6 +73,8 @@ function AdminDashboard() {
       artisans: artisans.length,
       totals,
       stats: periodStats(requests, range),
+      speed: speedStats(requests, range),
+      stuck: stuckAccepted(requests, now, STALE_HOURS).length,
     }
   }, [data, range, now])
 
@@ -129,10 +132,14 @@ function AdminDashboard() {
             <li>
               <KpiCard
                 Icon={ClipboardList}
-                tone="navy"
+                tone={view.stuck ? 'warning' : 'navy'}
                 label={translate('analytics.kpi.activeNow')}
                 value={view.stats.activeNow}
-                definition={translate('analytics.kpi.activeNowDef')}
+                definition={
+                  view.stuck
+                    ? fill('speed.stuck', { n: view.stuck, hours: STALE_HOURS })
+                    : translate('analytics.kpi.activeNowDef')
+                }
                 to={requestsLink('/admin/requests', { preset: 'all' }, { status: 'active' })}
               />
             </li>
@@ -196,6 +203,11 @@ function AdminDashboard() {
                 to="/admin/reviews"
               />
             </li>
+          </ul>
+
+          <h2 className="cd-section-title">{translate('speed.section')}</h2>
+          <ul className="kpi-grid">
+            <SpeedKpis speed={view.speed} />
           </ul>
 
           <div className="cd-grid">

@@ -17,7 +17,8 @@ import { useAuth } from '../hooks/useAuth'
 import { useLoader } from '../hooks/useLoader'
 import { getAvailableRequestsForArtisan, getRequestsForArtisan, getReviewsForArtisan } from '../services/requestsService'
 import { useRange } from '../analytics/useRange'
-import { change, MIN_SAMPLE, rankServices, splitByRange, timeSeries } from '../analytics/requests'
+import { change, MIN_SAMPLE, rankServices, speedStats, splitByRange, timeSeries } from '../analytics/requests'
+import SpeedKpis from '../components/dashboard/SpeedKpis'
 import { parseApiDate } from '../utils/formatDate'
 import { formatIQD } from '../utils/money'
 import { ErrorState, EmptyState } from '../components/StatusState'
@@ -106,6 +107,7 @@ function ArtisanDashboard() {
       completionRate,
       finishedCount: finished.length,
       services: rankServices(current, previous).filter((s) => s.count > 0),
+      speed: speedStats(mine, range),
       series: timeSeries(mine, range),
       currentJob: mine.find((r) => r.status === 'in_progress') ?? mine.find((r) => r.status === 'accepted'),
     }
@@ -253,6 +255,11 @@ function ArtisanDashboard() {
             to="/artisan/reviews"
           />
         </li>
+      </ul>
+
+      <h2 className="cd-section-title">{translate('speed.mySection')}</h2>
+      <ul className="kpi-grid">
+        <SpeedKpis speed={stats.speed} acceptLabelKey="speed.myAccept" workLabelKey="speed.myWork" />
       </ul>
 
       <div className="cd-grid">

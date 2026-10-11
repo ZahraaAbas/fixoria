@@ -18,6 +18,7 @@ from app.models import (
     User,
 )
 from app.progress import build_progress
+from app.history import build_history, events_by_request
 from app.schemas import ArtisanRead, RequestRead, RequestReviewInfo
 
 
@@ -114,6 +115,7 @@ def artisan_to_read(artisan: Artisan, session: Session) -> ArtisanRead:
 def request_to_read(req: ServiceRequest, session: Session) -> RequestRead:
     data = RequestRead.model_validate(req, from_attributes=True)
     data.progress = [s.model_dump() for s in build_progress(req.status)]
+    data.history = build_history(req, events_by_request(session, [req.id]).get(req.id, []))
 
     service = session.get(Service, req.service_id)
     customer = session.get(User, req.customer_id)

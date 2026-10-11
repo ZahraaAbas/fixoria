@@ -29,6 +29,7 @@ from app.models import (
     Service, ServiceRequest, RequestStatus, User, UserRole,
 )
 from app.notifications import notify
+from app.history import record_event
 from app.payments import summarize
 from app.schemas import (
     PaymentsSummary,
@@ -386,6 +387,7 @@ def assign_request_to_artisan(
 
     req.artisan_id = artisan.id
     session.add(req)
+    record_event(session, req, "assigned", admin)
     artisan_user = session.get(User, artisan.user_id)
     notify(session, req.customer_id, NotificationType.request_assigned,
            f"تم تعيين حرفي لطلبك رقم #{req.id}",

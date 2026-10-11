@@ -28,6 +28,7 @@ from app.schemas import RequestCreate, RequestRead, RequestStatusUpdate
 from app.auth import get_current_user
 from app.tenancy import approved_resident, company_coverage, compound_artisan_ids, request_in_coverage
 from app.progress import build_progress
+from app.history import record_event, record_status_change
 from app.notifications import notify
 
 router = APIRouter(prefix="/requests", tags=["Requests"])
@@ -68,6 +69,7 @@ def create_request(
     session.add(req)
     session.commit()
     session.refresh(req)
+    record_event(session, req, "created", user)
 
     notify(session, user.id, NotificationType.request_received,
            f"تم استلام طلبك رقم #{req.id}", "بانتظار قبول الحرفي", req.id)
@@ -272,6 +274,7 @@ def update_status(
         )
 
     req.status = new_status
+    record_status_change(session, req, user)
     if payload.scheduled_at is not None:
         req.scheduled_at = payload.scheduled_at
     if new_status == RequestStatus.rejected:
