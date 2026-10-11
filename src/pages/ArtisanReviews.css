@@ -183,3 +183,66 @@
     position: static;
   }
 }
+
+/* ===== فلتر النجوم + تاريخ التقييم ورابط الطلب ===== */
+.rv-bars li:has(.rv-bar-button) {
+  display: block;
+  border-radius: var(--radius-sm);
+}
+
+.rv-bar-button {
+  display: grid;
+  grid-template-columns: 30px 1fr 24px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 4px 6px;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  background: none;
+  border: 0;
+  border-radius: inherit;
+}
+
+.rv-bar-button:focus-visible {
+  outline: none;
+}
+
+.rv-bar-button:not(:disabled) {
+  cursor: pointer;
+}
+
+.rv-bars li:has(.rv-bar-button:focus-visible) {
+  box-shadow: var(--focus-ring);
+}
+
+.rv-bars li:has(.rv-bar-button.is-active) {
+  background: rgb(255 255 255 / 0.12);
+}
+
+.rv-main {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.rv-card-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-subtle);
+}
+
+.rv-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 800;
+  color: var(--orange-700);
+}

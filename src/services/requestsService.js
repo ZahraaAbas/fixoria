@@ -114,6 +114,7 @@ export function mapReviewDetailed(row) {
     residentName: row.customer_name,
     artisanName: row.artisan_name,
     isHidden: row.is_hidden,
+    createdAt: row.created_at,
   }
 }
 
@@ -135,6 +136,19 @@ function mapArtisanRequest(row) {
     price: row.price,
     paymentMethod: row.payment_method,
     paymentStatus: row.payment_status,
+    // نفس أسماء طلبات المشرف/الشركة حتى نستخدم التحليلات ولوحة التفاصيل نفسها
+    serviceId: row.service_id,
+    artisanId: row.artisan_id,
+    residentName: row.customer_name,
+    artisanName: row.artisan_name,
+    compoundId: row.compound_id ?? null,
+    compoundName: row.compound_name ?? null,
+    scheduledAt: row.scheduled_at,
+    completedAt: row.completed_at,
+    paidAt: row.paid_at,
+    review: row.review
+      ? { rating: row.review.rating, comment: row.review.comment, isHidden: row.review.is_hidden, createdAt: row.review.created_at }
+      : null,
   }
 }
 

@@ -1,41 +1,47 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Link } from 'react-router'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
-import { ArrowLeft, Briefcase, CheckCircle2, ClipboardList, Coffee, Inbox, Loader2, Star } from 'lucide-react'
-import { translate, getCurrentLanguage } from '../i18n'
+import {
+  ArrowLeft,
+  Banknote,
+  Briefcase,
+  CircleCheck,
+  Coffee,
+  Hammer,
+  Hourglass,
+  Inbox,
+  Star,
+  Wallet,
+} from 'lucide-react'
+import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
-import { getRequestsForArtisan, getReviewsForArtisan } from '../services/requestsService'
-import { statusKey } from '../utils/requestStatus'
+import { useLoader } from '../hooks/useLoader'
+import { getAvailableRequestsForArtisan, getRequestsForArtisan, getReviewsForArtisan } from '../services/requestsService'
+import { useRange } from '../analytics/useRange'
+import { change, MIN_SAMPLE, rankServices, splitByRange, timeSeries } from '../analytics/requests'
+import { parseApiDate } from '../utils/formatDate'
+import { formatIQD } from '../utils/money'
 import { ErrorState, EmptyState } from '../components/StatusState'
 import StatusBadge from '../components/ui/StatusBadge'
-import CountUp from '../components/ui/CountUp'
-import { Reveal, RevealGroup, RevealItem } from '../components/ui/Reveal'
+import { Reveal } from '../components/ui/Reveal'
+import DateRangeFilter from '../components/dashboard/DateRangeFilter'
+import KpiCard from '../components/dashboard/KpiCard'
+import ChartCard from '../components/dashboard/ChartCard'
+import RankedBars from '../components/dashboard/RankedBars'
+import TrendChart from '../components/dashboard/TrendChart'
 import './ArtisanDashboard.css'
+import './Company.css'
 
-function average(numbers) {
-  if (numbers.length === 0) return 0
-  const sum = numbers.reduce((total, value) => total + value, 0)
-  return Math.round((sum / numbers.length) * 10) / 10
+const STAGES = ['accepted', 'in_progress', 'completed']
+
+function within(value, start, end) {
+  if (!value) return false
+  const date = parseApiDate(value)
+  return date >= start && date < end
 }
 
-function getMonthlyActivity(requests) {
-  const now = new Date()
-  const buckets = []
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    buckets.push({
-      key: `${d.getFullYear()}-${d.getMonth()}`,
-      month: d.toLocaleDateString(getCurrentLanguage(), { month: 'short' }),
-      count: 0,
-    })
-  }
-  requests.forEach((request) => {
-    const d = new Date(request.createdAt)
-    const key = `${d.getFullYear()}-${d.getMonth()}`
-    const bucket = buckets.find((b) => b.key === key)
-    if (bucket) bucket.count += 1
-  })
-  return buckets
+function averageOf(reviews) {
+  if (reviews.length === 0) return null
+  return Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10) / 10
 }
 
 function DashboardSkeleton() {
@@ -55,51 +61,55 @@ function DashboardSkeleton() {
   )
 }
 
-function ChartTooltip({ active, payload, label }) {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="ad-chart-tip">
-      <span>{label}</span>
-      <strong>{payload[0].value}</strong>
-    </div>
-  )
-}
-
+// لوحة الحرفي: شنو يحتاج انتباهه هسه، وشلون ماشي شغله بالفترة المختارة
 function ArtisanDashboard() {
   const { user } = useAuth()
-  const [requests, setRequests] = useState([])
-  const [reviews, setReviews] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [attempt, setAttempt] = useState(0)
+  const { range, preset, from, to, setRange } = useRange()
+  const loadAll = useCallback(
+    () => Promise.all([getRequestsForArtisan(), getAvailableRequestsForArtisan(), getReviewsForArtisan()]),
+    [],
+  )
+  const { data, error, isLoading, retry } = useLoader(loadAll)
 
-  useEffect(() => {
-    let isCancelled = false
-
-    Promise.all([getRequestsForArtisan(), getReviewsForArtisan(user.id)])
-      .then(([requestsData, reviewsData]) => {
-        if (!isCancelled) {
-          setRequests(requestsData)
-          setReviews(reviewsData)
-        }
-      })
-      .catch((err) => {
-        if (!isCancelled) setError(err)
-      })
-      .finally(() => {
-        if (!isCancelled) setIsLoading(false)
-      })
-
-    return () => {
-      isCancelled = true
+  const stats = useMemo(() => {
+    if (!data) return null
+    const [mine, available, reviews] = data
+    const { current, previous } = splitByRange(mine, range)
+    const completedNow = mine.filter((r) => within(r.completedAt, range.start, range.end))
+    const completedPrev = mine.filter((r) => within(r.completedAt, range.prevStart, range.prevEnd))
+    const reviewsNow = reviews.filter((r) => within(r.createdAt, range.start, range.end))
+    const valueNow = completedNow.reduce((sum, r) => sum + (r.price || 0), 0)
+    const valuePrev = completedPrev.reduce((sum, r) => sum + (r.price || 0), 0)
+    // نسبة الإنجاز: من طلبات الفترة الي انتهت (اكتملت أو انلغت بعد ما استلمتها)
+    const finished = current.filter((r) => r.status === 'completed' || r.status === 'cancelled')
+    const completionRate =
+      finished.length >= MIN_SAMPLE
+        ? Math.round((finished.filter((r) => r.status === 'completed').length / finished.length) * 100)
+        : null
+    return {
+      available: available.length,
+      accepted: mine.filter((r) => r.status === 'accepted').length,
+      inProgress: mine.filter((r) => r.status === 'in_progress').length,
+      cashPending: mine.filter((r) => r.status === 'completed' && r.price != null && r.paymentStatus !== 'paid').length,
+      assigned: current.length,
+      assignedChange: change(current.length, previous.length),
+      assignedPrev: previous.length,
+      completed: completedNow.length,
+      completedChange: change(completedNow.length, completedPrev.length),
+      completedPrev: completedPrev.length,
+      value: valueNow,
+      valueChange: completedPrev.length >= MIN_SAMPLE ? change(valueNow, valuePrev) : null,
+      rating: averageOf(reviewsNow),
+      ratingCount: reviewsNow.length,
+      ratingAll: averageOf(reviews),
+      ratingAllCount: reviews.length,
+      completionRate,
+      finishedCount: finished.length,
+      services: rankServices(current, previous).filter((s) => s.count > 0),
+      series: timeSeries(mine, range),
+      currentJob: mine.find((r) => r.status === 'in_progress') ?? mine.find((r) => r.status === 'accepted'),
     }
-  }, [user.id, attempt])
-
-  function handleRetry() {
-    setIsLoading(true)
-    setError(null)
-    setAttempt((count) => count + 1)
-  }
+  }, [data, range])
 
   if (isLoading) {
     return (
@@ -113,37 +123,15 @@ function ArtisanDashboard() {
   }
 
   if (error) {
-    return (
-      <ErrorState
-        message={translate('artisanDashboard.error')}
-        onRetry={handleRetry}
-        retryLabel={translate('artisanDashboard.retry')}
-      />
-    )
+    return <ErrorState message={translate('artisanDashboard.error')} onRetry={retry} retryLabel={translate('artisanDashboard.retry')} />
   }
 
-  const activeCount = requests.filter((r) =>
-    ['accepted', 'in_progress'].includes(statusKey(r.status)),
-  ).length
-  const completedCount = requests.filter((r) => statusKey(r.status) === 'completed').length
-  const averageRating = average(reviews.map((r) => r.rating))
-
-  const current =
-    requests.find((r) => statusKey(r.status) === 'in_progress') ??
-    requests.find((r) => statusKey(r.status) === 'accepted')
-
-  const chartData = getMonthlyActivity(requests)
-  // في العربية يسير الزمن من اليمين لليسار
-  const isRtl = document.documentElement.dir === 'rtl'
-
-  const stats = [
-    { key: 'total', value: requests.length, Icon: ClipboardList, tone: 'navy' },
-    { key: 'active', value: activeCount, Icon: Loader2, tone: 'orange' },
-    { key: 'completed', value: completedCount, Icon: CheckCircle2, tone: 'green' },
-  ]
+  const workLink = (params) => `/artisan/my-work?${new URLSearchParams(params)}`
+  const job = stats.currentJob
+  const jobStage = job ? STAGES.indexOf(job.status) : -1
 
   return (
-    <section className="ad">
+    <section className="ad cd">
       <Reveal className="ad-hero fx-surface-depth">
         <span className="ad-hero-pattern" aria-hidden="true" />
         <div className="ad-hero-text">
@@ -167,91 +155,169 @@ function ArtisanDashboard() {
         </div>
       </Reveal>
 
-      <RevealGroup className="ad-stats" gap={0.07}>
-        {stats.map(({ key, value, Icon, tone }) => (
-          <RevealItem key={key} className={`ad-stat ad-stat--${tone} fx-card`}>
-            <span className="ad-stat-icon" aria-hidden="true">
-              <Icon size={20} />
-            </span>
-            <p className="ad-stat-value">
-              <CountUp value={value} />
-            </p>
-            <p className="ad-stat-label">{translate(`artisanDashboard.${key}`)}</p>
-          </RevealItem>
-        ))}
-        <RevealItem className="ad-stat ad-stat--rating">
-          <span className="ad-stat-icon" aria-hidden="true">
-            <Star size={20} />
-          </span>
-          <p className="ad-stat-value">
-            {averageRating ? <CountUp value={averageRating} decimals={1} /> : '—'}
-            {averageRating > 0 && <span className="ad-stat-of">/5</span>}
-          </p>
-          <p className="ad-stat-label">{translate('artisanDashboard.rating')}</p>
-        </RevealItem>
-      </RevealGroup>
+      <h2 className="cd-section-title">{translate('artisanWorkspace.attention')}</h2>
+      <ul className="kpi-grid">
+        <li>
+          <KpiCard
+            Icon={Inbox}
+            tone="accent"
+            label={translate('artisanWorkspace.kpi.available')}
+            value={stats.available}
+            definition={translate('artisanWorkspace.kpi.availableDef')}
+            to="/artisan/requests"
+          />
+        </li>
+        <li>
+          <KpiCard
+            Icon={Hourglass}
+            label={translate('artisanWorkspace.kpi.accepted')}
+            value={stats.accepted}
+            definition={translate('artisanWorkspace.kpi.acceptedDef')}
+            to={workLink({ stage: 'accepted' })}
+          />
+        </li>
+        <li>
+          <KpiCard
+            Icon={Hammer}
+            tone="navy"
+            label={translate('artisanWorkspace.kpi.inProgress')}
+            value={stats.inProgress}
+            definition={translate('artisanWorkspace.kpi.inProgressDef')}
+            to={workLink({ stage: 'in_progress' })}
+          />
+        </li>
+        <li>
+          <KpiCard
+            Icon={Banknote}
+            tone={stats.cashPending ? 'warning' : 'default'}
+            label={translate('artisanWorkspace.kpi.cashPending')}
+            value={stats.cashPending}
+            definition={translate('artisanWorkspace.kpi.cashPendingDef')}
+            to={workLink({ stage: 'completed', pay: 'unpaid' })}
+          />
+        </li>
+      </ul>
 
-      <div className="ad-panels">
-        <Reveal as="section" className="ad-panel fx-card" aria-labelledby="ad-current-title">
-          <h2 id="ad-current-title" className="ad-panel-title">
-            {translate('artisanDashboard.currentTitle')}
-          </h2>
-          {current ? (
+      <div className="cd-toolbar">
+        <h2 className="cd-section-title cd-section-title--inline">{translate('analytics.periodSection')}</h2>
+        <DateRangeFilter key={preset} preset={preset} from={from} to={to} onChange={setRange} />
+      </div>
+      <ul className="kpi-grid">
+        <li>
+          <KpiCard
+            Icon={Briefcase}
+            tone="accent"
+            label={translate('artisanWorkspace.kpi.assigned')}
+            value={stats.assigned}
+            delta={stats.assignedChange}
+            previous={stats.assignedPrev}
+            definition={translate('artisanWorkspace.kpi.assignedDef')}
+          />
+        </li>
+        <li>
+          <KpiCard
+            Icon={CircleCheck}
+            tone="success"
+            label={translate('artisanWorkspace.kpi.completed')}
+            value={stats.completed}
+            delta={stats.completedChange}
+            previous={stats.completedPrev}
+            definition={translate('analytics.kpi.completedDef')}
+            to={workLink({ stage: 'completed' })}
+          />
+        </li>
+        <li>
+          <KpiCard
+            Icon={Wallet}
+            label={translate('artisanWorkspace.kpi.value')}
+            value={formatIQD(stats.value)}
+            delta={stats.valueChange}
+            definition={translate('artisanWorkspace.kpi.valueDef')}
+          />
+        </li>
+        <li>
+          <KpiCard
+            Icon={Star}
+            tone="navy"
+            label={translate('analytics.kpi.rating')}
+            value={stats.rating != null ? `${stats.rating} ★` : null}
+            definition={
+              stats.ratingCount
+                ? translate('artisanWorkspace.kpi.ratingDef').replace('{n}', stats.ratingCount)
+                : stats.ratingAll != null
+                  ? translate('artisanWorkspace.kpi.ratingAll')
+                      .replace('{avg}', stats.ratingAll)
+                      .replace('{n}', stats.ratingAllCount)
+                  : translate('artisanWorkspace.kpi.ratingNone')
+            }
+            to="/artisan/reviews"
+          />
+        </li>
+      </ul>
+
+      <div className="cd-grid">
+        <ChartCard id="ad-current" title={translate('artisanDashboard.currentTitle')} subtitle={translate('artisanWorkspace.currentQuestion')}>
+          {job ? (
             <div className="ad-current">
               <div className="ad-current-head">
                 <div>
-                  <p className="ad-current-title">{current.title || current.categoryName}</p>
-                  <p className="ad-current-meta">{current.categoryName}</p>
+                  <p className="ad-current-title">{job.title || job.categoryName}</p>
+                  <p className="ad-current-meta">
+                    {[job.categoryName, job.building, job.apartment].filter(Boolean).join(' · ')}
+                  </p>
                 </div>
-                <StatusBadge status={current.status} />
+                <StatusBadge status={job.status} />
               </div>
-
               <ol className="ad-steps">
-                {current.progress?.map((step) => (
+                {STAGES.map((stage, index) => (
                   <li
-                    key={step.key}
-                    className={`ad-step ${step.done ? 'is-done' : ''} ${step.active ? 'is-active' : ''}`}
+                    key={stage}
+                    className={`ad-step ${index < jobStage ? 'is-done' : ''} ${index === jobStage ? 'is-active' : ''}`}
+                    aria-current={index === jobStage ? 'step' : undefined}
                   >
                     <span className="ad-step-bar" aria-hidden="true" />
-                    <span className="ad-step-label">{step.label}</span>
+                    <span className="ad-step-label">{translate(`requestStatus.${stage}`)}</span>
                   </li>
                 ))}
               </ol>
-
-              <Link to="/artisan/my-work" className="ad-current-link">
-                {/* النص الأصلي يحتوي سهمًا نصيًا؛ نستبدله بأيقونة تتبع اتجاه اللغة */}
-                {translate('artisanDashboard.viewInMyWork').replace(/[←→]/g, '').trim()}
+              <Link to={workLink({ stage: job.status, open: job.id })} className="ad-current-link">
+                {translate('artisanWorkspace.openJob')}
                 <ArrowLeft size={16} aria-hidden="true" className="icon-forward" />
               </Link>
             </div>
           ) : (
             <EmptyState icon={Coffee} title={translate('artisanDashboard.noCurrent')} />
           )}
-        </Reveal>
+        </ChartCard>
 
-        <Reveal as="section" className="ad-panel fx-card" delay={0.1} aria-labelledby="ad-chart-title">
-          <h2 id="ad-chart-title" className="ad-panel-title">
-            {translate('artisanDashboard.activityTitle')}
-          </h2>
-          <div className="ad-chart">
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={chartData} margin={isRtl ? { top: 8, right: -24, left: 4, bottom: 0 } : { top: 8, right: 4, left: -24, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="adBar" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f19035" />
-                    <stop offset="100%" stopColor="#fdb78e" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid vertical={false} strokeDasharray="4 4" stroke="#eadcd6" />
-                <XAxis reversed={isRtl} dataKey="month" stroke="#8f6c60" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis orientation={isRtl ? 'right' : 'left'} allowDecimals={false} stroke="#8f6c60" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(218, 199, 192, 0.25)', radius: 8 }} />
-                <Bar dataKey="count" fill="url(#adBar)" radius={[8, 8, 4, 4]} maxBarSize={36} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Reveal>
+        <ChartCard
+          id="ad-services"
+          title={translate('artisanWorkspace.servicesTitle')}
+          subtitle={
+            stats.completionRate != null
+              ? translate('artisanWorkspace.completionRate')
+                  .replace('{pct}', stats.completionRate)
+                  .replace('{n}', stats.finishedCount)
+              : translate('artisanWorkspace.servicesQuestion')
+          }
+          isEmpty={stats.services.length === 0}
+          emptyText={translate('artisanWorkspace.noJobsInRange')}
+        >
+          <RankedBars items={stats.services} linkFor={(s) => workLink({ service: s.serviceId })} />
+        </ChartCard>
       </div>
+
+      <ChartCard
+        id="ad-trend"
+        title={translate('artisanWorkspace.trendTitle')}
+        subtitle={translate('artisanWorkspace.trendQuestion')}
+        isEmpty={stats.series.buckets.every((b) => b.created === 0 && b.completed === 0)}
+        emptyText={translate('artisanWorkspace.noJobsInRange')}
+      >
+        <TrendChart series={stats.series} />
+      </ChartCard>
+
+      <p className="cd-scope">{translate('artisanWorkspace.dataNote')}</p>
     </section>
   )
 }

@@ -143,3 +143,109 @@
     width: 100%;
   }
 }
+
+/* ===== اكتمال الملف ===== */
+.as-complete {
+  display: grid;
+  gap: 12px;
+  margin-top: var(--space-4);
+  padding: 18px 20px;
+}
+
+.as-complete-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.as-complete-title {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.as-complete-pct {
+  font-size: var(--text-xl);
+  color: var(--orange-600);
+}
+
+.as-complete-track {
+  height: 8px;
+  overflow: hidden;
+  background: var(--sand-100);
+  border-radius: var(--radius-pill);
+}
+
+.as-complete-track span {
+  display: block;
+  height: 100%;
+  background: var(--gradient-action);
+  border-radius: inherit;
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+.as-complete-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.as-complete-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.as-complete-list li > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--sand-300);
+}
+
+.as-complete-list li.is-done > svg {
+  color: var(--success);
+}
+
+.as-complete-list li.is-done {
+  color: var(--text-muted);
+}
+
+.as-complete-list small {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-subtle);
+}
+
+.as-verified {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.as-verified.is-ok {
+  color: var(--success);
+}
+
+.as-complete-note {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-subtle);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .as-complete-track span {
+    transition: none;
+  }
+}

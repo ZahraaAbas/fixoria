@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
+import { Link, useSearchParams } from 'react-router'
 import { motion, useReducedMotion } from 'motion/react'
-import { MessageSquareQuote, Star } from 'lucide-react'
+import { ArrowLeft, MessageSquareQuote, Star, X } from 'lucide-react'
 import { translate } from '../i18n'
 import { getReviewsForArtisan } from '../services/requestsService'
+import { formatDate, parseApiDate } from '../utils/formatDate'
+import '../components/dashboard/Dashboard.css'
 import PeekRating from '../components/PeekRating'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
@@ -23,6 +26,9 @@ function ArtisanReviews() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [attempt, setAttempt] = useState(0)
+  // فلتر النجوم بالرابط (?stars=5) — الضغط على شريط التوزيع يفلتر القائمة
+  const [params, setParams] = useSearchParams()
+  const starsFilter = Number(params.get('stars')) || 0
 
   useEffect(() => {
     let isCancelled = false
@@ -55,6 +61,14 @@ function ArtisanReviews() {
     const count = reviews.filter((review) => Math.round(review.rating) === stars).length
     return { stars, count, share: reviews.length ? count / reviews.length : 0 }
   })
+
+  const shown = reviews
+    .filter((review) => !starsFilter || Math.round(review.rating) === starsFilter)
+    .sort((a, b) => (b.createdAt ? parseApiDate(b.createdAt) : 0) - (a.createdAt ? parseApiDate(a.createdAt) : 0))
+
+  function setStars(stars) {
+    setParams(stars && stars !== starsFilter ? { stars: String(stars) } : {}, { replace: true })
+  }
 
   return (
     <section className="rv">
@@ -99,9 +113,16 @@ function ArtisanReviews() {
               {reviews.length} {translate('artisanReviews.count')}
             </p>
 
-            <ul className="rv-bars" aria-hidden="true">
+            <ul className="rv-bars" aria-label={translate('artisanWorkspace.reviewsFilter')}>
               {distribution.map(({ stars, count, share }, index) => (
                 <li key={stars}>
+                  <button
+                    type="button"
+                    className={`rv-bar-button ${starsFilter === stars ? 'is-active' : ''}`}
+                    aria-pressed={starsFilter === stars}
+                    disabled={count === 0}
+                    onClick={() => setStars(stars)}
+                  >
                   <span className="rv-bar-label">
                     {stars}
                     <Star size={11} />
@@ -115,13 +136,25 @@ function ArtisanReviews() {
                     />
                   </span>
                   <span className="rv-bar-count">{count}</span>
+                  </button>
                 </li>
               ))}
             </ul>
           </Reveal>
 
-          <RevealGroup as="ul" className="rv-list" gap={0.06}>
-            {reviews.map((review) => (
+          <div className="rv-main">
+          {starsFilter > 0 && (
+            <div className="fchips">
+              <span className="fchip">{translate('artisanWorkspace.starsChip').replace('{n}', starsFilter)}</span>
+              <button type="button" className="fchip-clear" onClick={() => setStars(0)}>
+                <X size={14} aria-hidden="true" />
+                {translate('analytics.chips.clear')}
+              </button>
+            </div>
+          )}
+          {/* المفتاح يتغير مع الفلتر حتى العناصر الجديدة تظهر بحركتها */}
+          <RevealGroup key={starsFilter} as="ul" className="rv-list" gap={0.06}>
+            {shown.map((review) => (
               <RevealItem as="li" key={review.requestId} className="rv-card fx-card">
                 <div className="rv-card-head">
                   <div>
@@ -140,9 +173,19 @@ function ArtisanReviews() {
                     <span>{review.comment}</span>
                   </p>
                 )}
+                <p className="rv-card-foot">
+                  {review.createdAt && <span>{formatDate(review.createdAt)}</span>}
+                  {review.requestId && (
+                    <Link to={`/artisan/my-work?stage=completed&open=${review.requestId}`} className="rv-card-link">
+                      {translate('artisanWorkspace.viewJob').replace('{id}', review.requestId)}
+                      <ArrowLeft size={13} aria-hidden="true" className="icon-forward" />
+                    </Link>
+                  )}
+                </p>
               </RevealItem>
             ))}
           </RevealGroup>
+          </div>
         </div>
       )}
     </section>

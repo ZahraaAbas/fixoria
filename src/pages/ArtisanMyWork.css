@@ -215,3 +215,88 @@
     padding-inline-start: calc(var(--space-4) + 4px);
   }
 }
+
+/* ===== تبويبات المراحل + بحث + تفاصيل ===== */
+.mw-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.mw-search {
+  position: relative;
+  flex: 1 1 240px;
+  max-width: 360px;
+}
+
+.mw-search svg {
+  position: absolute;
+  inset-inline-start: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-subtle);
+  pointer-events: none;
+}
+
+.mw-search input {
+  height: 40px;
+  padding-inline-start: 38px;
+}
+
+.mw .fchips,
+.mw .flash {
+  margin-bottom: var(--space-4);
+}
+
+.mw-flash-link {
+  margin-inline-start: auto;
+  padding: 0;
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  color: var(--success);
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.mw-card-id {
+  font-weight: 700;
+  color: var(--text-subtle);
+}
+
+.mw-details {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: start;
+  margin-top: 4px;
+  padding: 0;
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  color: var(--orange-700);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.mw-details:hover {
+  text-decoration: underline;
+}
+
+.mw-details:focus-visible {
+  outline: none;
+  border-radius: 4px;
+  box-shadow: var(--focus-ring);
+}
+
+@media (max-width: 640px) {
+  .mw-search {
+    max-width: none;
+  }
+}

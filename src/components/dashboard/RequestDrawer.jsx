@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, useReducedMotion } from 'motion/react'
 import { Building2, CalendarClock, Check, CircleSlash, Star, User, Wallet, Wrench, X } from 'lucide-react'
@@ -6,6 +5,7 @@ import { getCurrentLanguage, translate } from '../../i18n'
 import { formatDateTime } from '../../utils/formatDate'
 import { formatIQD } from '../../utils/money'
 import StatusBadge from '../ui/StatusBadge'
+import { useDialog } from '../../hooks/useDialog'
 import MediaGallery from '../ui/MediaGallery'
 import AudioNote from '../ui/AudioNote'
 import './Requests.css'
@@ -54,43 +54,9 @@ function Row({ Icon, label, children }) {
 
 function RequestDrawer({ request, onClose }) {
   const reduceMotion = useReducedMotion()
-  const panelRef = useRef(null)
-  const closeRef = useRef(null)
   const isRtl = getCurrentLanguage() !== 'en'
 
-  // Esc يسد، والتركيز يبقى داخل اللوحة، ويرجع للزر الي فتحها
-  useEffect(() => {
-    if (!request) return undefined
-    const previous = document.activeElement
-    closeRef.current?.focus()
-    function onKey(event) {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        onClose()
-        return
-      }
-      if (event.key !== 'Tab' || !panelRef.current) return
-      const focusable = panelRef.current.querySelectorAll('button, a[href], audio, [tabindex]:not([tabindex="-1"])')
-      if (focusable.length === 0) return
-      const first = focusable[0]
-      const last = focusable[focusable.length - 1]
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault()
-        last.focus()
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault()
-        first.focus()
-      }
-    }
-    document.addEventListener('keydown', onKey)
-    const overflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = overflow
-      if (previous instanceof HTMLElement) previous.focus()
-    }
-  }, [request, onClose])
+  const { containerRef: panelRef, initialFocusRef: closeRef } = useDialog(Boolean(request), onClose)
 
   const offset = isRtl ? '-100%' : '100%'
 

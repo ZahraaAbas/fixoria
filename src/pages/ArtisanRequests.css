@@ -127,3 +127,50 @@
     animation: none;
   }
 }
+
+/* ===== بحث وترتيب الطلبات المتاحة ===== */
+.ar-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.ar-search {
+  position: relative;
+  flex: 1 1 240px;
+  max-width: 380px;
+}
+
+.ar-search svg {
+  position: absolute;
+  inset-inline-start: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-subtle);
+  pointer-events: none;
+}
+
+.ar-search input {
+  height: 40px;
+  padding-inline-start: 38px;
+}
+
+.ar-select {
+  width: auto;
+  height: 40px;
+  padding-block: 0;
+  font-size: var(--text-sm);
+}
+
+.ar-flash {
+  margin-bottom: var(--space-4);
+}
+
+.ar-flash .mw-flash-link {
+  margin-inline-start: auto;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  color: var(--success);
+}

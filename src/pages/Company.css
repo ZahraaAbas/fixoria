@@ -87,3 +87,7 @@
 .ow.cd > .ow-panel-title {
   margin: var(--space-2) 0 0;
 }
+
+.cd-section-title--inline {
+  margin: 0;
+}

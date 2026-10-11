@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { AlertCircle, Check, CheckCircle2, Phone } from 'lucide-react'
+import { AlertCircle, BadgeCheck, Check, CheckCircle2, Circle, Phone } from 'lucide-react'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
 import { updateArtisanProfile, uploadArtisanImage } from '../services/profileService'
@@ -12,6 +12,17 @@ import { Reveal } from '../components/ui/Reveal'
 import Avatar from '../components/ui/Avatar'
 import AvatarUploader from '../components/ui/AvatarUploader'
 import './ArtisanSettings.css'
+
+// اكتمال الملف من الحقول المحفوظة فعلًا (الي يشوفها الساكن)، مو من المسودة
+const MIN_BIO = 20
+function profileChecklist(user) {
+  return [
+    { key: 'photo', done: Boolean(user.avatar) },
+    { key: 'phone', done: Boolean(user.phone?.trim()) },
+    { key: 'bio', done: (user.bio || '').trim().length >= MIN_BIO },
+    { key: 'services', done: (user.categoryIds || []).length > 0 },
+  ]
+}
 
 function ArtisanSettings() {
   const { user, updateUser } = useAuth()
@@ -213,6 +224,50 @@ function ArtisanSettings() {
             )}
             {formData.bio && <p className="as-preview-bio">{formData.bio}</p>}
           </div>
+
+          {(() => {
+            const items = profileChecklist(user)
+            const pct = Math.round((items.filter((i) => i.done).length / items.length) * 100)
+            return (
+              <section className="as-complete fx-card" aria-labelledby="as-complete-title">
+                <div className="as-complete-head">
+                  <h2 id="as-complete-title" className="as-complete-title">
+                    {translate('artisanWorkspace.profile.title')}
+                  </h2>
+                  <strong className="as-complete-pct">{pct}%</strong>
+                </div>
+                <div
+                  className="as-complete-track"
+                  role="progressbar"
+                  aria-valuenow={pct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-labelledby="as-complete-title"
+                >
+                  <span style={{ width: `${pct}%` }} />
+                </div>
+                <ul className="as-complete-list">
+                  {items.map((item) => (
+                    <li key={item.key} className={item.done ? 'is-done' : ''}>
+                      {item.done ? <CheckCircle2 size={16} aria-hidden="true" /> : <Circle size={16} aria-hidden="true" />}
+                      <span>
+                        {translate(`artisanWorkspace.profile.${item.key}`)}
+                        {!item.done && <small>{translate(`artisanWorkspace.profile.${item.key}Hint`)}</small>}
+                      </span>
+                      <span className="sr-only">
+                        {translate(item.done ? 'artisanWorkspace.profile.done' : 'artisanWorkspace.profile.missing')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className={`as-verified ${user.status === 'approved' ? 'is-ok' : ''}`}>
+                  <BadgeCheck size={16} aria-hidden="true" />
+                  {translate(user.status === 'approved' ? 'artisanWorkspace.profile.verified' : 'artisanWorkspace.profile.notVerified')}
+                </p>
+                <p className="as-complete-note">{translate('artisanWorkspace.profile.note')}</p>
+              </section>
+            )
+          })()}
         </Reveal>
       </div>
 
