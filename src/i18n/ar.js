@@ -266,6 +266,7 @@ const ar = {
     services: 'الخدمات التي يقدّمها',
   },
   request: {
+    editLocation: 'تعديل من حسابي',
     title: 'طلب خدمة',
     category: 'التصنيف',
     loadingCategory: 'جارٍ التحميل...',

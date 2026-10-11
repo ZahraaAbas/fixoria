@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { motion, useReducedMotion } from 'motion/react'
-import { AlertCircle, CalendarDays, Check, Clock, FileText, Home, ListChecks, MessageSquareHeart, SearchX, Send } from 'lucide-react'
+import { AlertCircle, CalendarDays, Check, Clock, FileText, Home, ListChecks, MapPin, MessageSquareHeart, SearchX, Send } from 'lucide-react'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
 import { getResidentCategoryById } from '../services/categoriesService'
@@ -35,8 +35,6 @@ function RequestForm() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    building: user.building || '',
-    apartment: user.apartment || '',
     preferredDate: '',
     preferredTime: '',
   })
@@ -197,15 +195,6 @@ function RequestForm() {
           </label>
 
           <div className="fx-field">
-            <span className="fx-label" id="rf-photos-label">
-              {translate('request.photosLabel')}
-            </span>
-            <div role="group" aria-labelledby="rf-photos-label">
-              <PhotoPicker files={images} onChange={setImages} />
-            </div>
-          </div>
-
-          <div className="fx-field">
             <span className="fx-label" id="rf-voice-label">
               {translate('request.voiceLabel')}
             </span>
@@ -214,35 +203,28 @@ function RequestForm() {
             </div>
           </div>
 
-          <div className="rf-row">
-            <label className="fx-field">
-              <span className="fx-label">{translate('request.building')}</span>
-              <input
-                className="fx-input"
-                type="text"
-                name="building"
-                value={formData.building}
-                onChange={handleChange}
-                aria-invalid={Boolean(errors.building)}
-              />
-              {errors.building && <span className="fx-error-text">{translate(errors.building)}</span>}
-            </label>
-
-            <label className="fx-field">
-              <span className="fx-label">{translate('request.apartment')}</span>
-              <input
-                className="fx-input"
-                type="text"
-                name="apartment"
-                value={formData.apartment}
-                onChange={handleChange}
-                aria-invalid={Boolean(errors.apartment)}
-              />
-              {errors.apartment && (
-                <span className="fx-error-text">{translate(errors.apartment)}</span>
-              )}
-            </label>
+          <div className="fx-field">
+            <span className="fx-label" id="rf-photos-label">
+              {translate('request.photosLabel')}
+            </span>
+            <div role="group" aria-labelledby="rf-photos-label">
+              <PhotoPicker files={images} onChange={setImages} />
+            </div>
           </div>
+
+          {(user.building || user.apartment) && (
+            <p className="rf-location">
+              <MapPin size={16} aria-hidden="true" />
+              <span>
+                {[user.building, user.apartment && `${translate('request.apartment')} ${user.apartment}`]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </span>
+              <Link to="/profile" className="rf-location-edit">
+                {translate('request.editLocation')}
+              </Link>
+            </p>
+          )}
 
           <div className="rf-row">
             <label className="fx-field">

@@ -264,6 +264,7 @@ const en = {
     services: 'Services offered',
   },
   request: {
+    editLocation: 'Edit in my account',
     title: 'Request Service',
     category: 'Category',
     loadingCategory: 'Loading...',

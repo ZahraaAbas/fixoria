@@ -17,6 +17,31 @@
   gap: var(--space-4);
 }
 
+/* موقع الطلب من الملف الشخصي */
+.rf-location {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px;
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+}
+
+.rf-location svg {
+  color: var(--orange-500);
+}
+
+.rf-location-edit {
+  margin-inline-start: auto;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--orange-700);
+}
+
 .rf-label-icon {
   vertical-align: -2px;
   margin-inline-end: 6px;

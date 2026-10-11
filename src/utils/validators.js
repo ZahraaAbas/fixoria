@@ -55,8 +55,6 @@ export function validateRequest(values) {
   return withoutEmpty({
     title: requiredError(values.title),
     description: requiredError(values.description),
-    building: requiredError(values.building),
-    apartment: requiredError(values.apartment),
     preferredDate: requiredError(values.preferredDate),
     preferredTime: preferredTimeError(values.preferredDate, values.preferredTime),
   })
