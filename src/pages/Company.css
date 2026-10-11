@@ -1,6 +1,7 @@
 /* ===== لوحة الشركة وتحليل الطلب ===== */
 .cd {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
 }
 
@@ -90,4 +91,14 @@
 
 .cd-section-title--inline {
   margin: 0;
+}
+
+.adm-artisan-link {
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.adm-artisan-link:hover {
+  color: var(--orange-700);
+  text-decoration: underline;
 }

@@ -5,6 +5,7 @@ import { getResidents, setResidentMembership } from '../services/adminService'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
 import ActionError from '../components/ui/ActionError'
+import ConfirmDialog from '../components/dashboard/ConfirmDialog'
 import './Owner.css'
 import './AdminRequests.css'
 
@@ -41,12 +42,16 @@ function AdminResidents() {
     }
   }, [attempt])
 
+  // الرفض يحتاج تأكيد لأن الساكن يفقد الوصول لطلب الخدمات
+  const [confirmReject, setConfirmReject] = useState(null)
+
   async function decide(resident, status) {
     setBusyId(resident.id)
     setActionError('')
     try {
       const updated = await setResidentMembership(resident.id, status)
       setResidents((list) => list.map((r) => (r.id === updated.id ? updated : r)))
+      setConfirmReject(null)
     } catch (error) {
       setActionError(error.message === 'NETWORK_ERROR' ? 'common.networkError' : 'common.actionError')
     } finally {
@@ -152,7 +157,7 @@ function AdminResidents() {
                     <button
                       type="button"
                       className="fx-btn fx-btn--ghost fx-btn--sm"
-                      onClick={() => decide(resident, 'rejected')}
+                      onClick={() => setConfirmReject(resident)}
                       disabled={busyId === resident.id}
                     >
                       <X size={14} aria-hidden="true" />
@@ -165,6 +170,16 @@ function AdminResidents() {
           ))}
         </ul>
       )}
+
+      <ConfirmDialog
+        open={Boolean(confirmReject)}
+        title={translate('adminWorkspace.rejectResidentTitle')}
+        message={translate('adminWorkspace.rejectResidentMessage').replace('{name}', confirmReject?.name || '')}
+        confirmLabel={translate('adminResidents.reject')}
+        onConfirm={() => decide(confirmReject, 'rejected')}
+        onCancel={() => setConfirmReject(null)}
+        isBusy={busyId === confirmReject?.id}
+      />
     </section>
   )
 }

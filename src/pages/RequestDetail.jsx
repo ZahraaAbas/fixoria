@@ -9,6 +9,8 @@ import { formatDateTime } from '../utils/formatDate'
 import PeekRating from '../components/PeekRating'
 import ReviewForm from './ReviewForm'
 import PaymentCard from '../components/payments/PaymentCard'
+import RequestComplaint from '../components/complaints/RequestComplaint'
+import '../components/dashboard/Dashboard.css'
 import { ErrorState, EmptyState } from '../components/StatusState'
 import PageHeader, { BackLink } from '../components/ui/PageHeader'
 import StatusBadge from '../components/ui/StatusBadge'
@@ -247,6 +249,8 @@ function RequestDetail() {
               }
             />
           )}
+
+          <RequestComplaint requestId={request.id} />
         </div>
 
         <Reveal as="aside" className="rd-aside" delay={0.1}>

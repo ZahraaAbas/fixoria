@@ -1,0 +1,77 @@
+/* ===== شكوى الساكن عن طلب ===== */
+.rc {
+  display: grid;
+  gap: 12px;
+}
+
+.rc-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rc-item {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+}
+
+.rc-item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-strong);
+}
+
+.rc-date {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-subtle);
+}
+
+.rc-reply {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 4px 0 0;
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  color: var(--text-body);
+}
+
+.rc-reply svg {
+  flex: 0 0 auto;
+  margin-top: 4px;
+  color: var(--orange-500);
+}
+
+.rc-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rc-cta p {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.rc-form {
+  display: grid;
+  gap: 12px;
+}
+
+.rc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

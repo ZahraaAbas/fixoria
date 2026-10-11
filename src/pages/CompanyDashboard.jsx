@@ -16,18 +16,7 @@ import { translate } from '../i18n'
 import { getCompanyOverview, getCompanyPaymentsSummary, getCompanyRequests } from '../services/companyService'
 import { useLoader } from '../hooks/useLoader'
 import { requestsLink, useRange } from '../analytics/useRange'
-import {
-  averageRating,
-  buildInsights,
-  change,
-  countByStatus,
-  countGroup,
-  rankServices,
-  splitByRange,
-  timeSeries,
-  artisanPerformance,
-} from '../analytics/requests'
-import { parseApiDate } from '../utils/formatDate'
+import { periodStats } from '../analytics/requests'
 import PaymentsSummaryCard from '../components/payments/PaymentsSummaryCard'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
@@ -43,48 +32,12 @@ import './Company.css'
 const fill = (key, values) =>
   Object.entries(values).reduce((text, [name, value]) => text.replaceAll(`{${name}}`, value), translate(key))
 
-function completedWithin(requests, start, end) {
-  return requests.filter((r) => {
-    if (!r.completedAt) return false
-    const date = parseApiDate(r.completedAt)
-    return date >= start && date < end
-  })
-}
-
 function CompanyDashboard() {
   const { range, preset, from, to, setRange } = useRange()
   const overview = useLoader(getCompanyOverview)
   const requests = useLoader(getCompanyRequests)
 
-  const stats = useMemo(() => {
-    if (!requests.data) return null
-    const all = requests.data
-    const { current, previous } = splitByRange(all, range)
-    const completedNow = completedWithin(all, range.start, range.end)
-    const completedPrev = completedWithin(all, range.prevStart, range.prevEnd)
-    const currentCounts = countByStatus(current)
-    const previousCounts = countByStatus(previous)
-    const allCounts = countByStatus(all)
-    const services = rankServices(current, previous)
-    return {
-      created: current.length,
-      createdChange: change(current.length, previous.length),
-      createdPrev: previous.length,
-      completed: completedNow.length,
-      completedChange: change(completedNow.length, completedPrev.length),
-      completedPrev: completedPrev.length,
-      closed: countGroup(currentCounts, 'closed'),
-      closedChange: change(countGroup(currentCounts, 'closed'), countGroup(previousCounts, 'closed')),
-      closedPrev: countGroup(previousCounts, 'closed'),
-      rating: averageRating(completedNow),
-      pendingNow: allCounts.pending,
-      activeNow: countGroup(allCounts, 'active'),
-      services,
-      insights: buildInsights({ current, previous, services }),
-      series: timeSeries(all, range),
-      artisans: artisanPerformance(current),
-    }
-  }, [requests.data, range])
+  const stats = useMemo(() => (requests.data ? periodStats(requests.data, range) : null), [requests.data, range])
 
   const isLoading = overview.isLoading || requests.isLoading
   const loadError = overview.error || requests.error

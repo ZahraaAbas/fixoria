@@ -10,6 +10,7 @@ import {
   Inbox,
   LayoutDashboard,
   LogOut,
+  MessageSquareWarning,
   Menu,
   Star,
   Tags,
@@ -36,6 +37,7 @@ const ADMIN_SECTIONS = [
       { value: '/admin/artisans', labelKey: 'adminNav.artisans', Icon: Users },
       { value: '/admin/requests', labelKey: 'adminNav.requests', Icon: ClipboardList },
       { value: '/admin/reviews', labelKey: 'adminNav.reviews', Icon: Star },
+      { value: '/admin/complaints', labelKey: 'adminNav.complaints', Icon: MessageSquareWarning },
     ],
   },
   {

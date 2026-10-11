@@ -570,6 +570,9 @@
 .tabs {
   display: flex;
   gap: 4px;
+  /* داخل شريط أدوات مرن: يتمرر أفقيًا بدل ما يوسّع الصفحة */
+  min-width: 0;
+  max-width: 100%;
   padding: 4px;
   overflow-x: auto;
   background: var(--surface-sunken);

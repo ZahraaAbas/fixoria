@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { ArrowDownUp, ChevronLeft, ChevronRight, ClipboardList, Download, Search, X } from 'lucide-react'
 import { getCurrentLanguage, translate } from '../../i18n'
@@ -38,11 +38,15 @@ function SortHeader({ sort, onSort, children }) {
 
 // مساحة عمل الطلبات: بحث وفلاتر وترتيب وتقسيم صفحات وتصدير، وتفاصيل كل طلب بلوحة جانبية.
 // كل الحالة بالرابط، فأي رقم بلوحة التحكم يفتح نفس العرض بالضبط.
-function RequestsWorkspace({ loader, titleKey }) {
+// drawerActions(request, patch): أدوات إضافية داخل لوحة التفاصيل (مثل تعيين حرفي للمشرف)
+function RequestsWorkspace({ loader, titleKey, drawerActions }) {
   const [params, setParams] = useSearchParams()
   const f = useMemo(() => readFilters(params), [params])
   const { data, error, isLoading, retry } = useLoader(loader)
-  const requests = useMemo(() => data || [], [data])
+  // تعديلات محلية بعد أي إجراء، بدون إعادة تحميل القائمة
+  const [patches, setPatches] = useState({})
+  const requests = useMemo(() => (data || []).map((r) => (patches[r.id] ? { ...r, ...patches[r.id] } : r)), [data, patches])
+  const patch = useCallback((id, changes) => setPatches((current) => ({ ...current, [id]: { ...current[id], ...changes } })), [])
 
   const update = useCallback(
     (changes, { keepPage = false } = {}) => {
@@ -64,6 +68,7 @@ function RequestsWorkspace({ loader, titleKey }) {
 
   const services = useMemo(() => uniqueBy(requests, 'serviceId', 'categoryName'), [requests])
   const compounds = useMemo(() => uniqueBy(requests, 'compoundId', 'compoundName'), [requests])
+  const artisans = useMemo(() => uniqueBy(requests, 'artisanId', 'artisanName'), [requests])
   const scoped = useMemo(() => requests.filter((r) => matchesFilters(r, f, { ignoreStatus: true })), [requests, f])
   const filtered = useMemo(() => sortRequests(scoped.filter((r) => matchesFilters(r, f)), f.sort), [scoped, f])
 
@@ -71,7 +76,7 @@ function RequestsWorkspace({ loader, titleKey }) {
   const page = Math.min(f.page, pages)
   const shown = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
   const openRequest = f.open ? requests.find((r) => String(r.id) === f.open) : null
-  const hasFilters = Boolean(f.q || f.status !== 'all' || f.service || f.compound || f.range)
+  const hasFilters = Boolean(f.q || f.status !== 'all' || f.service || f.compound || f.artisan || f.range)
   const closeDrawer = useCallback(() => update({ open: null }, { keepPage: true }), [update])
 
   function countFor(status) {
@@ -158,6 +163,19 @@ function RequestsWorkspace({ loader, titleKey }) {
               {services.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            <span className="rq-select-label">{translate('requestsTable.artisanLabel')}</span>
+            <select className="fx-input" value={f.artisan} onChange={(event) => update({ artisan: event.target.value })}>
+              <option value="">{translate('requestsTable.allArtisans')}</option>
+              <option value="none">{translate('requestsTable.unassigned')}</option>
+              {artisans.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
                 </option>
               ))}
             </select>
@@ -306,7 +324,11 @@ function RequestsWorkspace({ loader, titleKey }) {
         </div>
       )}
 
-      <RequestDrawer request={openRequest} onClose={closeDrawer} />
+      <RequestDrawer
+        request={openRequest}
+        onClose={closeDrawer}
+        actions={openRequest && drawerActions ? drawerActions(openRequest, (changes) => patch(openRequest.id, changes)) : null}
+      />
     </section>
   )
 }

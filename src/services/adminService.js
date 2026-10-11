@@ -9,6 +9,7 @@ function mapAdminArtisan(row) {
     phone: row.phone,
     bio: row.description,
     categoryNames: row.service_names,
+    serviceIds: row.service_ids || [],
     status: row.status,
     avatar: row.image || null,
   }
@@ -42,7 +43,11 @@ export async function getArtisanAccounts() {
   return rows.map(mapAdminArtisan)
 }
 
-// اعتماد/رفض حرفي حقيقي (PUT /admin/artisans/:id/verify)
+// تعيين حرفي لطلب معلق (PUT /admin/requests/:id/assign?artisan_id=)
+export async function assignRequest(requestId, artisanId) {
+  return apiPut(`/admin/requests/${requestId}/assign?artisan_id=${artisanId}`)
+}
+
 export async function getDashboardStats() {
   const row = await apiGet('/admin/stats')
   return {

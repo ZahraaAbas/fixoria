@@ -16,6 +16,8 @@ export function readFilters(params) {
     status: STATUS_OPTIONS.includes(status) ? status : 'all',
     service: params.get('service') || '',
     compound: params.get('compound') || '',
+    // artisan=none: بدون حرفي، أو رقم الحرفي
+    artisan: params.get('artisan') || '',
     preset: isRange ? preset : 'all',
     from: params.get('from') || '',
     to: params.get('to') || '',
@@ -37,6 +39,8 @@ export function matchesFilters(request, f, { ignoreStatus = false } = {}) {
   if (!ignoreStatus && !statusMatches(request.status, f.status)) return false
   if (f.service && String(request.serviceId) !== f.service) return false
   if (f.compound && String(request.compoundId) !== f.compound) return false
+  if (f.artisan === 'none' && request.artisanId != null) return false
+  if (f.artisan && f.artisan !== 'none' && String(request.artisanId) !== f.artisan) return false
   if (f.range) {
     const value = f.byCompleted ? request.completedAt : request.createdAt
     if (!value) return false

@@ -30,6 +30,7 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const AdminRequests = lazy(() => import('./pages/AdminRequests'))
 const AdminCategories = lazy(() => import('./pages/AdminCategories'))
 const AdminReviews = lazy(() => import('./pages/AdminReviews'))
+const AdminComplaints = lazy(() => import('./pages/AdminComplaints'))
 const AdminAccount = lazy(() => import('./pages/AdminAccount'))
 const OwnerDashboard = lazy(() => import('./pages/OwnerDashboard'))
 const OwnerCompounds = lazy(() => import('./pages/OwnerCompounds'))
@@ -143,6 +144,7 @@ function App() {
               <Route path="/admin/requests" element={<AdminRequests />} />
               <Route path="/admin/residents" element={<AdminResidents />} />
               <Route path="/admin/reviews" element={<AdminReviews />} />
+              <Route path="/admin/complaints" element={<AdminComplaints />} />
               <Route path="/admin/account" element={<AdminAccount />} />
             </Route>
 

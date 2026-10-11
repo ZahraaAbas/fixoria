@@ -1,6 +1,7 @@
 /* ===== مساحة عمل الطلبات: أدوات + جدول + لوحة تفاصيل ===== */
 .rq {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
 }
 
@@ -482,4 +483,46 @@
   .rq-tr {
     transition: none;
   }
+}
+
+/* ---------- تعيين حرفي (المشرف) ---------- */
+.rq-assign {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  background: var(--orange-50);
+  border: 1px solid var(--orange-100);
+  border-radius: var(--radius-md);
+}
+
+.rq-assign .rq-section-title {
+  margin: 0;
+  color: var(--orange-700);
+}
+
+.rq-assign-note,
+.rq-assign-empty {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+.rq-assign-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rq-assign-form select {
+  flex: 1 1 180px;
+  height: 38px;
+  padding-block: 0;
+  font-size: var(--text-sm);
+}
+
+.rq-assign-skeleton {
+  display: block;
+  height: 38px;
+  border-radius: var(--radius-sm);
 }

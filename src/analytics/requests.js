@@ -242,3 +242,40 @@ export function buildInsights({ current, previous, services }) {
   }
   return insights
 }
+
+function completedWithin(requests, start, end) {
+  return requests.filter((r) => {
+    if (!r.completedAt) return false
+    const date = parseApiDate(r.completedAt)
+    return date >= start && date < end
+  })
+}
+
+// كل أرقام لوحة الإدارة/الشركة لفترة معيّنة من نفس قائمة الطلبات
+export function periodStats(all, range) {
+  const { current, previous } = splitByRange(all, range)
+  const completedNow = completedWithin(all, range.start, range.end)
+  const completedPrev = completedWithin(all, range.prevStart, range.prevEnd)
+  const currentCounts = countByStatus(current)
+  const previousCounts = countByStatus(previous)
+  const allCounts = countByStatus(all)
+  const services = rankServices(current, previous)
+  return {
+    created: current.length,
+    createdChange: change(current.length, previous.length),
+    createdPrev: previous.length,
+    completed: completedNow.length,
+    completedChange: change(completedNow.length, completedPrev.length),
+    completedPrev: completedPrev.length,
+    closed: countGroup(currentCounts, 'closed'),
+    closedChange: change(countGroup(currentCounts, 'closed'), countGroup(previousCounts, 'closed')),
+    closedPrev: countGroup(previousCounts, 'closed'),
+    rating: averageRating(completedNow),
+    pendingNow: allCounts.pending,
+    activeNow: countGroup(allCounts, 'active'),
+    services,
+    insights: buildInsights({ current, previous, services }),
+    series: timeSeries(all, range),
+    artisans: artisanPerformance(current),
+  }
+}

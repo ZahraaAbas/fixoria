@@ -1,317 +1,324 @@
-import { useEffect, useState } from 'react'
-import { motion, useReducedMotion } from 'motion/react'
-import { Wrench, Users, TrendingUp, ClipboardList, Star, Activity, CheckCircle2 } from 'lucide-react'
-import { translate, getCurrentLanguage } from '../i18n'
-import { useAuth } from '../hooks/useAuth'
-import { getDashboardStats, getPaymentsSummary } from '../services/adminService'
+import { useCallback, useMemo, useState } from 'react'
+import { Link } from 'react-router'
+import {
+  ArrowLeft,
+  CircleCheck,
+  CircleSlash,
+  ClipboardList,
+  Inbox,
+  MessageSquareWarning,
+  Star,
+  UserPlus,
+  UserRoundCheck,
+  Users,
+  Wrench,
+} from 'lucide-react'
+import { translate } from '../i18n'
+import { useLoader } from '../hooks/useLoader'
+import { getArtisanAccounts, getDashboardStats, getPaymentsSummary, getRequestsOverview, getResidents } from '../services/adminService'
+import { getComplaints } from '../services/complaintsService'
+import { requestsLink, useRange } from '../analytics/useRange'
+import { periodStats } from '../analytics/requests'
+import { parseApiDate } from '../utils/formatDate'
 import PaymentsSummaryCard from '../components/payments/PaymentsSummaryCard'
-import PeekRating from '../components/PeekRating'
-import { ErrorState } from '../components/StatusState'
-import CountUp from '../components/ui/CountUp'
-import { Reveal, RevealGroup, RevealItem } from '../components/ui/Reveal'
-import { easeOut } from '../components/ui/motion'
-import './AdminDashboard.css'
+import { ErrorState, SkeletonList } from '../components/StatusState'
+import PageHeader from '../components/ui/PageHeader'
+import DateRangeFilter from '../components/dashboard/DateRangeFilter'
+import KpiCard from '../components/dashboard/KpiCard'
+import ChartCard from '../components/dashboard/ChartCard'
+import RankedBars from '../components/dashboard/RankedBars'
+import TrendChart from '../components/dashboard/TrendChart'
+import InsightsList from '../components/dashboard/InsightsList'
+import './Company.css'
 
-function pct(part, total) {
-  return total > 0 ? Math.round((part / total) * 100) : 0
-}
+// طلب معلّق بدون حرفي أكثر من هالمدة يعتبر عالق ويحتاج تدخل
+const STALE_HOURS = 48
 
-function ratingLabel(rating) {
-  if (!rating) return translate('adminDashboard.ratingNone')
-  if (rating >= 4.5) return translate('adminDashboard.ratingExcellent')
-  if (rating >= 3.5) return translate('adminDashboard.ratingGood')
-  if (rating >= 2.5) return translate('adminDashboard.ratingFair')
-  return translate('adminDashboard.ratingPoor')
-}
+const fill = (key, values) =>
+  Object.entries(values).reduce((text, [name, value]) => text.replaceAll(`{${name}}`, value), translate(key))
 
-function CompletionGauge({ percent }) {
-  const reduceMotion = useReducedMotion()
-  const radius = 70
-  const circumference = 2 * Math.PI * radius
-  const offset = circumference * (1 - percent / 100)
-
-  return (
-    <svg width={180} height={180} viewBox="0 0 180 180" className="gauge" role="img" aria-label={`${percent}%`}>
-      <defs>
-        <linearGradient id="gaugeStroke" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#fdb78e" />
-          <stop offset="100%" stopColor="#f19035" />
-        </linearGradient>
-      </defs>
-      <circle cx="90" cy="90" r={radius} className="gauge-track" />
-      <motion.circle
-        cx="90"
-        cy="90"
-        r={radius}
-        className="gauge-value"
-        strokeDasharray={circumference}
-        initial={reduceMotion ? false : { strokeDashoffset: circumference }}
-        animate={{ strokeDashoffset: offset }}
-        transition={{ duration: 1.4, ease: easeOut, delay: 0.3 }}
-      />
-      <text x="90" y="88" textAnchor="middle" className="gauge-percent">
-        {percent}%
-      </text>
-      <text x="90" y="112" textAnchor="middle" className="gauge-caption">
-        {translate('adminDashboard.completionLegendDone')}
-      </text>
-    </svg>
-  )
-}
-
-// شريط أفقي ينمو عند الظهور
-function Bar({ label, value, total, tone }) {
-  const reduceMotion = useReducedMotion()
-  return (
-    <div className="bar-row">
-      <div className="bar-labels">
-        <span>{label}</span>
-        <strong>{value}</strong>
-      </div>
-      <div className="bar-track">
-        <motion.span
-          className={`bar-fill bar-fill--${tone}`}
-          initial={reduceMotion ? false : { scaleX: 0 }}
-          whileInView={{ scaleX: pct(value, total) / 100 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1, ease: easeOut }}
-        />
-      </div>
-    </div>
-  )
-}
-
-function DashboardSkeleton() {
-  return (
-    <div className="adb-skeleton" aria-hidden="true">
-      <div className="adb-skeleton-row">
-        {[0, 1, 2, 3].map((n) => (
-          <span key={n} className="fx-skeleton" />
-        ))}
-      </div>
-      <div className="adb-skeleton-row adb-skeleton-row--big">
-        {[0, 1, 2].map((n) => (
-          <span key={n} className="fx-skeleton" />
-        ))}
-      </div>
-    </div>
-  )
-}
-
+// مركز تحكم مشرف المجمع: شنو يحتاج تدخله هسه، وشلون ماشية الصيانة بالفترة
 function AdminDashboard() {
-  const { user } = useAuth()
-  const [stats, setStats] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [attempt, setAttempt] = useState(0)
+  const { range, preset, from, to, setRange } = useRange()
+  const loadAll = useCallback(
+    () =>
+      Promise.all([
+        getRequestsOverview(),
+        getResidents(),
+        getComplaints(),
+        getArtisanAccounts(),
+        getDashboardStats(),
+      ]),
+    [],
+  )
+  const { data, error, isLoading, retry } = useLoader(loadAll)
+  // وقت فتح الصفحة — منه نحسب الطلبات العالقة
+  const [now] = useState(() => Date.now())
 
-  useEffect(() => {
-    let isCancelled = false
-
-    getDashboardStats()
-      .then((data) => {
-        if (!isCancelled) setStats(data)
-      })
-      .catch((err) => {
-        if (!isCancelled) setError(err)
-      })
-      .finally(() => {
-        if (!isCancelled) setIsLoading(false)
-      })
-
-    return () => {
-      isCancelled = true
+  const view = useMemo(() => {
+    if (!data) return null
+    const [requests, residents, complaints, artisans, totals] = data
+    const unassigned = requests.filter((r) => r.status === 'pending' && r.artisanId == null)
+    const stale = unassigned.filter((r) => r.createdAt && now - parseApiDate(r.createdAt).getTime() > STALE_HOURS * 3600 * 1000)
+    return {
+      compoundName: requests.find((r) => r.compoundName)?.compoundName,
+      pendingResidents: residents.filter((r) => r.membershipStatus === 'pending').length,
+      approvedResidents: residents.filter((r) => r.membershipStatus === 'approved').length,
+      unassigned: unassigned.length,
+      stale: stale.length,
+      openComplaints: complaints.filter((c) => c.status !== 'resolved').length,
+      newComplaints: complaints.filter((c) => c.status === 'open').length,
+      activeArtisans: artisans.filter((a) => a.status === 'approved').length,
+      artisans: artisans.length,
+      totals,
+      stats: periodStats(requests, range),
     }
-  }, [attempt])
+  }, [data, range, now])
 
-  function handleRetry() {
-    setIsLoading(true)
-    setError(null)
-    setAttempt((count) => count + 1)
-  }
-
-  const today = new Date().toLocaleDateString(getCurrentLanguage() === 'en' ? 'en' : 'ar-IQ', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-
-  const usersTotal = stats ? stats.residentsCount + stats.artisansCount : 0
-  const otherRequests = stats
-    ? Math.max(stats.totalRequestsCount - stats.activeRequestsCount - stats.completedRequestsCount, 0)
-    : 0
-  const completionPercent = stats ? pct(stats.completedRequestsCount, stats.totalRequestsCount) : 0
-
-  const userSegments = stats
-    ? [
-        { key: 'residents', label: translate('adminDashboard.residents'), value: stats.residentsCount, tone: 'navy' },
-        { key: 'approved', label: translate('adminDashboard.approvedArtisans'), value: stats.approvedArtisansCount, tone: 'orange' },
-        { key: 'pending', label: translate('adminDashboard.pendingArtisans'), value: stats.pendingArtisansCount, tone: 'sand' },
-      ]
-    : []
+  const link = (filters) => requestsLink('/admin/requests', range, filters)
 
   return (
-    <section className="adb">
-      <Reveal className="adb-head">
-        <p className="adb-greeting">
-          {translate('adminDashboard.greeting')}
-          {translate('common.comma')}
-          {user.fullName}
-        </p>
-        <h1 className="fx-h1">{translate('adminDashboard.title')}</h1>
-        <p className="adb-subtitle">
-          {translate('adminDashboard.subtitle')} <span aria-hidden="true">·</span> <time>{today}</time>
-        </p>
-      </Reveal>
+    <section className="cd">
+      <PageHeader
+        eyebrow={view?.compoundName}
+        title={translate('adminDashboard.title')}
+        meta={translate('adminWorkspace.subtitle')}
+      />
 
-      <PaymentsSummaryCard loader={getPaymentsSummary} />
+      {isLoading && <SkeletonList count={4} />}
+      {error && <ErrorState message={translate('adminDashboard.error')} onRetry={retry} retryLabel={translate('adminDashboard.retry')} />}
 
-      {isLoading && (
+      {view && (
         <>
-          <p className="sr-only" role="status">
-            {translate('adminDashboard.loading')}
-          </p>
-          <DashboardSkeleton />
-        </>
-      )}
-
-      {!isLoading && error && (
-        <ErrorState
-          message={translate('adminDashboard.error')}
-          onRetry={handleRetry}
-          retryLabel={translate('adminDashboard.retry')}
-        />
-      )}
-
-      {!isLoading && !error && stats && (
-        <>
-          {/* مؤشرات رئيسية */}
-          <RevealGroup className="adb-kpis" gap={0.06}>
-            {[
-              { label: translate('adminDashboard.totalRequests'), value: stats.totalRequestsCount, Icon: ClipboardList },
-              { label: translate('adminDashboard.activeRequests'), value: stats.activeRequestsCount, Icon: Activity },
-              { label: translate('adminDashboard.completedRequests'), value: stats.completedRequestsCount, Icon: CheckCircle2 },
-              { label: translate('adminDashboard.usersTotal'), value: usersTotal, Icon: Users },
-            ].map(({ label, value, Icon }) => (
-              <RevealItem key={label} className="adb-kpi fx-card">
-                <span className="adb-kpi-icon" aria-hidden="true">
-                  <Icon size={18} />
-                </span>
-                <p className="adb-kpi-value">
-                  <CountUp value={value} />
-                </p>
-                <p className="adb-kpi-label">{label}</p>
-              </RevealItem>
-            ))}
-          </RevealGroup>
-
-          <div className="adb-bento">
-            {/* معدّل الإنجاز */}
-            <Reveal as="section" className="adb-card adb-card--gauge fx-surface-depth">
-              <h2 className="adb-card-title">
-                <TrendingUp size={17} aria-hidden="true" />
-                {translate('adminDashboard.completionCardTitle')}
-              </h2>
-              <div className="adb-gauge">
-                <CompletionGauge percent={completionPercent} />
-              </div>
-              <div className="adb-legend adb-legend--center">
-                <span>
-                  <i className="adb-dot adb-dot--orange" />
-                  {translate('adminDashboard.completionLegendDone')}
-                </span>
-                <span>
-                  <i className="adb-dot adb-dot--ghost" />
-                  {translate('adminDashboard.completionLegendRest')}
-                </span>
-              </div>
-              <p className="adb-card-caption">{translate('adminDashboard.completionSubtitle')}</p>
-            </Reveal>
-
-            {/* الطلبات */}
-            <Reveal as="section" className="adb-card fx-card" delay={0.05}>
-              <h2 className="adb-card-title">
-                <ClipboardList size={17} aria-hidden="true" />
-                {translate('adminDashboard.requestsCardTitle')}
-              </h2>
-              <Bar label={translate('adminDashboard.activeRequests')} value={stats.activeRequestsCount} total={stats.totalRequestsCount} tone="orange" />
-              <Bar label={translate('adminDashboard.completedRequests')} value={stats.completedRequestsCount} total={stats.totalRequestsCount} tone="green" />
-              <Bar label={translate('adminDashboard.otherRequests')} value={otherRequests} total={stats.totalRequestsCount} tone="sand" />
-              <p className="adb-total">
-                <strong>{stats.totalRequestsCount}</strong>
-                {translate('adminDashboard.totalRequests')}
-              </p>
-            </Reveal>
-
-            {/* الحرفيون */}
-            <Reveal as="section" className="adb-card fx-card" delay={0.1}>
-              <h2 className="adb-card-title">
-                <Wrench size={17} aria-hidden="true" />
-                {translate('adminDashboard.artisansCardTitle')}
-              </h2>
-              <Bar label={translate('adminDashboard.approvedArtisans')} value={stats.approvedArtisansCount} total={stats.artisansCount} tone="navy" />
-              <Bar label={translate('adminDashboard.pendingArtisans')} value={stats.pendingArtisansCount} total={stats.artisansCount} tone="sand" />
-              <p className="adb-total">
-                <strong>{stats.artisansCount}</strong>
-                {translate('adminDashboard.artisansTotal')}
-              </p>
-            </Reveal>
-
-            {/* المستخدمون */}
-            <Reveal as="section" className="adb-card fx-card" delay={0.05}>
-              <h2 className="adb-card-title">
-                <Users size={17} aria-hidden="true" />
-                {translate('adminDashboard.usersCardTitle')}
-              </h2>
-              <div className="adb-segments" aria-hidden="true">
-                {userSegments.map(({ key, value, tone }) => (
-                  <span
-                    key={key}
-                    className={`adb-segment adb-segment--${tone}`}
-                    style={{ flexGrow: Math.max(value, 0.0001) }}
-                  />
-                ))}
-              </div>
-              <ul className="adb-legend">
-                {userSegments.map(({ key, label, value, tone }) => (
-                  <li key={key}>
-                    <i className={`adb-dot adb-dot--${tone}`} />
-                    {label}
-                    <strong>{pct(value, usersTotal)}%</strong>
-                  </li>
-                ))}
-              </ul>
-              <p className="adb-total">
-                <strong>{usersTotal}</strong>
-                {translate('adminDashboard.usersTotal')}
-              </p>
-            </Reveal>
-
-            {/* التقييم */}
-            <Reveal as="section" className="adb-card adb-card--rating" delay={0.1}>
-              <h2 className="adb-card-title">
-                <Star size={17} aria-hidden="true" />
-                {translate('adminDashboard.ratingCardTitle')}
-              </h2>
-              <p className="adb-rating">
-                <span className="adb-rating-value">
-                  {stats.averageRating ? <CountUp value={stats.averageRating} decimals={1} /> : '—'}
-                </span>
-                <span className="adb-rating-word">{ratingLabel(stats.averageRating)}</span>
-              </p>
-              <PeekRating
-                value={Math.round(stats.averageRating)}
-                readOnly
-                size={22}
-                activeColor="#263056"
-                idleColor="rgba(38, 48, 86, 0.2)"
+          <h2 className="cd-section-title">{translate('artisanWorkspace.attention')}</h2>
+          <ul className="kpi-grid">
+            <li>
+              <KpiCard
+                Icon={UserPlus}
+                tone={view.pendingResidents ? 'accent' : 'default'}
+                label={translate('adminWorkspace.kpi.pendingResidents')}
+                value={view.pendingResidents}
+                definition={translate('adminWorkspace.kpi.pendingResidentsDef')}
+                to="/admin/residents"
               />
-              <p className="adb-card-caption">
-                {stats.reviewsCount} {translate('adminDashboard.ratingCount')}
-              </p>
-            </Reveal>
+            </li>
+            <li>
+              <KpiCard
+                Icon={Inbox}
+                tone={view.stale ? 'warning' : 'default'}
+                label={translate('adminWorkspace.kpi.unassigned')}
+                value={view.unassigned}
+                definition={
+                  view.stale
+                    ? fill('adminWorkspace.kpi.unassignedStale', { n: view.stale, hours: STALE_HOURS })
+                    : translate('adminWorkspace.kpi.unassignedDef')
+                }
+                to={requestsLink('/admin/requests', { preset: 'all' }, { status: 'pending', artisan: 'none', sort: 'date-asc' })}
+              />
+            </li>
+            <li>
+              <KpiCard
+                Icon={MessageSquareWarning}
+                tone={view.newComplaints ? 'warning' : 'default'}
+                label={translate('adminWorkspace.kpi.complaints')}
+                value={view.openComplaints}
+                definition={fill('adminWorkspace.kpi.complaintsDef', { n: view.newComplaints })}
+                to="/admin/complaints"
+              />
+            </li>
+            <li>
+              <KpiCard
+                Icon={ClipboardList}
+                tone="navy"
+                label={translate('analytics.kpi.activeNow')}
+                value={view.stats.activeNow}
+                definition={translate('analytics.kpi.activeNowDef')}
+                to={requestsLink('/admin/requests', { preset: 'all' }, { status: 'active' })}
+              />
+            </li>
+          </ul>
+
+          <div className="cd-toolbar">
+            <h2 className="cd-section-title cd-section-title--inline">
+              {translate('analytics.periodSection')}
+            </h2>
+            <DateRangeFilter key={preset} preset={preset} from={from} to={to} onChange={setRange} />
           </div>
+          <ul className="kpi-grid">
+            <li>
+              <KpiCard
+                Icon={Inbox}
+                tone="accent"
+                label={translate('analytics.kpi.created')}
+                value={view.stats.created}
+                delta={view.stats.createdChange}
+                previous={view.stats.createdPrev}
+                definition={translate('analytics.kpi.createdDef')}
+                to={link()}
+              />
+            </li>
+            <li>
+              <KpiCard
+                Icon={CircleCheck}
+                tone="success"
+                label={translate('analytics.kpi.completed')}
+                value={view.stats.completed}
+                delta={view.stats.completedChange}
+                previous={view.stats.completedPrev}
+                definition={translate('analytics.kpi.completedDef')}
+                to={link({ status: 'completed', by: 'completed' })}
+              />
+            </li>
+            <li>
+              <KpiCard
+                Icon={CircleSlash}
+                tone="warning"
+                label={translate('analytics.kpi.closed')}
+                value={view.stats.closed}
+                delta={view.stats.closedChange}
+                previous={view.stats.closedPrev}
+                deltaGood="down"
+                definition={translate('analytics.kpi.closedDef')}
+                to={link({ status: 'closed' })}
+              />
+            </li>
+            <li>
+              <KpiCard
+                Icon={Star}
+                tone="navy"
+                label={translate('analytics.kpi.rating')}
+                value={view.stats.rating.average != null ? `${view.stats.rating.average} ★` : null}
+                definition={
+                  view.stats.rating.count
+                    ? fill('analytics.kpi.ratingDef', { n: view.stats.rating.count })
+                    : translate('analytics.kpi.ratingNone')
+                }
+                to="/admin/reviews"
+              />
+            </li>
+          </ul>
+
+          <div className="cd-grid">
+            <ChartCard
+              id="adm-top-services"
+              title={translate('analytics.topServicesTitle')}
+              subtitle={translate('analytics.topServicesQuestion')}
+              isEmpty={view.stats.created === 0}
+              emptyText={translate('analytics.noRequestsInRange')}
+              actions={
+                <Link to={link()} className="fx-btn fx-btn--ghost fx-btn--sm">
+                  {translate('analytics.viewRequests')}
+                  <ArrowLeft size={14} aria-hidden="true" className="icon-forward" />
+                </Link>
+              }
+            >
+              <RankedBars
+                items={view.stats.services.filter((s) => s.count > 0)}
+                limit={6}
+                showStatus
+                linkFor={(s) => link({ service: s.serviceId })}
+              />
+            </ChartCard>
+
+            <ChartCard
+              id="adm-insights"
+              title={translate('analytics.insightsTitle')}
+              subtitle={translate('analytics.insightsNote')}
+              isEmpty={view.stats.insights.length === 0}
+              emptyText={translate('analytics.insightsEmpty')}
+            >
+              <InsightsList insights={view.stats.insights} range={range} base="/admin/requests" />
+            </ChartCard>
+          </div>
+
+          <ChartCard
+            id="adm-trend"
+            title={translate('analytics.trendTitle')}
+            subtitle={translate('analytics.trendQuestion')}
+            isEmpty={view.stats.series.buckets.every((b) => b.created === 0 && b.completed === 0)}
+            emptyText={translate('analytics.noRequestsInRange')}
+          >
+            <TrendChart series={view.stats.series} />
+          </ChartCard>
+
+          <ChartCard
+            id="adm-artisans"
+            title={translate('analytics.artisansTitle')}
+            subtitle={translate('adminWorkspace.artisansQuestion')}
+            isEmpty={view.stats.artisans.length === 0}
+            emptyText={translate('analytics.artisansEmpty')}
+          >
+            <div className="dash-table-wrap">
+              <table className="dash-table">
+                <thead>
+                  <tr>
+                    <th scope="col">{translate('analytics.table.artisan')}</th>
+                    <th scope="col">{translate('analytics.table.assigned')}</th>
+                    <th scope="col">{translate('analytics.table.active')}</th>
+                    <th scope="col">{translate('analytics.table.completed')}</th>
+                    <th scope="col">{translate('analytics.table.rating')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {view.stats.artisans.map((a) => (
+                    <tr key={a.artisanId}>
+                      <th scope="row">
+                        <Link to={link({ artisan: a.artisanId })} className="adm-artisan-link">
+                          {a.name}
+                        </Link>
+                      </th>
+                      <td className="num">{a.assigned}</td>
+                      <td className="num">{a.active}</td>
+                      <td className="num">{a.completed}</td>
+                      <td className="num">{a.rating.average != null ? `${a.rating.average} ★ (${a.rating.count})` : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </ChartCard>
+
+          <PaymentsSummaryCard loader={getPaymentsSummary} />
+
+          <h2 className="cd-section-title">{translate('adminWorkspace.totalsSection')}</h2>
+          <ul className="kpi-grid">
+            <li>
+              <KpiCard
+                Icon={UserRoundCheck}
+                label={translate('adminWorkspace.kpi.residents')}
+                value={view.approvedResidents}
+                definition={translate('adminWorkspace.kpi.residentsDef')}
+                to="/admin/residents"
+              />
+            </li>
+            <li>
+              <KpiCard
+                Icon={Users}
+                label={translate('adminWorkspace.kpi.artisans')}
+                value={view.activeArtisans}
+                definition={fill('company.overview.activeOf', { active: view.activeArtisans, total: view.artisans })}
+                to="/admin/artisans"
+              />
+            </li>
+            <li>
+              <KpiCard
+                Icon={Wrench}
+                label={translate('adminWorkspace.kpi.allRequests')}
+                value={view.totals.totalRequestsCount}
+                definition={fill('adminWorkspace.kpi.allRequestsDef', { n: view.totals.completedRequestsCount })}
+                to={requestsLink('/admin/requests', { preset: 'all' })}
+              />
+            </li>
+            <li>
+              <KpiCard
+                Icon={Star}
+                label={translate('adminWorkspace.kpi.allRating')}
+                value={view.totals.averageRating ? `${Math.round(view.totals.averageRating * 10) / 10} ★` : null}
+                definition={fill('adminWorkspace.kpi.allRatingDef', { n: view.totals.reviewsCount })}
+                to="/admin/reviews"
+              />
+            </li>
+          </ul>
         </>
       )}
     </section>

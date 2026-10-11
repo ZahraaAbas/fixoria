@@ -9,6 +9,7 @@ import PageHeader from '../components/ui/PageHeader'
 import { RevealGroup, RevealItem } from '../components/ui/Reveal'
 import { spring } from '../components/ui/motion'
 import ActionError from '../components/ui/ActionError'
+import ConfirmDialog from '../components/dashboard/ConfirmDialog'
 import './AdminReviews.css'
 
 function AdminReviews() {
@@ -45,6 +46,9 @@ function AdminReviews() {
     setAttempt((count) => count + 1)
   }
 
+  // الإخفاء يحتاج تأكيد لأنه يغيّر معدل الحرفي وما يشوفه السكان
+  const [confirmHide, setConfirmHide] = useState(null)
+
   async function handleToggle(requestId, currentlyHidden) {
     setActioningId(requestId)
     setActionError('')
@@ -53,6 +57,7 @@ function AdminReviews() {
       setReviews((current) =>
         current.map((review) => (review.requestId === requestId ? updated : review)),
       )
+      setConfirmHide(null)
     } catch {
       setActionError('common.actionError')
     } finally {
@@ -166,7 +171,7 @@ function AdminReviews() {
                   layout={!reduceMotion}
                   transition={spring}
                   className={`fx-btn fx-btn--sm ${review.isHidden ? 'fx-btn--dark' : 'fx-btn--secondary'} arv-toggle`}
-                  onClick={() => handleToggle(review.requestId, review.isHidden)}
+                  onClick={() => (review.isHidden ? handleToggle(review.requestId, true) : setConfirmHide(review))}
                   disabled={isBusy}
                 >
                   {review.isHidden ? <Eye size={15} aria-hidden="true" /> : <EyeOff size={15} aria-hidden="true" />}
@@ -177,6 +182,16 @@ function AdminReviews() {
           })}
         </RevealGroup>
       )}
+
+      <ConfirmDialog
+        open={Boolean(confirmHide)}
+        title={translate('adminWorkspace.hideReviewTitle')}
+        message={translate('adminWorkspace.hideReviewMessage').replace('{name}', confirmHide?.artisanName || '')}
+        confirmLabel={translate('adminReviews.hide')}
+        onConfirm={() => handleToggle(confirmHide.requestId, false)}
+        onCancel={() => setConfirmHide(null)}
+        isBusy={actioningId === confirmHide?.requestId}
+      />
     </section>
   )
 }

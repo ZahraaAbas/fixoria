@@ -52,7 +52,7 @@ function Row({ Icon, label, children }) {
   )
 }
 
-function RequestDrawer({ request, onClose }) {
+function RequestDrawer({ request, onClose, actions }) {
   const reduceMotion = useReducedMotion()
   const isRtl = getCurrentLanguage() !== 'en'
 
@@ -99,6 +99,8 @@ function RequestDrawer({ request, onClose }) {
         </header>
 
         <div className="rq-drawer-body">
+          {actions}
+
           <section aria-label={translate('requestsTable.stages')}>
             <h3 className="rq-section-title">{translate('requestsTable.stages')}</h3>
             <Stages status={request.status} />
