@@ -8,6 +8,7 @@ import { statusKey, CANCELLABLE_STATUSES } from '../utils/requestStatus'
 import { formatDateTime } from '../utils/formatDate'
 import PeekRating from '../components/PeekRating'
 import ReviewForm from './ReviewForm'
+import PaymentCard from '../components/payments/PaymentCard'
 import { ErrorState, EmptyState } from '../components/StatusState'
 import PageHeader, { BackLink } from '../components/ui/PageHeader'
 import StatusBadge from '../components/ui/StatusBadge'
@@ -211,6 +212,8 @@ function RequestDetail() {
           {currentStatus !== 'cancelled' && currentStatus !== 'rejected' && request.progress?.length > 0 && (
             <Timeline steps={request.progress} />
           )}
+
+          {currentStatus === 'completed' && <PaymentCard request={request} onUpdated={setRequest} />}
 
           <Reveal as="section" className="rd-card fx-card">
             <h2 className="rd-card-title">{translate('requestDetail.description')}</h2>

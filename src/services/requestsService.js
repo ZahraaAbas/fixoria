@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut } from './apiClient'
+import { apiGet, apiGetBlob, apiPost, apiPut } from './apiClient'
 import { shrinkImage } from '../utils/files'
 
 const STORAGE_KEY = 'fixoria_requests'
@@ -49,7 +49,29 @@ function mapResidentRequest(row) {
     myReviewComment: row.my_review_comment,
     images: row.images || [],
     audio: row.audio || null,
+    price: row.price,
+    paymentMethod: row.payment_method,
+    paymentStatus: row.payment_status,
+    paidAt: row.paid_at,
   }
+}
+
+// الدفع (تجريبي): cash أو card_demo
+export async function payResidentRequest(id, method) {
+  return mapResidentRequest(await apiPost(`/resident/requests/${id}/payment`, { method }))
+}
+
+// الفاتورة: ملف HTML ينحفظ (يتطبع أو ينحفظ PDF من المتصفح)
+export async function downloadInvoice(id) {
+  const blob = await apiGetBlob(`/resident/requests/${id}/invoice`)
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `invoice-${id}.html`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 // قائمة طلبات الساكن الحقيقية (GET /resident/requests)
@@ -110,11 +132,14 @@ function mapArtisanRequest(row) {
     createdAt: row.created_at,
     images: row.images || [],
     audio: row.audio || null,
+    price: row.price,
+    paymentMethod: row.payment_method,
+    paymentStatus: row.payment_status,
   }
 }
 
-async function updateArtisanRequestStatus(id, status) {
-  const detail = await apiPut(`/requests/${id}/status`, { status })
+async function updateArtisanRequestStatus(id, status, extra = {}) {
+  const detail = await apiPut(`/requests/${id}/status`, { status, ...extra })
   return mapArtisanRequest(detail)
 }
 
@@ -242,8 +267,13 @@ export function startRequest(id) {
   return updateArtisanRequestStatus(id, 'in_progress')
 }
 
-export function completeRequest(id) {
-  return updateArtisanRequestStatus(id, 'completed')
+export function completeRequest(id, price) {
+  return updateArtisanRequestStatus(id, 'completed', { price })
+}
+
+// الحرفي استلم المبلغ كاش (تجريبي)
+export async function confirmCashReceived(id) {
+  return mapArtisanRequest(await apiPost(`/requests/${id}/cash-received`))
 }
 
 // تقييمات هذا الحرفي (GET /artisans/me/reviews)

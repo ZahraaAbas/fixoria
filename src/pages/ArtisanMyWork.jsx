@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
-import { Briefcase, Building2, CheckCheck, DoorOpen, Play } from 'lucide-react'
+import { Banknote, Briefcase, Building2, CheckCheck, DoorOpen, Play, X } from 'lucide-react'
 import { translate } from '../i18n'
-import { getRequestsForArtisan, startRequest, completeRequest } from '../services/requestsService'
+import { getRequestsForArtisan, startRequest, completeRequest, confirmCashReceived } from '../services/requestsService'
+import { formatIQD } from '../utils/money'
 import { statusKey, statusTone } from '../utils/requestStatus'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
@@ -35,6 +36,10 @@ function ArtisanMyWork() {
   const [attempt, setAttempt] = useState(0)
   const [actioningId, setActioningId] = useState(null)
   const [actionError, setActionError] = useState('')
+  // الطلب الي الحرفي ديكتب سعره قبل الإكمال
+  const [pricingId, setPricingId] = useState(null)
+  const [price, setPrice] = useState('')
+  const [priceError, setPriceError] = useState('')
 
   useEffect(() => {
     let isCancelled = false
@@ -68,8 +73,10 @@ function ArtisanMyWork() {
     try {
       const updated = await action(id)
       setRequests((current) => current.map((request) => (request.id === id ? updated : request)))
+      return true
     } catch {
       setActionError('common.actionError')
+      return false
     } finally {
       setActioningId(null)
     }
@@ -79,8 +86,24 @@ function ArtisanMyWork() {
     return runStatusChange(id, startRequest)
   }
 
-  function handleComplete(id) {
-    return runStatusChange(id, completeRequest)
+  function openPricing(id) {
+    setPricingId(id)
+    setPrice('')
+    setPriceError('')
+  }
+
+  async function handleComplete(event, id) {
+    event.preventDefault()
+    const amount = Number(price)
+    if (price.trim() === '' || !Number.isInteger(amount) || amount < 0) {
+      setPriceError('payments.priceRequired')
+      return
+    }
+    if (await runStatusChange(id, (requestId) => completeRequest(requestId, amount))) setPricingId(null)
+  }
+
+  function handleCashReceived(id) {
+    return runStatusChange(id, confirmCashReceived)
   }
 
   const sorted = [...requests].sort(
@@ -124,7 +147,8 @@ function ArtisanMyWork() {
                 <span className="mw-group-count">{group.items.length}</span>
               </h2>
 
-              <RevealGroup as="ul" className="mw-list" gap={0.05}>
+              {/* المفتاح يتغير لما ينتقل طلب بين المجموعات حتى تعيد الحركة وما يبقى العنصر الجديد مخفي */}
+              <RevealGroup key={group.items.map((item) => item.id).join('-')} as="ul" className="mw-list" gap={0.05}>
                 {group.items.map((request) => {
                   const status = statusKey(request.status)
                   const isBusy = actioningId === request.id
@@ -164,17 +188,80 @@ function ArtisanMyWork() {
                           </button>
                         )}
 
-                        {status === 'in_progress' && (
+                        {status === 'in_progress' && pricingId !== request.id && (
                           <button
                             type="button"
                             className="fx-btn fx-btn--primary mw-card-action"
-                            onClick={() => handleComplete(request.id)}
-                            disabled={isBusy}
-                            data-loading={isBusy || undefined}
+                            onClick={() => openPricing(request.id)}
                           >
                             <CheckCheck size={16} aria-hidden="true" />
                             {translate('artisanMyWork.complete')}
                           </button>
+                        )}
+
+                        {status === 'in_progress' && pricingId === request.id && (
+                          <form className="mw-price" onSubmit={(event) => handleComplete(event, request.id)} noValidate>
+                            <label className="mw-price-label" htmlFor={`price-${request.id}`}>
+                              {translate('payments.priceLabel')}
+                            </label>
+                            <input
+                              id={`price-${request.id}`}
+                              className="fx-input"
+                              type="number"
+                              inputMode="numeric"
+                              min="0"
+                              step="1000"
+                              value={price}
+                              onChange={(event) => {
+                                setPrice(event.target.value)
+                                setPriceError('')
+                              }}
+                              aria-invalid={Boolean(priceError) || undefined}
+                              autoFocus
+                            />
+                            {priceError && <p className="mw-price-error">{translate(priceError)}</p>}
+                            <div className="mw-price-actions">
+                              <button
+                                type="submit"
+                                className="fx-btn fx-btn--primary fx-btn--sm"
+                                disabled={isBusy}
+                                data-loading={isBusy || undefined}
+                              >
+                                <CheckCheck size={15} aria-hidden="true" />
+                                {translate('payments.confirmComplete')}
+                              </button>
+                              <button type="button" className="fx-btn fx-btn--ghost fx-btn--sm" onClick={() => setPricingId(null)}>
+                                <X size={15} aria-hidden="true" />
+                                {translate('payments.cancel')}
+                              </button>
+                            </div>
+                          </form>
+                        )}
+
+                        {status === 'completed' && request.price != null && (
+                          <div className="mw-pay">
+                            <strong className="mw-pay-amount">{formatIQD(request.price)}</strong>
+                            {request.paymentStatus === 'paid' ? (
+                              <span className="fx-badge fx-badge--completed">
+                                {translate('payments.paid')}
+                                {request.paymentMethod && ` · ${translate(`payments.method.${request.paymentMethod}`)}`}
+                              </span>
+                            ) : (
+                              <>
+                                <span className="fx-badge fx-badge--rejected">{translate('payments.unpaidBadge')}</span>
+                                <button
+                                  type="button"
+                                  className="fx-btn fx-btn--secondary fx-btn--sm"
+                                  onClick={() => handleCashReceived(request.id)}
+                                  disabled={isBusy}
+                                  data-loading={isBusy || undefined}
+                                >
+                                  <Banknote size={15} aria-hidden="true" />
+                                  {translate('payments.cashReceived')}
+                                </button>
+                              </>
+                            )}
+                          </div>
                         )}
                       </motion.div>
                     </RevealItem>

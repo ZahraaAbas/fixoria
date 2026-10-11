@@ -14,6 +14,7 @@ import {
   Inbox,
   MessageSquareWarning,
   Star,
+  Wallet,
   Wrench,
 } from 'lucide-react'
 import { getCurrentLanguage, translate } from '../../i18n'
@@ -42,6 +43,7 @@ const TYPE_STYLE = {
   request_cancelled: { Icon: Ban, tone: 'danger' },
   new_request: { Icon: Inbox, tone: 'accent' },
   complaint_update: { Icon: MessageSquareWarning, tone: 'info' },
+  payment_update: { Icon: Wallet, tone: 'success' },
 }
 
 function styleFor(notification) {

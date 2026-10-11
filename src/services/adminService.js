@@ -74,6 +74,24 @@ export function mapAdminRequest(row) {
   }
 }
 
+function mapPaymentsSummary(row) {
+  return {
+    month: row.month,
+    completed: row.completed,
+    total: row.total,
+    paid: row.paid,
+    unpaid: row.unpaid,
+    cash: row.cash,
+    cardDemo: row.card_demo,
+    unpriced: row.unpriced,
+  }
+}
+
+// ملخص مدفوعات الشهر للمجمع (تجريبي)
+export async function getPaymentsSummary() {
+  return mapPaymentsSummary(await apiGet('/admin/payments/summary'))
+}
+
 // كل الطلبات الحقيقية (GET /admin/requests)
 export async function getRequestsOverview() {
   const rows = await apiGet('/admin/requests')

@@ -3,7 +3,8 @@ import { motion, useReducedMotion } from 'motion/react'
 import { Wrench, Users, TrendingUp, ClipboardList, Star, Activity, CheckCircle2 } from 'lucide-react'
 import { translate, getCurrentLanguage } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
-import { getDashboardStats } from '../services/adminService'
+import { getDashboardStats, getPaymentsSummary } from '../services/adminService'
+import PaymentsSummaryCard from '../components/payments/PaymentsSummaryCard'
 import PeekRating from '../components/PeekRating'
 import { ErrorState } from '../components/StatusState'
 import CountUp from '../components/ui/CountUp'
@@ -163,6 +164,8 @@ function AdminDashboard() {
           {translate('adminDashboard.subtitle')} <span aria-hidden="true">·</span> <time>{today}</time>
         </p>
       </Reveal>
+
+      <PaymentsSummaryCard loader={getPaymentsSummary} />
 
       {isLoading && (
         <>

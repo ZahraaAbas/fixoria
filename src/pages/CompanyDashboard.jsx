@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { ArrowLeft, Building2, CircleCheck, ClipboardList, HardHat, Inbox, Wrench } from 'lucide-react'
 import { translate } from '../i18n'
-import { getCompanyOverview } from '../services/companyService'
+import { getCompanyOverview, getCompanyPaymentsSummary } from '../services/companyService'
+import PaymentsSummaryCard from '../components/payments/PaymentsSummaryCard'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
 import { RevealGroup, RevealItem } from '../components/ui/Reveal'
@@ -90,6 +91,8 @@ function CompanyDashboard() {
               </RevealItem>
             ))}
           </RevealGroup>
+
+          <PaymentsSummaryCard loader={getCompanyPaymentsSummary} />
 
           <h2 className="ow-panel-title">{translate('company.overview.compoundsTitle')}</h2>
           {overview.compounds.length === 0 ? (

@@ -86,6 +86,24 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
   return response.json()
 }
 
+// ملف (مثل الفاتورة) بدل JSON — نفس التوكن ورسائل الخطأ
+export async function apiGetBlob(path) {
+  let response
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, { headers: { Authorization: `Bearer ${getToken()}` } })
+  } catch (cause) {
+    setServerReachable(false)
+    throw new Error('NETWORK_ERROR', { cause })
+  }
+  setServerReachable(true)
+  if (!response.ok) {
+    const error = new Error(`HTTP_${response.status}`)
+    error.status = response.status
+    throw error
+  }
+  return response.blob()
+}
+
 export function apiGet(path, options) {
   return request(path, { ...options, method: 'GET' })
 }

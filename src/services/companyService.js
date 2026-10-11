@@ -69,6 +69,24 @@ export async function updateCompanyArtisan(id, changes) {
   return mapArtisan(await apiPut(`/company/artisans/${id}`, body))
 }
 
+function mapPaymentsSummary(row) {
+  return {
+    month: row.month,
+    completed: row.completed,
+    total: row.total,
+    paid: row.paid,
+    unpaid: row.unpaid,
+    cash: row.cash,
+    cardDemo: row.card_demo,
+    unpriced: row.unpriced,
+  }
+}
+
+// ملخص مدفوعات الشهر لطلبات حرفيي الشركة (تجريبي)
+export async function getCompanyPaymentsSummary() {
+  return mapPaymentsSummary(await apiGet('/company/payments/summary'))
+}
+
 // طلبات حرفيي الشركة + الطلبات المفتوحة بمجمعاتها (نفس شكل صفحة طلبات المشرف)
 export async function getCompanyRequests() {
   return (await apiGet('/company/requests')).map(mapAdminRequest)
