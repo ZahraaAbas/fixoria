@@ -19,7 +19,6 @@ import {
   MessageSquareHeart,
   Send,
   Star,
-  Users,
 } from 'lucide-react'
 import { translate } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
@@ -190,12 +189,6 @@ function HeroSection({ categories, artisans, isReady, showArtisans, eyebrow }) {
             <ArrowLeft size={18} aria-hidden="true" className="icon-forward" />
           </a>
           <AiAssistantButton className="fx-btn fx-btn--dark fx-btn--lg" />
-          {showArtisans && (
-            <Link to="/artisans" className="fx-btn fx-btn--secondary fx-btn--lg">
-              <Users size={18} aria-hidden="true" />
-              {translate('home.heroSecondary')}
-            </Link>
-          )}
         </motion.div>
 
         <motion.dl variants={fadeUp} className="home-hero-stats" aria-live="polite">
@@ -457,10 +450,6 @@ function FeaturedSection({ artisans, isLoading, error, onRetry }) {
             {translate('home.featuredTitle')}
           </h2>
         </div>
-        <Link to="/artisans" className="fx-btn fx-btn--secondary">
-          {translate('home.featuredAll')}
-          <ArrowLeft size={16} aria-hidden="true" className="icon-forward" />
-        </Link>
       </Reveal>
 
       {isLoading && <SkeletonList count={3} variant="grid" />}
@@ -592,7 +581,8 @@ function Home() {
         error={services.error}
         onRetry={services.retry}
       />
-      <HowSection />
+      {/* الساكن يعرف شلون يستخدم المنصة — "كيف تعمل" للزائر بس */}
+      {user?.role !== 'resident' && <HowSection />}
       {canSeeArtisans && (
         <FeaturedSection
           artisans={artisans.data}

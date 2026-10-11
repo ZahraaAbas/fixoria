@@ -61,7 +61,7 @@ function ArtisanProfile() {
     setAttempt((count) => count + 1)
   }
 
-  const back = <BackLink to="/artisans">{translate('artisanProfile.backToList')}</BackLink>
+  const back = <BackLink to="/home">{translate('artisanProfile.backToList')}</BackLink>
 
   if (isLoading) {
     return (
@@ -81,7 +81,7 @@ function ArtisanProfile() {
         icon={UserX}
         title={translate('artisanProfile.notFound')}
         action={
-          <Link to="/artisans" className="fx-btn fx-btn--secondary">
+          <Link to="/home" className="fx-btn fx-btn--secondary">
             {translate('artisanProfile.backToList')}
           </Link>
         }

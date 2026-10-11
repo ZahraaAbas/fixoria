@@ -1,7 +1,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router'
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from 'motion/react'
-import { Home, Wrench, FileText, LogIn, LogOut, Menu, X } from 'lucide-react'
+import { Home, FileText, LogIn, LogOut, Menu, X } from 'lucide-react'
 import { translate } from '../i18n'
 import PageLoader from '../components/ui/PageLoader'
 import BrandMark from '../components/ui/BrandMark'
@@ -11,7 +11,6 @@ import LanguageToggle from '../components/ui/LanguageToggle'
 import LoginChooser from '../components/ui/LoginChooser'
 import { spring } from '../components/ui/motion'
 import { useAuth } from '../hooks/useAuth'
-import { isApprovedResident } from '../utils/roles'
 import Footer from '../Footer'
 import './PublicLayout.css'
 
@@ -57,11 +56,6 @@ function PublicLayout() {
   }, [isMenuOpen])
 
   const navItems = [{ value: '/home', label: translate('nav.home'), Icon: Home }]
-
-  // الحرفيين وطلباتي للساكن المقبول بس (الزائر يشوف تعريف المنصة)
-  if (isApprovedResident(user)) {
-    navItems.push({ value: '/artisans', label: translate('nav.artisans'), Icon: Wrench })
-  }
 
   if (isAuthenticated && user.role === 'resident') {
     navItems.push({ value: '/my-requests', label: translate('nav.myRequests'), Icon: FileText })

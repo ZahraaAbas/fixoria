@@ -1,18 +1,14 @@
 import { Link } from 'react-router'
 import { translate } from './i18n'
 import BrandMark from './components/ui/BrandMark'
-import { useAuth } from './hooks/useAuth'
-import { isApprovedResident } from './utils/roles'
 import './Footer.css'
 
 function Footer() {
-  const { user } = useAuth()
   const columns = [
     {
       title: translate('footer.linksTitle'),
       links: [
         { to: '/home', label: translate('footer.home') },
-        ...(isApprovedResident(user) ? [{ to: '/artisans', label: translate('footer.artisans') }] : []),
         { to: '/about', label: translate('about.title') },
         { to: '/contact', label: translate('contact.title') },
       ],

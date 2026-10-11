@@ -13,7 +13,6 @@ import ConnectionBanner from './components/ui/ConnectionBanner'
 
 // كل الصفحات تُحمَّل عند الحاجة فقط، فلا يحمّل الساكن مثلًا كود لوحة المشرف ورسومها البيانية
 const Home = lazy(() => import('./pages/Home'))
-const Artisans = lazy(() => import('./pages/Artisans'))
 const ArtisanProfile = lazy(() => import('./pages/ArtisanProfile'))
 const RequestForm = lazy(() => import('./pages/RequestForm'))
 const MyRequests = lazy(() => import('./pages/MyRequests'))
@@ -67,15 +66,8 @@ function App() {
                   </GuestOrResidentOnly>
                 }
               />
-              {/* قائمة الحرفيين للساكن المقبول بس (حرفيو مجمعه)؛ الزائر يشوف تعريف المنصة */}
-              <Route
-                path="/artisans"
-                element={
-                  <RequireAuth role="resident" requireApproved>
-                    <Artisans />
-                  </RequireAuth>
-                }
-              />
+              {/* قائمة الحرفيين انشالت: الساكن يشوف حرفيي مجمعه بالرئيسية */}
+              <Route path="/artisans" element={<Navigate to="/home" replace />} />
               <Route
                 path="/artisans/:id"
                 element={
