@@ -71,6 +71,14 @@ export function mapAdminRequest(row) {
     status: row.status,
     images: row.images || [],
     audio: row.audio || null,
+    // للتحليلات والفلاتر
+    serviceId: row.service_id,
+    artisanId: row.artisan_id,
+    compoundId: row.compound_id ?? null,
+    compoundName: row.compound_name ?? null,
+    createdAt: row.created_at,
+    completedAt: row.completed_at,
+    review: row.review ? { rating: row.review.rating, isHidden: row.review.is_hidden } : null,
   }
 }
 

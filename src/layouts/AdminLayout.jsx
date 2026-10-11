@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import {
   Building2,
+  ChartNoAxesColumn,
   ClipboardList,
   Handshake,
   HardHat,
@@ -67,8 +68,9 @@ const COMPANY_SECTIONS = [
   {
     titleKey: 'company.nav.company',
     items: [
-      { value: '/company/artisans', labelKey: 'company.nav.artisans', Icon: HardHat },
+      { value: '/company/demand', labelKey: 'company.nav.demand', Icon: ChartNoAxesColumn },
       { value: '/company/requests', labelKey: 'company.nav.requests', Icon: Inbox },
+      { value: '/company/artisans', labelKey: 'company.nav.artisans', Icon: HardHat },
     ],
   },
   {

@@ -144,6 +144,8 @@ class RequestRead(BaseModel):
     customer_id: int
     artisan_id: Optional[int] = None
     service_id: int
+    compound_id: Optional[int] = None
+    compound_name: Optional[str] = None  # للتحليلات: الشركة تشتغل بأكثر من مجمع
     title: Optional[str] = None
     description: Optional[str] = None
     location: Optional[str] = None

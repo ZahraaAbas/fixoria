@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { motion, useReducedMotion } from 'motion/react'
-import { Building2, ClipboardList, DoorOpen, Search, User, Wrench } from 'lucide-react'
+import { Building2, ClipboardList, DoorOpen, Filter, Search, User, Wrench, X } from 'lucide-react'
 import { translate } from '../i18n'
 import { getRequestsOverview } from '../services/adminService'
 import { statusKey, statusTone } from '../utils/requestStatus'
+import { parseApiDate } from '../utils/formatDate'
+import { resolveRange, STATUS_GROUPS } from '../analytics/requests'
 import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
 import StatusBadge from '../components/ui/StatusBadge'
@@ -14,6 +17,35 @@ import './AdminRequests.css'
 
 const STATUS_FILTERS = ['all', 'pending', 'accepted', 'rejected', 'in_progress', 'completed', 'cancelled']
 
+// فلاتر جاية من الرابط (من أرقام ورسوم لوحة التحكم): الفترة، الخدمة، المجمع، ومجموعة حالات
+function readUrlFilters(params) {
+  const preset = params.get('range')
+  const range = preset && preset !== 'all' ? resolveRange({ preset, from: params.get('from'), to: params.get('to') }) : null
+  const status = params.get('status')
+  return {
+    range,
+    // by=completed: الفترة تنحسب على تاريخ الإكمال بدل تاريخ الإنشاء
+    byCompleted: params.get('by') === 'completed',
+    service: params.get('service'),
+    compound: params.get('compound'),
+    statusGroup: status && STATUS_GROUPS[status] && status !== 'pending' && status !== 'completed' ? status : null,
+    status: status && STATUS_FILTERS.includes(status) ? status : 'all',
+  }
+}
+
+function matchesUrlFilters(request, url) {
+  if (url.service && String(request.serviceId) !== url.service) return false
+  if (url.compound && String(request.compoundId) !== url.compound) return false
+  if (url.statusGroup && !STATUS_GROUPS[url.statusGroup].includes(statusKey(request.status))) return false
+  if (url.range) {
+    const value = url.byCompleted ? request.completedAt : request.createdAt
+    if (!value) return false
+    const date = parseApiDate(value)
+    if (date < url.range.start || date >= url.range.end) return false
+  }
+  return true
+}
+
 // المشرف يشوف طلبات مجمعه، ومدير الشركة يشوف طلبات حرفيي شركته (loader و titleKey)
 function AdminRequests({ loader = getRequestsOverview, titleKey = 'adminRequests.title' }) {
   const reduceMotion = useReducedMotion()
@@ -21,7 +53,9 @@ function AdminRequests({ loader = getRequestsOverview, titleKey = 'adminRequests
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [attempt, setAttempt] = useState(0)
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [params, setParams] = useSearchParams()
+  const url = readUrlFilters(params)
+  const [statusFilter, setStatusFilter] = useState(url.status)
   const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
@@ -49,7 +83,28 @@ function AdminRequests({ loader = getRequestsOverview, titleKey = 'adminRequests
     setAttempt((count) => count + 1)
   }
 
-  const filtered = requests.filter((request) => {
+  const scoped = requests.filter((request) => matchesUrlFilters(request, url))
+  const chips = [
+    url.range && {
+      key: 'range',
+      label: translate(url.byCompleted ? 'analytics.chips.completedIn' : 'analytics.chips.createdIn').replace(
+        '{range}',
+        params.get('range') === 'custom'
+          ? `${params.get('from')} — ${params.get('to')}`
+          : translate(`analytics.range.last${url.range.days}`),
+      ),
+    },
+    url.service && { key: 'service', label: requests.find((r) => String(r.serviceId) === url.service)?.categoryName || url.service },
+    url.compound && { key: 'compound', label: requests.find((r) => String(r.compoundId) === url.compound)?.compoundName || url.compound },
+    url.statusGroup && { key: 'status', label: translate(`analytics.chips.${url.statusGroup}`) },
+  ].filter(Boolean)
+
+  function clearUrlFilters() {
+    setParams({}, { replace: true })
+    setStatusFilter('all')
+  }
+
+  const filtered = scoped.filter((request) => {
     const status = statusKey(request.status)
     if (statusFilter !== 'all' && status !== statusFilter) return false
 
@@ -66,8 +121,8 @@ function AdminRequests({ loader = getRequestsOverview, titleKey = 'adminRequests
 
   // عدد الطلبات في كل حالة (للعرض على أزرار التصفية)
   function countFor(status) {
-    if (status === 'all') return requests.length
-    return requests.filter((request) => statusKey(request.status) === status).length
+    if (status === 'all') return scoped.length
+    return scoped.filter((request) => statusKey(request.status) === status).length
   }
 
   return (
@@ -86,6 +141,21 @@ function AdminRequests({ loader = getRequestsOverview, titleKey = 'adminRequests
             onChange={(event) => setSearchTerm(event.target.value)}
           />
         </label>
+
+        {chips.length > 0 && (
+          <div className="arq-chips">
+            <Filter size={15} aria-hidden="true" />
+            {chips.map((chip) => (
+              <span key={chip.key} className="arq-chip">
+                {chip.label}
+              </span>
+            ))}
+            <button type="button" className="arq-chip-clear" onClick={clearUrlFilters}>
+              <X size={14} aria-hidden="true" />
+              {translate('analytics.chips.clear')}
+            </button>
+          </div>
+        )}
 
         <div className="arq-filters" role="group" aria-label={translate('adminRequests.title')}>
           {STATUS_FILTERS.map((status) => {

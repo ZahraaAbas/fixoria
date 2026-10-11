@@ -40,6 +40,7 @@ const ResidentPending = lazy(() => import('./pages/ResidentPending'))
 const CompanyDashboard = lazy(() => import('./pages/CompanyDashboard'))
 const CompanyArtisans = lazy(() => import('./pages/CompanyArtisans'))
 const CompanyRequests = lazy(() => import('./pages/CompanyRequests'))
+const CompanyDemand = lazy(() => import('./pages/CompanyDemand'))
 const About = lazy(() => import('./pages/About'))
 const Contact = lazy(() => import('./pages/Contact'))
 const ArtisanDashboard = lazy(() => import('./pages/ArtisanDashboard'))
@@ -171,6 +172,7 @@ function App() {
             >
               <Route path="/company/dashboard" element={<CompanyDashboard />} />
               <Route path="/company/artisans" element={<CompanyArtisans />} />
+              <Route path="/company/demand" element={<CompanyDemand />} />
               <Route path="/company/requests" element={<CompanyRequests />} />
               <Route path="/company/account" element={<AdminAccount />} />
             </Route>

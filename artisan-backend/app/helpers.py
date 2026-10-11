@@ -9,6 +9,7 @@ from sqlmodel import Session, select
 from app.models import (
     Artisan,
     ArtisanServiceLink,
+    Compound,
     RequestAudio,
     RequestImage,
     Review,
@@ -122,6 +123,8 @@ def request_to_read(req: ServiceRequest, session: Session) -> RequestRead:
     images = session.exec(select(RequestImage).where(RequestImage.request_id == req.id)).all()
     audio = session.exec(select(RequestAudio).where(RequestAudio.request_id == req.id)).first()
 
+    compound = session.get(Compound, req.compound_id) if req.compound_id else None
+    data.compound_name = compound.name if compound else None
     data.service_name = service.name if service else None
     data.customer_name = customer.name if customer else None
     data.artisan_name = artisan_user.name if artisan_user else None

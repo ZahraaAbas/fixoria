@@ -31,6 +31,48 @@
   background: #fff;
 }
 
+/* فلاتر جاية من لوحة التحكم (الرابط) */
+.arq-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--orange-500);
+}
+
+.arq-chip {
+  padding: 4px 10px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--navy-800);
+  background: var(--navy-50);
+  border-radius: var(--radius-pill);
+}
+
+.arq-chip-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.arq-chip-clear:hover {
+  color: var(--text-strong);
+}
+
+.arq-chip-clear:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 .arq-filters {
   display: flex;
   gap: 4px;
