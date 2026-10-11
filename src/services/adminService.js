@@ -78,7 +78,14 @@ export function mapAdminRequest(row) {
     compoundName: row.compound_name ?? null,
     createdAt: row.created_at,
     completedAt: row.completed_at,
-    review: row.review ? { rating: row.review.rating, isHidden: row.review.is_hidden } : null,
+    scheduledAt: row.scheduled_at,
+    price: row.price,
+    paymentStatus: row.payment_status,
+    paymentMethod: row.payment_method,
+    paidAt: row.paid_at,
+    review: row.review
+      ? { rating: row.review.rating, comment: row.review.comment, isHidden: row.review.is_hidden, createdAt: row.review.created_at }
+      : null,
   }
 }
 

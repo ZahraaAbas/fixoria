@@ -1,9 +1,9 @@
-import AdminRequests from './AdminRequests'
+import RequestsWorkspace from '../components/dashboard/RequestsWorkspace'
 import { getCompanyRequests } from '../services/companyService'
 
-// طلبات حرفيي الشركة + الطلبات المفتوحة بمجمعاتها، بنفس واجهة طلبات المشرف
+// طلبات حرفيي الشركة + الطلبات المفتوحة بمجمعاتها: جدول بفلاتر وتفاصيل جانبية
 function CompanyRequests() {
-  return <AdminRequests loader={getCompanyRequests} titleKey="company.requests.title" />
+  return <RequestsWorkspace loader={getCompanyRequests} titleKey="company.requests.title" />
 }
 
 export default CompanyRequests
