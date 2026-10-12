@@ -45,6 +45,8 @@ def summarize(requests: Iterable[ServiceRequest], month: Optional[str]) -> Payme
                 summary.cash += r.price
             elif r.payment_method == PaymentMethod.card_demo:
                 summary.card_demo += r.price
+            elif r.payment_method == PaymentMethod.online:
+                summary.online += r.price
         else:
             summary.unpaid += r.price
     return summary

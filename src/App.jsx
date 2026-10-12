@@ -22,6 +22,8 @@ const Register = lazy(() => import('./pages/Register'))
 const ArtisanPending = lazy(() => import('./pages/ArtisanPending'))
 const ArtisanRequests = lazy(() => import('./pages/ArtisanRequests'))
 const ArtisanMyWork = lazy(() => import('./pages/ArtisanMyWork'))
+const SandboxCheckout = lazy(() => import('./pages/SandboxCheckout'))
+const PaymentReturn = lazy(() => import('./pages/PaymentReturn'))
 const AdminArtisans = lazy(() => import('./pages/AdminArtisans'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const ArtisanSettings = lazy(() => import('./pages/ArtisanSettings'))
@@ -109,6 +111,23 @@ function App() {
                 element={
                   <RequireAuth role="resident" requireApproved>
                     <RequestDetail />
+                  </RequireAuth>
+                }
+              />
+              {/* الدفع الأونلاين: صفحة بوابة التجربة، وصفحة النتيجة بعد الرجوع من البوابة */}
+              <Route
+                path="/pay/sandbox/:ref"
+                element={
+                  <RequireAuth role="resident" requireApproved>
+                    <SandboxCheckout />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/payments/:attemptId"
+                element={
+                  <RequireAuth role="resident" requireApproved>
+                    <PaymentReturn />
                   </RequireAuth>
                 }
               />

@@ -69,6 +69,8 @@ class PaymentMethod(str, Enum):
     # تجريبي: يسجل الطلب مدفوع بدون بوابة دفع حقيقية ولا بيانات بطاقة.
     # لمن نربط شركة دفع ينضاف هنا نوع حقيقي (مثل card) ويتبدل التنفيذ بـ resident_router.
     card_demo = "card_demo"
+    # دفع أونلاين حقيقي عبر بوابة دفع (تفاصيل كل محاولة بجدول PaymentAttempt)
+    online = "online"
 
 
 class PaymentStatus(str, Enum):
@@ -91,6 +93,9 @@ class Compound(SQLModel, table=True):
     phone: Optional[str] = None             # رقم إدارة المجمع
     is_active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    # الدفع الأونلاين يروح لحساب تاجر المجمع: البوابة (sandbox / zaincash / ...) وهل مفعّل
+    payment_provider: Optional[str] = None
+    online_payments_enabled: bool = Field(default=False)
 
 
 class Company(SQLModel, table=True):
@@ -269,6 +274,28 @@ class RequestEvent(SQLModel, table=True):
     actor_user_id: Optional[int] = Field(default=None, foreign_key="user.id")
     actor_role: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+# ---------- PaymentAttempt (محاولة دفع أونلاين) ----------
+
+class PaymentAttempt(SQLModel, table=True):
+    """محاولة دفع أونلاين لطلب: تنشأ قبل ما نحوّل الساكن للبوابة، وحالتها تتحدد من البوابة نفسها (مو من رابط الرجوع)."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    request_id: int = Field(foreign_key="servicerequest.id", index=True)
+    compound_id: Optional[int] = Field(default=None, foreign_key="compound.id")
+    provider: str
+    amount: int                      # بالدينار، ينسخ من سعر الطلب وقت الإنشاء
+    currency: str = Field(default="IQD")
+    status: str = Field(default="pending")  # pending / paid / failed / cancelled / expired
+    provider_ref: Optional[str] = Field(default=None, index=True, unique=True)
+    checkout_url: Optional[str] = None
+    provider_status: Optional[str] = None   # آخر حالة ذكرتها البوابة (للمراجعة)
+    note: Optional[str] = None              # مثلًا: الطلب كان مدفوع بطريقة ثانية
+    created_by: Optional[int] = Field(default=None, foreign_key="user.id")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+    paid_at: Optional[datetime] = None
 
 
 # ---------- RequestDismissal ----------

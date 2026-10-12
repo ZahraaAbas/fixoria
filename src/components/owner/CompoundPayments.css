@@ -1,0 +1,39 @@
+/* ===== إعدادات الدفع الأونلاين بكل مجمع ===== */
+.cpay {
+  display: grid;
+  gap: 8px;
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--border-default);
+}
+
+.cpay-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cpay-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cpay-field {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.cpay-field select {
+  height: 38px;
+  padding-block: 0;
+  font-size: var(--text-sm);
+}
+
+.cpay-note {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: 1.7;
+  color: var(--text-muted);
+}

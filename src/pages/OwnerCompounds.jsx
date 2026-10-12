@@ -1,5 +1,6 @@
 import { Building2 } from 'lucide-react'
 import OwnerEntityPage from '../components/owner/OwnerEntityPage'
+import CompoundPayments from '../components/owner/CompoundPayments'
 import { addCompoundAdmin, createCompound, getCompounds, updateCompound } from '../services/ownerService'
 
 const CONFIG = {
@@ -19,6 +20,7 @@ const CONFIG = {
   partnersOf: (compound) => compound.companies,
   staffKey: 'admins',
   staffOf: (compound) => compound.admins,
+  extra: (compound, onUpdated) => <CompoundPayments compound={compound} onUpdated={onUpdated} />,
 }
 
 function OwnerCompounds() {

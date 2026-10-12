@@ -35,6 +35,7 @@ function PaymentsSummaryCard({ loader }) {
     { key: 'paid', value: summary.paid, tone: 'success' },
     { key: 'unpaid', value: summary.unpaid, tone: 'danger' },
     { key: 'cash', value: summary.cash },
+    { key: 'online', value: summary.online },
     { key: 'cardDemo', value: summary.cardDemo },
   ]
 

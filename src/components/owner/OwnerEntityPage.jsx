@@ -10,7 +10,7 @@ import '../../pages/Owner.css'
 
 // صفحة مشتركة لإدارة المجمعات أو الشركات (config يحدد الحقول والنصوص والـ API)
 function OwnerEntityPage({ config }) {
-  const { ns, fields, api, metrics, partnersOf, staffOf, Icon = Building2 } = config
+  const { ns, fields, api, metrics, partnersOf, staffOf, extra, Icon = Building2 } = config
   const emptyForm = Object.fromEntries(fields.map((f) => [f.name, '']))
 
   const [items, setItems] = useState([])
@@ -294,6 +294,8 @@ function OwnerEntityPage({ config }) {
                   staff={staffOf(item)}
                   onAdd={(staff) => addStaff(item, staff)}
                 />
+
+                {extra?.(item, replaceItem)}
               </li>
             )
           })}

@@ -18,6 +18,8 @@ function mapCompound(row) {
     requests: row.requests,
     admins: row.admins.map(mapStaff),
     companies: row.companies,
+    paymentProvider: row.payment_provider || '',
+    onlinePaymentsEnabled: Boolean(row.online_payments_enabled),
   }
 }
 
@@ -92,6 +94,8 @@ export async function updateCompound(id, changes) {
   if ('address' in changes) body.address = nullable(changes.address)
   if ('phone' in changes) body.phone = nullable(changes.phone)
   if ('isActive' in changes) body.is_active = changes.isActive
+  if ('paymentProvider' in changes) body.payment_provider = changes.paymentProvider || null
+  if ('onlinePaymentsEnabled' in changes) body.online_payments_enabled = changes.onlinePaymentsEnabled
   return mapCompound(await withErrors(apiPut(`/owner/compounds/${id}`, body)))
 }
 
@@ -157,4 +161,18 @@ export async function getPlatformRequests() {
 // تواريخ التسجيل المعروفة (من بدء تسجيلها) — الدور والمجمع بس
 export async function getSignups() {
   return (await apiGet('/owner/signups')).map((s) => ({ role: s.role, compoundId: s.compound_id, createdAt: s.created_at }))
+}
+
+// بوابات الدفع المعروفة وهل كل وحدة مربوطة بالخادم (نفس القائمة لكل المجمعات، فنحفظها)
+let providersPromise = null
+export function getPaymentProviders() {
+  if (!providersPromise) {
+    providersPromise = apiGet('/owner/payment-providers')
+      .then((rows) => rows.map((p) => ({ name: p.name, label: p.label, available: p.available })))
+      .catch((error) => {
+        providersPromise = null
+        throw error
+      })
+  }
+  return providersPromise
 }

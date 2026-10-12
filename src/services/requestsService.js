@@ -53,7 +53,49 @@ function mapResidentRequest(row) {
     paymentMethod: row.payment_method,
     paymentStatus: row.payment_status,
     paidAt: row.paid_at,
+    onlinePaymentAvailable: Boolean(row.online_payment_available),
+    pendingPaymentId: row.pending_payment_id ?? null,
   }
+}
+
+function mapOnlinePayment(row) {
+  return {
+    id: row.id,
+    requestId: row.request_id,
+    provider: row.provider,
+    amount: row.amount,
+    status: row.status,
+    checkoutUrl: row.checkout_url,
+    paidAt: row.paid_at,
+  }
+}
+
+// الدفع الأونلاين: يفتح عملية عند بوابة المجمع ويرجع رابط صفحة الدفع
+export async function startOnlinePayment(requestId) {
+  return mapOnlinePayment(await apiPost(`/resident/requests/${requestId}/payments/online`))
+}
+
+// حالة الدفع بعد الرجوع من البوابة (الخادم يسأل البوابة نفسها)
+export async function getOnlinePayment(attemptId) {
+  return mapOnlinePayment(await apiGet(`/resident/payments/${attemptId}`))
+}
+
+// بوابة التجربة: صفحة الدفع وقرار النتيجة
+export async function getSandboxCheckout(ref) {
+  const row = await apiGet(`/payments/sandbox/${ref}`)
+  return {
+    ref: row.ref,
+    attemptId: row.attempt_id,
+    requestId: row.request_id,
+    requestTitle: row.request_title,
+    compoundName: row.compound_name,
+    amount: row.amount,
+    status: row.status,
+  }
+}
+
+export async function decideSandboxPayment(ref, outcome) {
+  return mapOnlinePayment(await apiPost(`/payments/sandbox/${ref}/decide`, { outcome }))
 }
 
 // الدفع (تجريبي): cash أو card_demo

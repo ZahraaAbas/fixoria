@@ -50,6 +50,7 @@ from sqlmodel import Session, select
 from app.auth import require_role
 from app.database import get_session
 from app.models import (
+    PaymentAttempt,
     Compound,
     PaymentMethod,
     PaymentStatus,
@@ -68,11 +69,13 @@ from app.models import (
     UserRole,
 )
 from app.notifications import notify
+from app.online_payments import online_available, pending_attempt, refresh as refresh_payment, start_payment
 from app.history import record_event, record_status_change
 from app.progress import build_progress, status_label
 from app.helpers import all_artisan_ratings, artisan_service_ids, artisans_for_service
 from app.tenancy import approved_resident, compound_artisan_ids, compound_service_ids, resident_membership
 from app.schemas import (
+    OnlinePaymentRead,
     ArtisanCard,
     PaymentChoice,
     ComplaintCreate,
@@ -571,6 +574,9 @@ def choose_payment(
         raise HTTPException(status_code=400, detail="الحرفي ما حدد السعر بعد")
     if req.payment_status == PaymentStatus.paid:
         raise HTTPException(status_code=409, detail="هذا الطلب مدفوع مسبقاً")
+    # لمن المجمع يفعّل الدفع الأونلاين الحقيقي، البطاقة التجريبية تنقفل (لا تعلّم طلب مدفوع بدون فلوس)
+    if payload.method == PaymentMethod.card_demo.value and online_available(session, req):
+        raise HTTPException(status_code=400, detail="ادفع أونلاين — البطاقة التجريبية مقفولة بهذا المجمع")
 
     req.payment_method = PaymentMethod(payload.method)
     artisan = session.get(Artisan, req.artisan_id) if req.artisan_id else None
@@ -663,7 +669,43 @@ def get_request_detail(
         images=[i.url for i in images],
         audio=audio.url if audio else None,
         my_review_comment=review.comment if review else None,
+        online_payment_available=online_available(session, req),
+        pending_payment_id=(attempt.id if (attempt := pending_attempt(session, req)) else None),
     )
+
+
+# =====================================================================
+# الدفع الأونلاين (حقيقي عبر بوابة المجمع)
+# =====================================================================
+
+def _payment_read(attempt: PaymentAttempt) -> OnlinePaymentRead:
+    return OnlinePaymentRead.model_validate(attempt, from_attributes=True)
+
+
+@router.post("/requests/{request_id}/payments/online", response_model=OnlinePaymentRead,
+             status_code=status.HTTP_201_CREATED)
+def start_online_payment(
+    request_id: int,
+    session: Session = Depends(get_session),
+    user: User = Depends(approved_resident),
+):
+    """يفتح عملية دفع عند بوابة المجمع ويرجع رابط صفحة الدفع. الطلب ما ينعلّم مدفوع هنا."""
+    req = _get_my_request(request_id, session, user)
+    return _payment_read(start_payment(session, req, user))
+
+
+@router.get("/payments/{attempt_id}", response_model=OnlinePaymentRead)
+def get_online_payment(
+    attempt_id: int,
+    session: Session = Depends(get_session),
+    user: User = Depends(approved_resident),
+):
+    """حالة الدفع بعد الرجوع من البوابة: نسأل البوابة نفسها، ما نصدّق رابط الرجوع."""
+    attempt = session.get(PaymentAttempt, attempt_id)
+    if not attempt:
+        raise HTTPException(status_code=404, detail="عملية الدفع غير موجودة")
+    _get_my_request(attempt.request_id, session, user)  # 404 إذا مو طلبه
+    return _payment_read(refresh_payment(session, attempt))
 
 
 @router.get("/requests/{request_id}/invoice", response_class=HTMLResponse)
@@ -681,7 +723,7 @@ def download_invoice(
     profile = _get_or_create_profile(session, user)
     price = f"{req.price:,} د.ع" if req.price is not None else "—"
     date = (row.date or req.created_at).strftime("%d/%m/%Y")
-    method = {PaymentMethod.cash: "كاش", PaymentMethod.card_demo: "بطاقة (تجريبي)"}.get(req.payment_method)
+    method = {PaymentMethod.cash: "كاش", PaymentMethod.card_demo: "بطاقة (تجريبي)", PaymentMethod.online: "أونلاين"}.get(req.payment_method)
     if req.payment_status == PaymentStatus.paid:
         payment = f"مدفوع{' — ' + method if method else ''}"
     else:

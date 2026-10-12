@@ -369,6 +369,8 @@ class ResidentRequestDetail(ResidentRequestRow):
     images: List[str] = []
     audio: Optional[str] = None  # رابط الوصف الصوتي (/uploads/...)
     my_review_comment: Optional[str] = None
+    online_payment_available: bool = False   # مجمعه مفعّل الدفع الأونلاين
+    pending_payment_id: Optional[int] = None  # محاولة دفع أونلاين بعدها معلّقة
 
 
 class NotificationRead(BaseModel):
@@ -500,6 +502,8 @@ class CompoundUpdate(BaseModel):
     address: Optional[str] = None
     phone: Optional[str] = None
     is_active: Optional[bool] = None
+    payment_provider: Optional[str] = None
+    online_payments_enabled: Optional[bool] = None
 
 
 class CompoundRead(BaseModel):
@@ -514,6 +518,8 @@ class CompoundRead(BaseModel):
     requests: int = 0
     admins: List[StaffRead] = []
     companies: List[str] = []   # أسماء الشركات المتفق وياها (اتفاقيات فعالة)
+    payment_provider: Optional[str] = None
+    online_payments_enabled: bool = False
 
 
 class CompanyCreate(BaseModel):
@@ -627,7 +633,42 @@ class PaymentsSummary(BaseModel):
     unpaid: int = 0
     cash: int = 0
     card_demo: int = 0
+    online: int = 0            # دفع أونلاين حقيقي عبر بوابة
     unpriced: int = 0          # مكتملة بدون سعر
+
+
+class OnlinePaymentRead(BaseModel):
+    """محاولة دفع أونلاين (للساكن): الحالة تجي من البوابة نفسها."""
+    id: int
+    request_id: int
+    provider: str
+    amount: int
+    currency: str
+    status: str                # pending / paid / failed / cancelled / expired
+    checkout_url: Optional[str] = None
+    created_at: datetime
+    paid_at: Optional[datetime] = None
+
+
+class SandboxCheckout(BaseModel):
+    """صفحة الدفع ببوابة التجربة."""
+    ref: str
+    attempt_id: int
+    request_id: int
+    request_title: Optional[str] = None
+    compound_name: Optional[str] = None
+    amount: int
+    status: str
+
+
+class SandboxDecision(BaseModel):
+    outcome: str = Field(pattern="^(succeeded|declined|cancelled)$")
+
+
+class PaymentProviderRead(BaseModel):
+    name: str
+    label: str
+    available: bool            # مربوطة ومفاتيحها موجودة
 
 
 class CompoundOption(BaseModel):

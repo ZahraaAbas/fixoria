@@ -78,6 +78,7 @@ function mapPaymentsSummary(row) {
     unpaid: row.unpaid,
     cash: row.cash,
     cardDemo: row.card_demo,
+    online: row.online ?? 0,
     unpriced: row.unpriced,
   }
 }

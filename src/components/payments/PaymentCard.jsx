@@ -1,18 +1,36 @@
 import { useState } from 'react'
-import { Banknote, CircleCheck, CreditCard, Download, Hourglass, Wallet } from 'lucide-react'
+import { useNavigate } from 'react-router'
+import { Banknote, CircleCheck, CreditCard, Download, Hourglass, ShieldCheck, Wallet } from 'lucide-react'
 import { translate } from '../../i18n'
-import { downloadInvoice, payResidentRequest } from '../../services/requestsService'
+import { downloadInvoice, payResidentRequest, startOnlinePayment } from '../../services/requestsService'
 import { formatDateTime } from '../../utils/formatDate'
 import { formatIQD } from '../../utils/money'
 import ActionError from '../ui/ActionError'
 import './Payments.css'
 
-// الدفع للطلب المكتمل (تجريبي): كاش = بانتظار تأكيد الحرفي، بطاقة تجريبية = مدفوع مباشرة
+// الدفع للطلب المكتمل: كاش (بانتظار تأكيد الحرفي)، أو أونلاين عبر بوابة المجمع إذا مفعّلة،
+// وإذا مو مفعّلة تبقى البطاقة التجريبية
 function PaymentCard({ request, onUpdated }) {
+  const navigate = useNavigate()
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState('')
   const isPaid = request.paymentStatus === 'paid'
   const waitingCash = !isPaid && request.paymentMethod === 'cash'
+  const online = Boolean(request.onlinePaymentAvailable)
+
+  // نروح لصفحة الدفع عند البوابة (بوابة التجربة صفحتها داخل الموقع)؛ الطلب ينعلّم مدفوع بس لمن البوابة تأكد
+  async function payOnline() {
+    setBusy('online')
+    setError('')
+    try {
+      const payment = await startOnlinePayment(request.id)
+      if (payment.checkoutUrl?.startsWith('/')) navigate(payment.checkoutUrl)
+      else window.location.assign(payment.checkoutUrl)
+    } catch (err) {
+      setError(err.message === 'NETWORK_ERROR' ? 'common.networkError' : 'onlinePay.startError')
+      setBusy(null)
+    }
+  }
 
   async function pay(method) {
     setBusy(method)
@@ -45,7 +63,7 @@ function PaymentCard({ request, onUpdated }) {
           <Wallet size={18} aria-hidden="true" />
           {translate('payments.title')}
         </h2>
-        <span className="pay-demo">{translate('payments.demoBadge')}</span>
+        {!online && <span className="pay-demo">{translate('payments.demoBadge')}</span>}
       </div>
 
       {request.price == null ? (
@@ -78,13 +96,26 @@ function PaymentCard({ request, onUpdated }) {
                   {translate('payments.payCash')}
                 </button>
               )}
-              <button type="button" className="fx-btn fx-btn--primary" onClick={() => pay('card_demo')} disabled={Boolean(busy)}>
-                <CreditCard size={16} aria-hidden="true" />
-                {translate('payments.payCardDemo')}
-              </button>
+              {online ? (
+                <button
+                  type="button"
+                  className="fx-btn fx-btn--primary"
+                  onClick={payOnline}
+                  disabled={Boolean(busy)}
+                  data-loading={busy === 'online' || undefined}
+                >
+                  <ShieldCheck size={16} aria-hidden="true" />
+                  {translate(request.pendingPaymentId ? 'onlinePay.continue' : 'onlinePay.payOnline')}
+                </button>
+              ) : (
+                <button type="button" className="fx-btn fx-btn--primary" onClick={() => pay('card_demo')} disabled={Boolean(busy)}>
+                  <CreditCard size={16} aria-hidden="true" />
+                  {translate('payments.payCardDemo')}
+                </button>
+              )}
             </div>
           )}
-          {!isPaid && <p className="pay-note">{translate('payments.demoNote')}</p>}
+          {!isPaid && <p className="pay-note">{translate(online ? 'onlinePay.note' : 'payments.demoNote')}</p>}
         </>
       )}
 

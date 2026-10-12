@@ -28,9 +28,10 @@ from app.models import (
 )
 from app.schemas import (
     AgreementCreate, AgreementRead, AgreementUpdate, CompanyCreate, CompanyRead, CompanyUpdate,
-    CompoundCreate, CompoundRead, CompoundUpdate, OwnerOverview, OwnerRequestStat, SignupStat,
+    CompoundCreate, CompoundRead, CompoundUpdate, OwnerOverview, OwnerRequestStat, PaymentProviderRead, SignupStat,
     StaffCreate, StaffRead,
 )
+from app.gateways import GATEWAYS, get_gateway
 
 router = APIRouter(prefix="/owner", tags=["Owner"])
 
@@ -131,6 +132,14 @@ def overview(session: Session = Depends(get_session), _: User = Depends(owner_on
     )
 
 
+# ---------- بوابات الدفع ----------
+
+@router.get("/payment-providers", response_model=List[PaymentProviderRead])
+def payment_providers(_: User = Depends(owner_only)):
+    """البوابات المعروفة وهل كل وحدة مربوطة (مفاتيحها موجودة بالخادم)."""
+    return [PaymentProviderRead(name=g.name, label=g.label, available=g.is_available()) for g in GATEWAYS.values()]
+
+
 # ---------- تحليلات المنصة (قراءة بس) ----------
 
 @router.get("/requests", response_model=List[OwnerRequestStat])
@@ -188,6 +197,7 @@ def _compound_reads(session: Session, compounds: List[Compound]) -> List[Compoun
             created_at=c.created_at, residents=residents.get(c.id, 0), pending_residents=pending.get(c.id, 0),
             requests=requests.get(c.id, 0), admins=admins.get(c.id, []),
             companies=companies_by_compound.get(c.id, []),
+            payment_provider=c.payment_provider, online_payments_enabled=c.online_payments_enabled,
         )
         for c in compounds
     ]
@@ -223,6 +233,19 @@ def update_compound(compound_id: int, payload: CompoundUpdate,
             setattr(compound, field, (data[field] or "").strip() or None)
     if data.get("is_active") is not None:
         compound.is_active = data["is_active"]
+    if "payment_provider" in data:
+        provider = data["payment_provider"] or None
+        if provider is not None and not get_gateway(provider):
+            raise HTTPException(status_code=400, detail="بوابة دفع غير معروفة")
+        compound.payment_provider = provider
+        if provider is None:
+            compound.online_payments_enabled = False
+    if data.get("online_payments_enabled") is not None:
+        if data["online_payments_enabled"]:
+            gateway = get_gateway(compound.payment_provider)
+            if not gateway or not gateway.is_available():
+                raise HTTPException(status_code=400, detail="اختار بوابة دفع مربوطة قبل التفعيل")
+        compound.online_payments_enabled = data["online_payments_enabled"]
     session.add(compound)
     session.commit()
     session.refresh(compound)
