@@ -1,4 +1,8 @@
 import { useState } from 'react'
+import { useLoader } from '../hooks/useLoader'
+import { getDemoMode } from '../services/authService'
+import DemoLoginButtons from '../components/ui/DemoLoginButtons'
+import { DEFAULT_REDIRECT } from '../utils/afterLogin'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { AlertCircle, ArrowLeft, Building2, Shield, UserCheck, Wrench } from 'lucide-react'
 import { translate } from '../i18n'
@@ -20,12 +24,12 @@ const ROLE_ICON = {
   company: Building2,
 }
 
-const DEFAULT_REDIRECT = {
-  resident: '/home',
-  artisan: '/artisan/dashboard',
-  admin: '/admin/dashboard',
-  owner: '/owner/dashboard',
-  company_manager: '/company/dashboard',
+// وضع العرض: أدوار الأزرار بكل صفحة دخول (صفحة المشرف تعرض المالك هم)
+const DEMO_ROLES_FOR = {
+  resident: ['resident'],
+  artisan: ['artisan'],
+  admin: ['admin', 'owner'],
+  company: ['company'],
 }
 
 // الأدوار المقبولة بكل صفحة دخول: مالك المنصة يدخل من صفحة المشرف
@@ -44,6 +48,11 @@ function Login({ role }) {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  // وضع العرض: أزرار دخول مباشر، والفورم يبقى مخفي ورا رابط صغير
+  const demo = useLoader(getDemoMode)
+  const [showForm, setShowForm] = useState(false)
+  const demoRoles = demo.data?.enabled ? DEMO_ROLES_FOR[role].filter((r) => demo.data.roles.includes(r)) : []
+  const formHidden = demoRoles.length > 0 && !showForm
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -102,6 +111,17 @@ function Login({ role }) {
 
   return (
     <AuthShell title={translate(`login.title.${role}`)} icon={ROLE_ICON[role]}>
+      {demoRoles.length > 0 && <DemoLoginButtons roles={demoRoles} />}
+      {formHidden ? (
+        <div className="auth-links">
+          <button type="button" className="dl-more" onClick={() => setShowForm(true)}>
+            {translate('demo.useEmail')}
+          </button>
+          <Link to="/home" className="auth-back">
+            {translate('login.backHome')}
+          </Link>
+        </div>
+      ) : (
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <label className="fx-field">
           <span className="fx-label">{translate('login.email')}</span>
@@ -164,6 +184,7 @@ function Login({ role }) {
           </Link>
         </div>
       </form>
+      )}
     </AuthShell>
   )
 }

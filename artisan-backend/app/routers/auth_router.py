@@ -13,6 +13,7 @@ from app.database import get_session
 from app.models import Compound, NotificationType, ResidentProfile, User, UserRole
 from app.notifications import notify
 from app.schemas import PasswordChange, UserRegister, UserLogin, UserRead, Token
+from app.demo import DEMO_ROLES, demo_enabled, demo_user
 from app.auth import hash_password, verify_password, create_access_token, get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -73,6 +74,23 @@ def login(payload: UserLogin, session: Session = Depends(get_session)):
 
     token = create_access_token(data={"sub": str(user.id), "role": user.role})
     return Token(access_token=token)
+
+
+@router.get("/demo")
+def demo_status():
+    """هل وضع العرض مفعّل (أزرار دخول بدون كلمة سر) — الواجهة تقرر تعرض الأزرار لو لا."""
+    return {"enabled": demo_enabled(), "roles": list(DEMO_ROLES) if demo_enabled() else []}
+
+
+@router.post("/demo-login", response_model=Token)
+def demo_login(payload: dict, session: Session = Depends(get_session)):
+    """دخول بضغطة لحساب تجربة حسب الدور — بس إذا DEMO_LOGIN مفعّل."""
+    if not demo_enabled():
+        raise HTTPException(status_code=404, detail="وضع العرض مطفي")
+    user = demo_user(session, str(payload.get("role", "")))
+    if not user:
+        raise HTTPException(status_code=404, detail="حساب العرض لهذا الدور غير موجود")
+    return Token(access_token=create_access_token(data={"sub": str(user.id), "role": user.role}))
 
 
 @router.get("/me", response_model=UserRead)

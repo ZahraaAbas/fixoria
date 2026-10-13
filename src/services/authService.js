@@ -71,6 +71,24 @@ export async function login({ email, password }) {
   return withProfile(user)
 }
 
+// وضع العرض: هل الخادم مفعّل أزرار الدخول بدون كلمة سر (نسأل مرة وحدة بكل تحميل للموقع)
+let demoPromise = null
+export function getDemoMode() {
+  if (!demoPromise) {
+    demoPromise = apiGet('/auth/demo', { auth: false })
+      .then((row) => ({ enabled: Boolean(row.enabled), roles: row.roles || [] }))
+      .catch(() => ({ enabled: false, roles: [] }))
+  }
+  return demoPromise
+}
+
+// دخول بضغطة لحساب العرض حسب الدور (resident / artisan / admin / company / owner)
+export async function demoLogin(role) {
+  const token = await apiPost('/auth/demo-login', { role }, { auth: false })
+  setToken(token.access_token)
+  return withProfile(mapUserFromApi(await apiGet('/auth/me')))
+}
+
 // المستخدم الحالي من جديد (مثلاً بعد ما مشرف المجمع يوافق على الساكن)
 export async function reloadCurrentUser() {
   return withProfile(mapUserFromApi(await apiGet('/auth/me')))

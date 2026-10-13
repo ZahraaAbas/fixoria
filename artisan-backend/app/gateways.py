@@ -18,6 +18,8 @@ import uuid
 from dataclasses import dataclass
 from typing import Dict, Optional
 
+from app.flags import env_flag
+
 
 class GatewayError(Exception):
     pass
@@ -58,7 +60,7 @@ class SandboxGateway(Gateway):
     OUTCOMES = {"succeeded": "paid", "declined": "failed", "cancelled": "cancelled"}
 
     def is_available(self) -> bool:
-        return os.getenv("PAYMENTS_SANDBOX") == "1"
+        return env_flag("PAYMENTS_SANDBOX")
 
     def _secret(self) -> bytes:
         return (os.getenv("PAYMENTS_SANDBOX_SECRET") or "sandbox-secret").encode()

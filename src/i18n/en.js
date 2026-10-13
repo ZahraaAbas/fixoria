@@ -1186,6 +1186,18 @@ const en = {
     tryAgainNote: 'Nothing was charged. You can go back to the request and try again.',
     backToRequest: 'Back to the request',
   },
+  demo: {
+    badge: 'Demo mode — one-click sign-in, no password',
+    useEmail: 'Sign in with email and password',
+    error: "We couldn't sign in to the demo account. Make sure demo mode is on and the test accounts exist.",
+    roles: {
+      resident: 'Enter as a resident',
+      artisan: 'Enter as an artisan',
+      admin: 'Enter as compound admin',
+      company: 'Enter as maintenance company',
+      owner: 'Enter as platform owner',
+    },
+  },
 }
 
 export default en

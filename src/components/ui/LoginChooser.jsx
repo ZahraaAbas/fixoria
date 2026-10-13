@@ -1,4 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useLoader } from '../../hooks/useLoader'
+import { getDemoMode } from '../../services/authService'
+import DemoLoginButtons from './DemoLoginButtons'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
@@ -18,6 +21,10 @@ const ROLES = [
 function LoginChooser({ open, onClose }) {
   const reduceMotion = useReducedMotion()
   const panelRef = useRef(null)
+  // وضع العرض: أزرار دخول مباشر بدل صفحات الإيميل وكلمة السر (والروابط العادية تحت رابط صغير)
+  const demo = useLoader(getDemoMode)
+  const [showLinks, setShowLinks] = useState(false)
+  const demoOn = Boolean(demo.data?.enabled && demo.data.roles.length)
 
   // Escape + قفل التمرير + التركيز داخل النافذة ثم رجوعه للزر
   useEffect(() => {
@@ -25,7 +32,7 @@ function LoginChooser({ open, onClose }) {
     const previousFocus = document.activeElement
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    panelRef.current?.querySelector('a')?.focus()
+    panelRef.current?.querySelector('a, button.dl-btn')?.focus()
 
     function handleKey(event) {
       if (event.key === 'Escape') onClose()
@@ -74,6 +81,14 @@ function LoginChooser({ open, onClose }) {
               </button>
             </div>
 
+            {demoOn && <DemoLoginButtons roles={demo.data.roles} onDone={onClose} />}
+            {demoOn && !showLinks && (
+              <button type="button" className="dl-more" onClick={() => setShowLinks(true)}>
+                {translate('demo.useEmail')}
+              </button>
+            )}
+
+            {(!demoOn || showLinks) && (
             <motion.nav
               className="lc-roles"
               aria-label={translate('nav.login')}
@@ -95,6 +110,7 @@ function LoginChooser({ open, onClose }) {
                 </motion.div>
               ))}
             </motion.nav>
+            )}
           </motion.div>
         </motion.div>
       )}
