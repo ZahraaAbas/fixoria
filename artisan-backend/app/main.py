@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.database import create_db_and_tables
 from app.owner_bootstrap import ensure_owner
+from app.demo_companies import split_demo_companies
 from app.routers import (
     auth_router,
     artisans_router,
@@ -51,6 +52,8 @@ def prepare_database():
         seed()
     # حساب مالك المنصة من OWNER_EMAIL و OWNER_PASSWORD (مرة وحدة، إذا ما موجود)
     ensure_owner()
+    # البيانات التجريبية: شركة صيانة لكل تخصص بدل شركة وحدة (مرة وحدة، وبس إذا البيانات تجريبية)
+    split_demo_companies()
 
 
 @app.on_event("startup")
