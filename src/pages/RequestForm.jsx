@@ -161,17 +161,21 @@ function RequestForm() {
     <div className="rf">
       <PageHeader
         back={<BackLink to="/home">{translate('request.backHome')}</BackLink>}
-        title={translate('request.title')}
+        title={translate('request.titleFor').replace('{service}', category.name)}
       />
 
       <div className="rf-layout">
         <Reveal as="form" className="rf-form fx-card" onSubmit={handleSubmit} noValidate>
           <label className="fx-field">
-            <span className="fx-label">{translate('request.titleField')}</span>
+            <span className="fx-label">
+              {translate('request.titleField')}
+              <span className="rf-optional"> ({translate('request.optional')})</span>
+            </span>
             <input
               className="fx-input"
               type="text"
               name="title"
+              placeholder={translate('request.titlePlaceholder').replace('{service}', category.name)}
               value={formData.title}
               onChange={handleChange}
               aria-invalid={Boolean(errors.title)}

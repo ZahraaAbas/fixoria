@@ -53,7 +53,6 @@ export function validateRegister(values) {
 
 export function validateRequest(values) {
   return withoutEmpty({
-    title: requiredError(values.title),
     description: requiredError(values.description),
     preferredDate: requiredError(values.preferredDate),
     preferredTime: preferredTimeError(values.preferredDate, values.preferredTime),
