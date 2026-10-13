@@ -1203,6 +1203,7 @@ const ar = {
       company: 'دخول كشركة صيانة',
       owner: 'دخول كمالك المنصة',
     },
+    pickCompany: 'اختار الشركة الي تدخل كمدير إلها:',
   },
   adminCompanies: {
     title: 'شركات الصيانة',

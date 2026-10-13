@@ -111,7 +111,7 @@ function Login({ role }) {
 
   return (
     <AuthShell title={translate(`login.title.${role}`)} icon={ROLE_ICON[role]}>
-      {demoRoles.length > 0 && <DemoLoginButtons roles={demoRoles} />}
+      {demoRoles.length > 0 && <DemoLoginButtons roles={demoRoles} companies={demo.data.companies} />}
       {formHidden ? (
         <div className="auth-links">
           <button type="button" className="dl-more" onClick={() => setShowForm(true)}>

@@ -33,9 +33,27 @@ def demo_enabled() -> bool:
     return env_flag("DEMO_LOGIN")
 
 
-def demo_user(session: Session, role: str) -> Optional[User]:
+def demo_companies(session: Session) -> list[dict]:
+    """الشركات المفعّلة الي عدها مدير: وضع العرض يخلي تختار وين تدخل كمدير شركة."""
+    rows = session.exec(
+        select(Company.id, Company.name).join(User, User.company_id == Company.id)
+        .where(Company.is_active == True, User.role == UserRole.company_manager)  # noqa: E712
+        .distinct().order_by(Company.id)
+    ).all()
+    return [{"id": cid, "name": name} for cid, name in rows]
+
+
+def demo_user(session: Session, role: str, company_id: Optional[int] = None) -> Optional[User]:
     if role not in DEMO_ROLES:
         return None
+    if role == "company" and company_id is not None:
+        # مدير شركة معيّنة (أول مدير إلها)، بس إذا الشركة مفعّلة
+        company = session.get(Company, company_id)
+        if not company or not company.is_active:
+            return None
+        return session.exec(
+            select(User).where(User.company_id == company_id, User.role == UserRole.company_manager).order_by(User.id)
+        ).first()
     email, user_role = DEMO_ROLES[role]
     user = session.exec(select(User).where(User.email == email)).first()
     if user:

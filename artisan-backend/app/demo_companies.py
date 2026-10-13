@@ -50,10 +50,37 @@ def split_demo_companies() -> bool:
     # هاي بس ترتيب للبيانات التجريبية: إذا فشلت ما نوقف تشغيل الخادم (الـ session يتراجع لحاله)
     try:
         with Session(engine) as session:
-            return _split(session)
+            split = _split(session)
+            _ensure_managers(session)
+            return split
     except Exception:
         logger.exception("ما انقسمت شركة الصيانة التجريبية")
         return False
+
+
+def _ensure_managers(session: Session) -> None:
+    """مدير لكل شركة متخصصة ما عندها مدير (حتى وضع العرض يدخل لكل شركة).
+    كلمة السر عشوائية: الحساب ينفتح بس من زر العرض، والمالك يكدر يضيف مدير حقيقي."""
+    if not session.exec(select(User).where(User.email == "customer@demo.com")).first():
+        return
+    added = 0
+    for name in [KEEP_NAME] + [n for n, _ in SPLIT]:
+        company = session.exec(select(Company).where(Company.name == name)).first()
+        if not company:
+            continue
+        has_manager = session.exec(
+            select(User.id).where(User.company_id == company.id, User.role == UserRole.company_manager)
+        ).first()
+        # شركة الكهرباء (الأصلية) تاخذ حساب العرض الافتراضي حتى زر "دخول كشركة" القديم يبقى نفسه
+        email = "company@demo.com" if name == KEEP_NAME else f"manager{company.id}@demo.com"
+        if has_manager or session.exec(select(User).where(User.email == email)).first():
+            continue
+        session.add(User(name=f"مدير {name}", email=email, password_hash=hash_password(secrets.token_urlsafe(32)),
+                         role=UserRole.company_manager, company_id=company.id))
+        added += 1
+    if added:
+        session.commit()
+        logger.info("انضافوا %s مدراء لشركات العرض", added)
 
 
 def _split(session: Session) -> bool:

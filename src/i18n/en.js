@@ -1201,6 +1201,7 @@ const en = {
       company: 'Enter as maintenance company',
       owner: 'Enter as platform owner',
     },
+    pickCompany: 'Choose the company to enter as its manager:',
   },
   adminCompanies: {
     title: 'Maintenance companies',

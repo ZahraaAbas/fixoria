@@ -81,7 +81,7 @@ function LoginChooser({ open, onClose }) {
               </button>
             </div>
 
-            {demoOn && <DemoLoginButtons roles={demo.data.roles} onDone={onClose} />}
+            {demoOn && <DemoLoginButtons roles={demo.data.roles} companies={demo.data.companies} onDone={onClose} />}
             {demoOn && !showLinks && (
               <button type="button" className="dl-more" onClick={() => setShowLinks(true)}>
                 {translate('demo.useEmail')}

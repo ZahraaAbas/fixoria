@@ -76,15 +76,17 @@ let demoPromise = null
 export function getDemoMode() {
   if (!demoPromise) {
     demoPromise = apiGet('/auth/demo', { auth: false })
-      .then((row) => ({ enabled: Boolean(row.enabled), roles: row.roles || [] }))
-      .catch(() => ({ enabled: false, roles: [] }))
+      .then((row) => ({ enabled: Boolean(row.enabled), roles: row.roles || [], companies: row.companies || [] }))
+      .catch(() => ({ enabled: false, roles: [], companies: [] }))
   }
   return demoPromise
 }
 
 // دخول بضغطة لحساب العرض حسب الدور (resident / artisan / admin / company / owner)
-export async function demoLogin(role) {
-  const token = await apiPost('/auth/demo-login', { role }, { auth: false })
+// companyId: لدور الشركة، مدير أي شركة (بدونه: حساب الشركة الافتراضي)
+export async function demoLogin(role, companyId) {
+  const body = companyId ? { role, company_id: companyId } : { role }
+  const token = await apiPost('/auth/demo-login', body, { auth: false })
   setToken(token.access_token)
   return withProfile(mapUserFromApi(await apiGet('/auth/me')))
 }
