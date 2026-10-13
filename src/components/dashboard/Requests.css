@@ -590,3 +590,13 @@
   color: var(--text-muted);
   white-space: nowrap;
 }
+
+.rq-assign-deadline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  color: var(--orange-700);
+}

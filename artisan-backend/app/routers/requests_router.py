@@ -29,6 +29,7 @@ from app.auth import get_current_user
 from app.tenancy import approved_resident, company_coverage, compound_artisan_ids, request_in_coverage
 from app.progress import build_progress
 from app.history import record_event, record_status_change
+from app.dispatch import open_to_artisan_company
 from app.notifications import notify
 
 router = APIRouter(prefix="/requests", tags=["Requests"])
@@ -136,11 +137,14 @@ def list_available_requests(
         .order_by(ServiceRequest.created_at.desc())
     ).all()
 
+    now = datetime.utcnow()
     results = [
         r for r in pending
         if r.id not in dismissed
         and (r.artisan_id == artisan.id or (
             r.artisan_id is None and r.service_id in my_services and request_in_coverage(coverage, r)
+            # وضع "الشركة توزّع": يبين بس بعد مهلة التوزيع، ولحرفيي نفس الشركة
+            and open_to_artisan_company(r, user.company_id, now)
         ))
     ]
     return [_to_read(r, session) for r in results]
@@ -257,6 +261,8 @@ def update_status(
                 raise HTTPException(status_code=403, detail="هذا الطلب مو ضمن خدماتك")
             if not request_in_coverage(company_coverage(session, user.company_id), req):
                 raise HTTPException(status_code=404, detail="الطلب غير موجود")
+            if not open_to_artisan_company(req, user.company_id):
+                raise HTTPException(status_code=409, detail="الطلب بانتظار توزيع شركة الصيانة")
             if new_status != RequestStatus.accepted:
                 raise HTTPException(status_code=400, detail="الطلب المفتوح يا تقبله يا تتجاهله")
             req.artisan_id = artisan.id

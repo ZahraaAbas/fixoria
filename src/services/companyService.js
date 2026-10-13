@@ -29,6 +29,9 @@ export async function getCompanyOverview() {
     openRequests: row.open_requests,
     activeRequests: row.active_requests,
     completedRequests: row.completed_requests,
+    awaitingDispatch: row.awaiting_dispatch ?? 0,
+    dispatchMode: row.dispatch_mode || 'open',
+    dispatchMinutes: row.dispatch_minutes || 30,
     compounds: row.compounds.map((c) => ({
       id: c.compound_id,
       name: c.compound_name,
@@ -91,4 +94,15 @@ export async function getCompanyPaymentsSummary() {
 // طلبات حرفيي الشركة + الطلبات المفتوحة بمجمعاتها (نفس شكل صفحة طلبات المشرف)
 export async function getCompanyRequests() {
   return (await apiGet('/company/requests')).map(mapAdminRequest)
+}
+
+// طريقة توزيع الطلبات: open (الحرفيين يقبلون) أو company (المدير يوزّع خلال المهلة)
+export async function updateDispatchSettings({ mode, minutes }) {
+  const row = await apiPut('/company/settings/dispatch', { dispatch_mode: mode, dispatch_minutes: minutes })
+  return { dispatchMode: row.dispatch_mode, dispatchMinutes: row.dispatch_minutes }
+}
+
+// المدير يعيّن حرفي من شركته لطلب معلّق
+export async function assignCompanyRequest(requestId, artisanId) {
+  return apiPut(`/company/requests/${requestId}/assign?artisan_id=${artisanId}`)
 }

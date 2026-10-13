@@ -86,6 +86,8 @@ export function mapAdminRequest(row) {
     artisanId: row.artisan_id,
     compoundId: row.compound_id ?? null,
     compoundName: row.compound_name ?? null,
+    companyId: row.company_id ?? null,
+    dispatchDeadline: row.dispatch_deadline ?? null,
     createdAt: row.created_at,
     acceptedAt: row.accepted_at ?? null,
     startedAt: row.started_at ?? null,

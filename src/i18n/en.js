@@ -1215,6 +1215,28 @@ const en = {
     emptyHint: 'The platform owner adds agreements between compounds and maintenance companies.',
     note: 'View only: each company adds and pauses its own artisans, and the platform owner manages agreements and services.',
   },
+  dispatch: {
+    title: 'How requests are assigned',
+    subtitle: 'Who picks the artisan when a new request reaches your company?',
+    modes: {
+      open: {
+        title: 'Self-assign (faster)',
+        text: 'The request goes straight to your artisans, and the first available one to accept takes it.',
+      },
+      company: {
+        title: 'Company assigns',
+        text: "The request reaches you first and you pick the right artisan. If you don't assign it within the time limit, it opens to your artisans automatically so the resident isn't kept waiting.",
+      },
+    },
+    minutesLabel: 'Time limit:',
+    minutesOption: '{n} minutes',
+    save: 'Save',
+    saved: 'Assignment method saved.',
+    kpi: 'Awaiting your assignment',
+    kpiDef: 'Requests that reached your company and need an artisan. After {n} minutes they open to your artisans.',
+    minutesLeft: '{n} minutes left before it opens to the company’s artisans.',
+    windowOver: 'The time limit passed, and the request is now open to the company’s artisans.',
+  },
 }
 
 export default en

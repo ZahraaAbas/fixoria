@@ -683,3 +683,100 @@
   outline: none;
   box-shadow: var(--focus-ring);
 }
+
+/* ---------- طريقة توزيع الطلبات (الشركة) ---------- */
+.ds-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ds-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+
+.ds-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ds-option.is-selected {
+  border-color: var(--orange-500);
+  background: var(--orange-50);
+  box-shadow: 0 0 0 1px var(--orange-500);
+}
+
+.ds-option:has(input:focus-visible) {
+  box-shadow: var(--focus-ring);
+}
+
+.ds-option-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--orange-600);
+  background: var(--orange-50);
+  border-radius: var(--radius-sm);
+}
+
+.ds-option.is-selected .ds-option-icon {
+  color: var(--text-on-accent);
+  background: var(--gradient-action);
+}
+
+.ds-option-text {
+  display: grid;
+  gap: 4px;
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+}
+
+.ds-option-text span {
+  font-size: var(--text-xs);
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+.ds-minutes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.ds-minutes select {
+  width: auto;
+  height: 38px;
+  padding-block: 0;
+  font-size: var(--text-sm);
+}
+
+.ds-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-option {
+    transition: none;
+  }
+}

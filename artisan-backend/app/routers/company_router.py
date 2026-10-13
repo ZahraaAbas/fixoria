@@ -17,8 +17,8 @@ from app.auth import hash_password
 from app.database import get_session
 from app.helpers import artisan_to_read, request_to_read, set_artisan_services
 from app.models import (
-    Agreement, AgreementServiceLink, Artisan, Company, Compound, RequestStatus, Service, ServiceRequest,
-    User, UserRole,
+    Agreement, AgreementServiceLink, Artisan, ArtisanServiceLink, Company, Compound, NotificationType,
+    RequestStatus, Service, ServiceRequest, User, UserRole,
 )
 from app.payments import summarize
 from app.schemas import (
@@ -26,6 +26,10 @@ from app.schemas import (
     ArtisanRead, CompanyArtisanCreate, CompanyArtisanUpdate, CompanyCompoundRead, CompanyOverview, RequestRead,
 )
 from app.tenancy import company_coverage, company_manager, request_in_coverage
+from app.dispatch import MINUTES as DISPATCH_MINUTES, in_dispatch_window
+from app.history import record_event
+from app.notifications import notify
+from app.schemas import DispatchSettings
 
 router = APIRouter(prefix="/company", tags=["Company"])
 
@@ -72,8 +76,12 @@ def _company_requests(session: Session, manager: User) -> List[ServiceRequest]:
         ))
         .order_by(ServiceRequest.created_at.desc())
     ).all()
-    # المفتوحة لازم تكون بخدمة تغطيها الاتفاقية (مو بس بنفس المجمع)
-    return [r for r in rows if r.artisan_id is not None or request_in_coverage(coverage, r)]
+    # المفتوحة لازم تكون بخدمة تغطيها الاتفاقية (مو بس بنفس المجمع)، ومو موجّهة لشركة ثانية توزّعها
+    return [
+        r for r in rows
+        if r.artisan_id is not None
+        or (request_in_coverage(coverage, r) and r.company_id in (None, manager.company_id))
+    ]
 
 
 @router.get("/overview", response_model=CompanyOverview)
@@ -108,7 +116,58 @@ def overview(session: Session = Depends(get_session), manager: User = Depends(co
         open_requests=sum(1 for r in requests if r.artisan_id is None and r.status in OPEN),
         active_requests=sum(1 for r in requests if r.status in ACTIVE),
         completed_requests=sum(1 for r in requests if r.status == RequestStatus.completed),
+        awaiting_dispatch=sum(1 for r in requests if r.company_id == manager.company_id and in_dispatch_window(r)),
+        dispatch_mode=company.dispatch_mode if company else "open",
+        dispatch_minutes=company.dispatch_minutes if company else 30,
     )
+
+
+@router.put("/settings/dispatch", response_model=DispatchSettings)
+def update_dispatch(payload: DispatchSettings, session: Session = Depends(get_session),
+                    manager: User = Depends(company_manager)):
+    """طريقة توزيع الطلبات: open (الحرفيين يقبلون) أو company (المدير يوزّع خلال المهلة)."""
+    if payload.dispatch_minutes not in DISPATCH_MINUTES:
+        raise HTTPException(status_code=400, detail="مهلة غير مسموحة")
+    company = session.get(Company, manager.company_id)
+    company.dispatch_mode = payload.dispatch_mode
+    company.dispatch_minutes = payload.dispatch_minutes
+    session.add(company)
+    session.commit()
+    return DispatchSettings(dispatch_mode=company.dispatch_mode, dispatch_minutes=company.dispatch_minutes)
+
+
+@router.put("/requests/{request_id}/assign", response_model=RequestRead)
+def assign_request(request_id: int, artisan_id: int, session: Session = Depends(get_session),
+                   manager: User = Depends(company_manager)):
+    """المدير يعيّن حرفي من شركته لطلب معلّق ضمن نطاقه. الحرفي يوصله إشعار ويقبل."""
+    req = next((r for r in _company_requests(session, manager) if r.id == request_id), None)
+    if not req:
+        raise HTTPException(status_code=404, detail="الطلب غير موجود")
+    if req.status != RequestStatus.pending:
+        raise HTTPException(status_code=400, detail="نكدر نعيّن حرفي بس للطلبات المعلقة")
+    artisan = _get_company_artisan(session, manager, artisan_id)
+    if not artisan.verified:
+        raise HTTPException(status_code=400, detail="الحرفي موقوف")
+    if req.service_id not in set(s.service_id for s in session.exec(
+        select(ArtisanServiceLink).where(ArtisanServiceLink.artisan_id == artisan.id)
+    ).all()):
+        raise HTTPException(status_code=400, detail="هذا الحرفي ما يقدم الخدمة المطلوبة")
+    if req.artisan_id is not None and req.artisan_id not in {a.id for a in _company_artisans(session, manager)}:
+        raise HTTPException(status_code=409, detail="الطلب عند حرفي من شركة ثانية")
+
+    req.artisan_id = artisan.id
+    req.company_id = manager.company_id
+    session.add(req)
+    record_event(session, req, "assigned", manager)
+    artisan_user = session.get(User, artisan.user_id)
+    notify(session, req.customer_id, NotificationType.request_assigned,
+           f"تم تعيين حرفي لطلبك رقم #{req.id}",
+           f"الحرفي {artisan_user.name if artisan_user else ''} — بانتظار القبول", req.id)
+    notify(session, artisan.user_id, NotificationType.new_request,
+           f"وصلك طلب جديد رقم #{req.id}", req.location, req.id)
+    session.commit()
+    session.refresh(req)
+    return request_to_read(req, session)
 
 
 @router.get("/artisans", response_model=List[ArtisanRead])

@@ -104,6 +104,10 @@ class Company(SQLModel, table=True):
     phone: Optional[str] = None
     is_active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    # توزيع الطلبات: open = الحرفيين يقبلون مباشرة، company = المدير يوزّع خلال dispatch_minutes
+    # وإذا ما وزّع، الطلب ينفتح لحرفيي الشركة تلقائيًا
+    dispatch_mode: str = Field(default="open")
+    dispatch_minutes: int = Field(default=30)
 
 
 class Agreement(SQLModel, table=True):
@@ -203,6 +207,9 @@ class ServiceRequest(SQLModel, table=True):
     compound_id: Optional[int] = Field(default=None, foreign_key="compound.id", index=True)
     # صار اختياري: الطلب ممكن ينفتح قبل ما يتعين حرفي ("جاري البحث عن حرفي مناسب")
     artisan_id: Optional[int] = Field(default=None, foreign_key="artisan.id")
+    # الشركة الي توزّع الطلب (بس لمن شركتها بوضع "الشركة توزّع")، ومهلة التوزيع
+    company_id: Optional[int] = Field(default=None, foreign_key="company.id", index=True)
+    dispatch_deadline: Optional[datetime] = None
     service_id: int = Field(foreign_key="service.id")
     title: Optional[str] = None             # عنوان المشكلة
     description: Optional[str] = None

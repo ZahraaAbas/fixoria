@@ -8,6 +8,7 @@ import {
   ClipboardList,
   HardHat,
   Hourglass,
+  Route,
   Inbox,
   Star,
   Wrench,
@@ -23,6 +24,7 @@ import { ErrorState, EmptyState, SkeletonList } from '../components/StatusState'
 import PageHeader from '../components/ui/PageHeader'
 import DateRangeFilter from '../components/dashboard/DateRangeFilter'
 import KpiCard from '../components/dashboard/KpiCard'
+import DispatchSettingsCard from '../components/dashboard/DispatchSettingsCard'
 import ChartCard from '../components/dashboard/ChartCard'
 import RankedBars from '../components/dashboard/RankedBars'
 import TrendChart from '../components/dashboard/TrendChart'
@@ -145,6 +147,18 @@ function CompanyDashboard() {
 
           <h2 className="cd-section-title">{translate('analytics.nowSection')}</h2>
           <ul className="kpi-grid">
+            {(info.dispatchMode === 'company' || info.awaitingDispatch > 0) && (
+              <li>
+                <KpiCard
+                  Icon={Route}
+                  tone={info.awaitingDispatch ? 'warning' : 'accent'}
+                  label={translate('dispatch.kpi')}
+                  value={info.awaitingDispatch}
+                  definition={fill('dispatch.kpiDef', { n: info.dispatchMinutes })}
+                  to={requestsLink('/company/requests', { preset: 'all' }, { status: 'pending', artisan: 'none' })}
+                />
+              </li>
+            )}
             <li>
               <KpiCard
                 Icon={Hourglass}
@@ -173,6 +187,13 @@ function CompanyDashboard() {
               />
             </li>
           </ul>
+
+          <DispatchSettingsCard
+            key={`${info.dispatchMode}-${info.dispatchMinutes}`}
+            mode={info.dispatchMode}
+            minutes={info.dispatchMinutes}
+            onSaved={overview.retry}
+          />
 
           <div className="cd-grid">
             <ChartCard

@@ -69,6 +69,7 @@ from app.models import (
     UserRole,
 )
 from app.notifications import notify
+from app.dispatch import route_new_request
 from app.online_payments import online_available, pending_attempt, refresh as refresh_payment, start_payment
 from app.history import record_event, record_status_change
 from app.progress import build_progress, status_label
@@ -524,6 +525,10 @@ async def create_resident_request(
                f"تم تحويله للحرفي {artisan_user.name if artisan_user else ''} — بانتظار القبول", req.id)
         notify(session, artisan.user_id, NotificationType.new_request,
                f"وصلك طلب جديد رقم #{req.id}", f"{service.name} — {req.location or ''}", req.id)
+    elif route_new_request(session, req):
+        # الشركة توزّع: الإشعار لمديرها (داخل route_new_request)، والحرفيين بعد المهلة
+        notify(session, user.id, NotificationType.request_received,
+               f"تم استلام طلبك رقم #{req.id}", "شركة الصيانة دتختار الحرفي المناسب", req.id)
     else:
         notify(session, user.id, NotificationType.request_received,
                f"تم استلام طلبك رقم #{req.id}", "جاري البحث عن حرفي مناسب", req.id)

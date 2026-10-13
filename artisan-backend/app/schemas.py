@@ -146,6 +146,8 @@ class RequestRead(BaseModel):
     service_id: int
     compound_id: Optional[int] = None
     compound_name: Optional[str] = None  # للتحليلات: الشركة تشتغل بأكثر من مجمع
+    company_id: Optional[int] = None          # الشركة الي توزّع الطلب (وضع "الشركة توزّع")
+    dispatch_deadline: Optional[datetime] = None
     title: Optional[str] = None
     description: Optional[str] = None
     location: Optional[str] = None
@@ -729,4 +731,13 @@ class CompanyOverview(BaseModel):
     open_requests: int      # مفتوحة (بدون حرفي) بمجمعات الشركة
     active_requests: int    # مقبولة أو قيد التنفيذ عند حرفيي الشركة
     completed_requests: int
+    awaiting_dispatch: int = 0   # طلبات وصلت للشركة وبعدها بمهلة التوزيع
+    dispatch_mode: str = "open"
+    dispatch_minutes: int = 30
+
+
+class DispatchSettings(BaseModel):
+    """طريقة توزيع طلبات الشركة."""
+    dispatch_mode: str = Field(pattern="^(open|company)$")
+    dispatch_minutes: int = Field(default=30)
 

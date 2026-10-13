@@ -1,24 +1,38 @@
 import { useState } from 'react'
-import { CircleCheck, UserPlus } from 'lucide-react'
+import { CircleCheck, Hourglass, UserPlus } from 'lucide-react'
 import { translate } from '../../i18n'
 import { useLoader } from '../../hooks/useLoader'
 import { assignRequest, getArtisanAccounts } from '../../services/adminService'
+import { parseApiDate } from '../../utils/formatDate'
+
+// المشرف: حرفيو كل الشركات المتعاونة (status + serviceIds)
+const ADMIN = {
+  loader: getArtisanAccounts,
+  assign: assignRequest,
+  eligible: (a, request) => a.status === 'approved' && a.serviceIds.includes(request.serviceId),
+}
 import ActionError from '../ui/ActionError'
 import './Requests.css'
 
-// المشرف يعيّن حرفي لطلب معلق: بس الحرفيين المفعّلين الي يقدمون نفس الخدمة (الخادم يتأكد من الاتفاقية)
-function AssignArtisan({ request, onAssigned }) {
-  const artisans = useLoader(getArtisanAccounts)
+// تعيين حرفي لطلب معلق (للمشرف أو لمدير الشركة حسب source): بس المفعّلين الي يقدمون نفس الخدمة،
+// والخادم يتأكد من الاتفاقية والصلاحية
+function AssignArtisan({ request, onAssigned, source = ADMIN }) {
+  const artisans = useLoader(source.loader)
   const [artisanId, setArtisanId] = useState('')
   const [isBusy, setIsBusy] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(null)
+  // وقت فتح اللوحة — منه نحسب الدقائق الباقية لمهلة التوزيع
+  const [openedAt] = useState(() => Date.now())
 
   if (request.status !== 'pending') return null
 
-  const eligible = (artisans.data || []).filter(
-    (a) => a.status === 'approved' && a.serviceIds.includes(request.serviceId) && a.id !== request.artisanId,
-  )
+  const eligible = (artisans.data || []).filter((a) => source.eligible(a, request) && a.id !== request.artisanId)
+  // وضع "الشركة توزّع": شكد باقي قبل ما الطلب ينفتح لحرفيي الشركة
+  const minutesLeft =
+    request.dispatchDeadline && !request.artisanId
+      ? Math.ceil((parseApiDate(request.dispatchDeadline).getTime() - openedAt) / 60000)
+      : null
 
   async function submit(event) {
     event.preventDefault()
@@ -26,7 +40,7 @@ function AssignArtisan({ request, onAssigned }) {
     setIsBusy(true)
     setError('')
     try {
-      await assignRequest(request.id, artisanId)
+      await source.assign(request.id, artisanId)
       const chosen = eligible.find((a) => String(a.id) === artisanId)
       onAssigned({ artisanId: chosen.id, artisanName: chosen.fullName })
       setDone(chosen.fullName)
@@ -46,6 +60,14 @@ function AssignArtisan({ request, onAssigned }) {
       <p className="rq-assign-note">
         {translate(request.artisanId ? 'requestsTable.reassignNote' : 'requestsTable.assignNote')}
       </p>
+      {minutesLeft != null && (
+        <p className="rq-assign-deadline">
+          <Hourglass size={14} aria-hidden="true" />
+          {minutesLeft > 0
+            ? translate('dispatch.minutesLeft').replace('{n}', minutesLeft)
+            : translate('dispatch.windowOver')}
+        </p>
+      )}
 
       {done && (
         <p className="flash" role="status">
