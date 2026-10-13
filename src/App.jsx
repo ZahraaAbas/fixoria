@@ -24,7 +24,7 @@ const ArtisanRequests = lazy(() => import('./pages/ArtisanRequests'))
 const ArtisanMyWork = lazy(() => import('./pages/ArtisanMyWork'))
 const SandboxCheckout = lazy(() => import('./pages/SandboxCheckout'))
 const PaymentReturn = lazy(() => import('./pages/PaymentReturn'))
-const AdminArtisans = lazy(() => import('./pages/AdminArtisans'))
+const AdminCompanies = lazy(() => import('./pages/AdminCompanies'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const ArtisanSettings = lazy(() => import('./pages/ArtisanSettings'))
 const ArtisanReviews = lazy(() => import('./pages/ArtisanReviews'))
@@ -158,7 +158,9 @@ function App() {
                 </RequireAuth>
               }
             >
-              <Route path="/admin/artisans" element={<AdminArtisans />} />
+              <Route path="/admin/companies" element={<AdminCompanies />} />
+              {/* صفحة الحرفيين القديمة صارت جزء من شركات الصيانة */}
+              <Route path="/admin/artisans" element={<Navigate to="/admin/companies" replace />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/requests" element={<AdminRequests />} />
               <Route path="/admin/residents" element={<AdminResidents />} />

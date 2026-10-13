@@ -16,7 +16,6 @@ import {
   Tags,
   UserCog,
   UserRoundCheck,
-  Users,
   Wrench,
   X,
 } from 'lucide-react'
@@ -34,7 +33,7 @@ const ADMIN_SECTIONS = [
     titleKey: 'adminNav.management',
     items: [
       { value: '/admin/residents', labelKey: 'adminNav.residents', Icon: UserRoundCheck },
-      { value: '/admin/artisans', labelKey: 'adminNav.artisans', Icon: Users },
+      { value: '/admin/companies', labelKey: 'adminNav.companies', Icon: Building2 },
       { value: '/admin/requests', labelKey: 'adminNav.requests', Icon: ClipboardList },
       { value: '/admin/reviews', labelKey: 'adminNav.reviews', Icon: Star },
       { value: '/admin/complaints', labelKey: 'adminNav.complaints', Icon: MessageSquareWarning },

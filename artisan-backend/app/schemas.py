@@ -265,6 +265,23 @@ class ServiceStat(BaseModel):
     reason: Optional[str] = None  # يتعبى بس إذا below_average = True
 
 
+class CompanyArtisanRead(ArtisanRead):
+    """حرفي شركة متعاونة ويه المجمع + شغله بطلبات هذا المجمع."""
+    active_jobs: int = 0        # مقبولة أو قيد التنفيذ
+    completed_jobs: int = 0
+
+
+class PartnerCompanyRead(BaseModel):
+    """شركة صيانة متعاونة ويه المجمع: خدماتها حسب الاتفاقية وحرفييها."""
+    id: int
+    name: str
+    phone: Optional[str] = None
+    service_ids: List[int] = []
+    service_names: List[str] = []
+    artisans: List[CompanyArtisanRead] = []
+    open_requests: int = 0      # طلبات المجمع المفتوحة بخدماتها (بانتظار حرفي)
+
+
 class ArtisanActivityStat(BaseModel):
     """عدد الطلبات لكل حرفي اليوم/الشهر/السنة — لعمود الأدمن (Bar Chart)."""
 

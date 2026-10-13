@@ -25,6 +25,7 @@ from sqlmodel import Session, select
 
 from app.database import get_session
 from app.models import (
+    Agreement, AgreementServiceLink, Company,
     Artisan, Complaint, ComplaintStatus, MembershipStatus, NotificationType, ResidentProfile, Review,
     Service, ServiceRequest, RequestStatus, User, UserRole,
 )
@@ -32,6 +33,8 @@ from app.notifications import notify
 from app.history import record_event
 from app.payments import summarize
 from app.schemas import (
+    CompanyArtisanRead,
+    PartnerCompanyRead,
     PaymentsSummary,
     ArtisanRead,
     ArtisanCountStats,
@@ -332,6 +335,60 @@ def get_all_requests(
         query = query.where(ServiceRequest.status == status_filter)
     requests = session.exec(query.order_by(ServiceRequest.created_at.desc())).all()
     return [request_to_read(req, session) for req in requests]
+
+@router.get("/companies", response_model=List[PartnerCompanyRead])
+def partner_companies(
+    session: Session = Depends(get_session),
+    admin: User = Depends(compound_admin),
+):
+    """شركات الصيانة المتعاونة ويه المجمع (اتفاقيات فعّالة)، خدمات كل وحدة، وحرفييها وشغلهم بالمجمع."""
+    rows = session.exec(
+        select(Company, AgreementServiceLink.service_id)
+        .join(Agreement, Agreement.company_id == Company.id)
+        .join(AgreementServiceLink, AgreementServiceLink.agreement_id == Agreement.id)
+        .where(Agreement.compound_id == admin.compound_id, Agreement.is_active == True,  # noqa: E712
+               Company.is_active == True)  # noqa: E712
+    ).all()
+    companies: dict = {}
+    for company, service_id in rows:
+        companies.setdefault(company.id, (company, set()))[1].add(service_id)
+    if not companies:
+        return []
+
+    service_names = {s.id: s.name for s in session.exec(select(Service)).all()}
+    requests = session.exec(_compound_requests_query(admin)).all()
+    active, completed = {}, {}
+    for r in requests:
+        if r.artisan_id is None:
+            continue
+        if r.status in (RequestStatus.accepted, RequestStatus.in_progress):
+            active[r.artisan_id] = active.get(r.artisan_id, 0) + 1
+        elif r.status == RequestStatus.completed:
+            completed[r.artisan_id] = completed.get(r.artisan_id, 0) + 1
+    open_by_service = {}
+    for r in requests:
+        if r.artisan_id is None and r.status == RequestStatus.pending:
+            open_by_service[r.service_id] = open_by_service.get(r.service_id, 0) + 1
+
+    result = []
+    for company, service_ids in companies.values():
+        artisans = session.exec(
+            select(Artisan).join(User, User.id == Artisan.user_id).where(User.company_id == company.id)
+        ).all()
+        reads = []
+        for a in artisans:
+            base = artisan_to_read(a, session)
+            reads.append(CompanyArtisanRead(**base.model_dump(), active_jobs=active.get(a.id, 0),
+                                            completed_jobs=completed.get(a.id, 0)))
+        reads.sort(key=lambda x: (x.status != "approved", -(x.completed_jobs), x.name or ""))
+        ids = sorted(service_ids)
+        result.append(PartnerCompanyRead(
+            id=company.id, name=company.name, phone=company.phone,
+            service_ids=ids, service_names=[service_names.get(i, "") for i in ids],
+            artisans=reads, open_requests=sum(open_by_service.get(i, 0) for i in ids),
+        ))
+    return sorted(result, key=lambda c: c.name)
+
 
 @router.get("/artisans/activity", response_model=List[ArtisanActivityStat])
 def get_artisans_activity(

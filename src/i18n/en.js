@@ -22,6 +22,7 @@ const en = {
     profile: 'My profile',
   },
   adminNav: {
+    companies: 'Maintenance companies',
     complaints: 'Complaints',
     dashboard: 'Dashboard',
     residents: 'Residents',
@@ -1197,6 +1198,22 @@ const en = {
       company: 'Enter as maintenance company',
       owner: 'Enter as platform owner',
     },
+  },
+  adminCompanies: {
+    title: 'Maintenance companies',
+    subtitle: "The companies working with this compound, the services each covers under its agreement, and their artisans.",
+    totals: '{companies} companies · {artisans} artisans · {services} services covered',
+    search: 'Search by company, service or artisan...',
+    artisansCount: '{active} of {total} artisans active',
+    openRequests: '{n} requests awaiting an artisan',
+    services: 'Services under the agreement',
+    noArtisans: "This company hasn't added artisans yet.",
+    activeJobs: '{n} current jobs',
+    completedJobs: '{n} completed',
+    viewRequests: 'Their requests',
+    empty: 'No maintenance companies work with this compound yet.',
+    emptyHint: 'The platform owner adds agreements between compounds and maintenance companies.',
+    note: 'View only: each company adds and pauses its own artisans, and the platform owner manages agreements and services.',
   },
 }
 

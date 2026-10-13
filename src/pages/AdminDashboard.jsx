@@ -309,7 +309,7 @@ function AdminDashboard() {
                 label={translate('adminWorkspace.kpi.artisans')}
                 value={view.activeArtisans}
                 definition={fill('company.overview.activeOf', { active: view.activeArtisans, total: view.artisans })}
-                to="/admin/artisans"
+                to="/admin/companies"
               />
             </li>
             <li>

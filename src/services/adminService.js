@@ -138,3 +138,22 @@ export async function setReviewVisibility(requestId, hidden) {
   const row = await apiPut(`/admin/requests/${requestId}/review/visibility?hidden=${hidden}`)
   return mapReviewDetailed(row)
 }
+
+// شركات الصيانة المتعاونة ويه المجمع: خدماتها حسب الاتفاقية وحرفييها وشغلهم بالمجمع
+export async function getPartnerCompanies() {
+  return (await apiGet('/admin/companies')).map((c) => ({
+    id: c.id,
+    name: c.name,
+    phone: c.phone || '',
+    serviceIds: c.service_ids,
+    serviceNames: c.service_names,
+    openRequests: c.open_requests,
+    artisans: c.artisans.map((a) => ({
+      ...mapAdminArtisan(a),
+      rating: a.average_rating,
+      reviewsCount: a.reviews_count,
+      activeJobs: a.active_jobs,
+      completedJobs: a.completed_jobs,
+    })),
+  }))
+}
